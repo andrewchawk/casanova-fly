@@ -45,8 +45,11 @@ open import Data.Rational
         )
 open import Data.Product
 open import Data.List.Relation.Unary.Any using (any?)
+open import Data.Fin as Fin using (Fin)
 
 import Data.List as List
+import Data.Nat.Coprimality as Coprimality
+import Data.Integer
 \end{code}
 
 \chapter{Useful Abbreviations and Associated Functions}
@@ -68,6 +71,118 @@ condenseExceptions : {a : Level} ->
 condenseExceptions (inj₂ x) (inj₂ y) = inj₂ (x , y)
 condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
+\end{code}
+
+\chapter{The Computer Algebra System Types}
+
+\section{The Type of Mostly-Unverified Computer Algebra Systems}
+Fundamentally, a computer algebra system for an expression type \(\epsilon\) can be thought of as being a combination of the following:
+
+\begin{itemize}
+  \item a single-step evaluation function which is capable of describing failures,
+  \item a proof of decidable structural equality of \(\epsilon\) values,
+  \item a function which determines certain algebraic equality on non-bogus \(\epsion\) values,
+  \item a function which converts natural number values into \(\epsilon\) values,
+  \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
+  \item a function which performs the maximum number of evaluation steps on the input, and
+  \item a function which displays all evaluation steps which are used on a given input.
+\end{itemize}
+
+\AgdaDatatype{CAS} is the type of such computer algebra systems.
+
+\subsection{The Single-Step Evaluation Function}
+If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
+
+For the purposes of this document, an ``evaluation step'' is the application of a basic operation, e.g., addition or commuting the arguments of a function.  More formally, one can say that an evaluation step is the application of an operation which cannot be further simplified or decomposed into simpler operations.
+
+\subsection{The Proof of Structural Equality}
+This one, which is represented via the \AgdaField{structuralEquality} field, should be simple enough for anyone who is familiar with \AgdaFunction{DecidableEquality}.
+
+\subsection{The Algebraic Equality Function}
+The algebriac equality function is a function \(f\) such that \(\left(f x y\right)\) is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{true} if and only if the CAS can certainly determine that \(x\) is algebraically equal to \(y\).  \AgdaInductiveConstructor{inj₁} values contain descriptions of errors.  The output is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{false} if and only if the CAS \emph{cannot} certainly determine that the arguments are algebraically equal.  This function is represented through \AgdaField{definitelyEquals}.
+
+\subsection{The Natural-to-ε Function}
+The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
+
+\subsection{The Natural Number Proofs}
+In addition to the basic mapping, proofs of the following attributes should exist:
+
+\begin{itemize}
+  \item Any two natural numbers differ only if the CAS's representations of the numbers differ.
+\end{itemize}
+
+\subsection{The Tracing Maximum Evaluation Function}
+A compliant CAS also has a function which performs the maximum number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
+
+\subsection{The Non-Tracing Maximum Evaluation Function}
+A compliant CAS also has a function which performs the maximum number of non-repeating simplification steps on the input but just returns the resulting exception or expression.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{rEvaluate}.
+
+\subsection{The Definition Proper}
+
+\begin{code}
+record CAS {a : Level} (ε : Set a) : Set a where
+  field
+    exceptionallyEvaluate : ε -> Exceptional ε
+    structuralEquality : DecidableEquality ε
+    definitelyEquals : ε -> ε -> Exceptional Bool
+    fromℕ : ℕ -> ε
+    different-if-nats-are-different :
+      {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
+    structural-equality-implies-definite-equality :
+      (e1 e2 : ε) ->
+      e1 ≡ e2 ->
+      inj₂ true ≡ definitelyEquals e1 e2
+
+  traceEvaluate : ε -> List.List (Exceptional ε)
+  traceEvaluate = nrp ∘ possibleEvaluationSteps ∘ inj₂
+    where
+    possibleEvaluationSteps : Exceptional ε -> List.List (Exceptional ε)
+    possibleEvaluationSteps (inj₁ exc) = List.[ inj₁ exc ]
+    possibleEvaluationSteps (inj₂ e) =
+      inj₂ e List.∷ possibleEvaluationSteps (exceptionallyEvaluate e)
+    nrp : List.List (Exceptional ε) -> List.List (Exceptional ε)
+    nrp = nrpHelper List.[]
+      where
+      nrpHelper : List.List (Exceptional ε) ->
+                  List.List (Exceptional ε) ->
+                  List.List (Exceptional ε)
+      nrpHelper x List.[] = x
+      nrpHelper x (inj₁ y List.∷ ys) = x List.++ List.[ inj₁ y ]
+      nrpHelper x (inj₂ y List.∷ ys) with any? (structuralEquality y) (inj2s x)
+        where
+        inj2s : {a b : Level} ->
+                {A : Set a} ->
+                {B : Set b} ->
+                List.List (A ⊎ B) ->
+                List.List B
+        inj2s List.[] = List.[]
+        inj2s (inj₁ x List.∷ xs) = inj2s xs
+        inj2s (inj₂ x List.∷ xs) = x List.∷ inj2s xs
+      ... | no unique = nrpHelper (x List.++ List.[ inj₂ y ]) ys
+      ... | yes iveSeenEverythingBefore = x
+
+  rEvaluate : ε -> Exceptional ε
+  rEvaluate e = fromMaybe (inj₂ e) (List.last (traceEvaluate e))
+\end{code}
+
+\section{The Type of Verified Computer Algebra Systems}
+For the purposes of this document, a verified computer algebra system is the combination of a \AgdaDatatype{CAS} computer algebra system \emph{and} some guarantees about the functions which are derived from the fields of the \AgdaDatatype{CAS} record.  The non-\AgdaDatatype{CAS} parts of the combination are as follows:
+
+\begin{itemize}
+ a proof which indicates that any non-bogus element \(e\) of type \AgdaBound{ε} is definitely equal to \(e\).
+\end{itemize}
+
+\subsection{The Reflexivity Field}
+
+\subsection{The Definition Proper}
+
+\begin{code}
+record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
+  open CAS Cas
+  field
+    reflexivity : (e : ε) ->
+                  Is-just (isInj₁ (rEvaluate e)) ->
+                  inj₂ true ≡ definitelyEquals e e
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -190,44 +305,6 @@ commutativeEvaluate : ε -> Exceptional ε
 commutativeEvaluate = {!!}
 \end{code}
 
-\section{The Recursive Trace Evaluation Function}
-Until a repeat is encountered, this function performs all available recursion steps for the input, returning the list of all recursion steps which were used.
-
-\begin{code}
-traceEvaluate : ε -> List.List (Exceptional ε)
-traceEvaluate = nrp ∘ possibleEvaluationSteps ∘ inj₂
-  where
-  possibleEvaluationSteps : Exceptional ε -> List.List (Exceptional ε)
-  possibleEvaluationSteps (inj₁ exc) = List.[ inj₁ exc ]
-  possibleEvaluationSteps (inj₂ e) = inj₂ e List.∷ possibleEvaluationSteps (commutativeEvaluate e)
-  nrp : List.List (Exceptional ε) -> List.List (Exceptional ε)
-  nrp = nrpHelper List.[]
-    where
-    nrpHelper : List.List (Exceptional ε) -> List.List (Exceptional ε) -> List.List (Exceptional ε)
-    nrpHelper x List.[] = x
-    nrpHelper x (inj₁ y List.∷ ys) = x List.++ List.[ inj₁ y ]
-    nrpHelper x (inj₂ y List.∷ ys) with any? (structuralEqualityOnε y) (inj2s x)
-      where
-      inj2s : {a b : Level} ->
-              {A : Set a} ->
-              {B : Set b} ->
-              List.List (A ⊎ B) ->
-              List.List B
-      inj2s List.[] = List.[]
-      inj2s (inj₁ x List.∷ xs) = inj2s xs
-      inj2s (inj₂ x List.∷ xs) = x List.∷ inj2s xs
-    ... | no unique = nrpHelper (x List.++ List.[ inj₂ y ]) ys
-    ... | yes iveSeenEverythingBefore = x
-\end{code}
-
-\section{The Non-Tracing Recursive Evaluation Function}
-Until no more steps can really be taken, \AgdaFunction{recursiveCommutativeEvaluate} \AgdaBound{e} performs evaluation steps on \AgdaBound{e}.  The output is the last different evaluation step, which may or may not indicate failure.
-
-\begin{code}
-recursiveCommutativeEvaluate : ε -> Exceptional ε
-recursiveCommutativeEvaluate e = fromMaybe (inj₂ e) (List.last (traceEvaluate e))
-\end{code}
-
 \section{The Algebraic Equality Function}
 If some sort of failure is encountered, then an appropriate exception is output.  Otherwise, \AgdaFunction{definitelyEquals} \AgdaBound{e} \AgdaBound{f} is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{true} if and only if the function determines that \AgdaBound{e} is algebraically equal to \AgdaBound{f}.
 
@@ -290,5 +367,27 @@ module CommutativeEvaluationProperties where
     inj₂ (NumberRat ℚ.1ℚ) ≡
       exceptionallyEvaluate (Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberRat ℚ.0ℚ ]))
   0^0-is-1 = {!!}
+\end{code}
+
+\chapter{Wrapping up Everything}
+
+\begin{code}
+CasanovaFly-Base : CAS ε
+CasanovaFly-Base = record
+  { exceptionallyEvaluate = commutativeEvaluate
+  ; structuralEquality = structuralEqualityOnε
+  ; definitelyEquals = definitelyEquals
+  ; fromℕ = \ n ->
+      NumberRat (ℚ.mkℚ (Data.Integer.+ n)
+                       0
+                       (Coprimality.sym (Coprimality.1-coprimeTo n)))
+  ; different-if-nats-are-different = {!!}
+  ; structural-equality-implies-definite-equality = {!!}
+  }
+
+CasanovaFly-Verified : VCAS ε CasanovaFly-Base
+CasanovaFly-Verified = record
+  {reflexivity = {!!}
+  }
 \end{code}
 \end{document}
