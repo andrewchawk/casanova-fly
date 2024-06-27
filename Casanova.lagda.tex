@@ -117,11 +117,11 @@ In addition to the basic mapping, proofs of the following attributes should exis
 \subsection{The Structural-Equivalence-to-Algebraic-Equality Function}
 Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the same way only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{structural-equality-implies-definite-equality}.
 
-\subsection{The Tracing Maximum Evaluation Function}
-A compliant CAS also has a function which performs the maximum number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
+\subsection{The Tracing Recursive Evaluation Function}
+A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
 
 \subsection{The Non-Tracing Maximum Evaluation Function}
-A compliant CAS also has a function which performs the maximum number of non-repeating simplification steps on the input but just returns the resulting exception or expression.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{rEvaluate}.
+A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input but just returns the resulting exception or expression.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{rEvaluate}.
 
 \subsection{The Definition Proper}
 
@@ -140,18 +140,19 @@ record CAS {a : Level} (ε : Set a) : Set a where
       e1 ≡ e2 ->
       inj₂ true ≡ definitelyEquals e1 e2
 
-  traceEvaluate : ε -> List.List (Exceptional ε)
-  traceEvaluate = t List.[] ∘ inj₂
+  traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
+  traceEvaluate maxIter = t maxIter List.[] ∘ inj₂
     where
-    t : List.List (Exceptional ε) -> Exceptional ε -> List.List (Exceptional ε)
-    t xs (inj₁ x) = xs List.++ List.[ inj₁ x ]
-    t xs e@(inj₂ x) with any? is-e xs
+    t : ℕ -> List.List (Exceptional ε) -> Exceptional ε -> List.List (Exceptional ε)
+    t ℕ.zero xs e = xs
+    t (ℕ.suc iters) xs (inj₁ x) = xs List.++ List.[ inj₁ x ]
+    t (ℕ.suc iters) xs e@(inj₂ x) with any? is-e xs
       where is-e = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality e
     ... | yes _ = xs
-    ... | no _ = t (xs List.++ List.[ inj₂ x ]) (exceptionallyEvaluate x)
+    ... | no _ = t iters (xs List.++ List.[ inj₂ x ]) (exceptionallyEvaluate x)
 
-  rEvaluate : ε -> Exceptional ε
-  rEvaluate e = fromMaybe (inj₂ e) (List.last (traceEvaluate e))
+  rEvaluate : ℕ -> ε -> Exceptional ε
+  rEvaluate n e = fromMaybe (inj₂ e) (List.last (traceEvaluate n e))
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
@@ -175,11 +176,12 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
   open CAS Cas
   field
     reflexivity : (e : ε) ->
-                  Is-just (isInj₁ (rEvaluate e)) ->
+                  (n : ℕ) ->
+                  Is-just (isInj₁ (rEvaluate n e)) ->
                   inj₂ true ≡ definitelyEquals e e
     sum-of-nats-is-nat-sum :
-      (n1 n2 : ℕ) ->
-      rEvaluate (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
+      (n1 n2 iterations : ℕ) ->
+      rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
         inj₂ (fromℕ (n1 + n2))
 \end{code}
 
