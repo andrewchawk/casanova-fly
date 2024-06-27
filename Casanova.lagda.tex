@@ -85,6 +85,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which determines certain algebraic equality on non-bogus \(\epsion\) values,
   \item a function which converts natural number values into \(\epsilon\) values,
   \item a function which converts the two input expressions into a representation of the sum of the input expressions,
+  \item a function which converts the two input expressions into a representation of the quotient of the input expressions,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that two values are structurally equivalent only if these same values are also algebraically equal,
   \item a function which performs the maximum number of evaluation steps on the input, and
@@ -106,6 +107,12 @@ The algebriac equality function is a function \(f\) such that \(\left(f x y\righ
 
 \subsection{The Natural-to-ε Function}
 The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
+
+\subsection{The Sum Function}
+Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{sumRepresentation} values are unevaluated sum functions.  More formally, \AgdaField{CAS.sumRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
+
+\subsection{The Quotient Function}
+Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{quotientRepresentation} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.quotientRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Natural Number Proofs}
 In addition to the basic mapping, proofs of the following attributes should exist:
@@ -133,6 +140,7 @@ record CAS {a : Level} (ε : Set a) : Set a where
     definitelyEquals : ε -> ε -> Exceptional Bool
     fromℕ : ℕ -> ε
     sumRepresentation : ε -> ε -> ε
+    quotientRepresentation : ε -> ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     structural-equality-implies-definite-equality :
@@ -149,7 +157,7 @@ record CAS {a : Level} (ε : Set a) : Set a where
     t (ℕ.suc iters) xs e@(inj₂ x) with any? is-e xs
       where is-e = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality e
     ... | yes _ = xs
-    ... | no _ = t iters (xs List.++ List.[ inj₂ x ]) (exceptionallyEvaluate x)
+    ... | no _ = t iters (xs List.++ List.[ e ]) (exceptionallyEvaluate x)
 
   rEvaluate : ℕ -> ε -> Exceptional ε
   rEvaluate n e = fromMaybe (inj₂ e) (List.last (traceEvaluate n e))
@@ -382,6 +390,8 @@ CasanovaFly-Base = record
                        0
                        (Coprimality.sym (Coprimality.1-coprimeTo n)))
   ; sumRepresentation = \ a b -> Ap Sum (a ∷ b ∷ [])
+  ; quotientRepresentation = \ x y ->
+     Ap Product (x ∷ Ap Exponent (y ∷ Ap Negate (NumberRat ℚ.1ℚ ∷ []) ∷ []) ∷ [])
   ; different-if-nats-are-different = {!!}
   ; structural-equality-implies-definite-equality = {!!}
   }
