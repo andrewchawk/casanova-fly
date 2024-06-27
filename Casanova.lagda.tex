@@ -111,6 +111,9 @@ The author thinks that any computer algebra system which is worthy of being give
 \subsection{The Sum Function}
 Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{sumRepresentation} values are unevaluated sum functions.  More formally, \AgdaField{CAS.sumRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
 
+\subsection{The Product Function}
+A decent CAS can represent the unevaluated product of two expressions.  Accordingly, \AgdaField{productRepresentation} values represent unevaluated products.  More formally, one can say that \AgdaField{CAS.productRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated product of \AgdaBound{x} and \AgdaBound{y}.
+
 \subsection{The Quotient Function}
 Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{quotientRepresentation} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.quotientRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
 
@@ -140,6 +143,7 @@ record CAS {a : Level} (ε : Set a) : Set a where
     definitelyEquals : ε -> ε -> Exceptional Bool
     fromℕ : ℕ -> ε
     sumRepresentation
+     productRepresentation
      quotientRepresentation : ε -> ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
@@ -376,6 +380,7 @@ CasanovaFly-Base = record
                        0
                        (Coprimality.sym (Coprimality.1-coprimeTo n)))
   ; sumRepresentation = \ a b -> Ap Sum (a ∷ b ∷ [])
+  ; productRepresentation = \ x y -> Ap Product (x ∷ [ y ])
   ; quotientRepresentation = \ x y ->
      Ap Product (x ∷ Ap Exponent (y ∷ Ap Negate (NumberRat ℚ.1ℚ ∷ []) ∷ []) ∷ [])
   ; different-if-nats-are-different = {!!}
