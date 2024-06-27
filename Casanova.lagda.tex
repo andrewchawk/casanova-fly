@@ -139,14 +139,12 @@ record CAS {a : Level} (ε : Set a) : Set a where
     structuralEquality : DecidableEquality ε
     definitelyEquals : ε -> ε -> Exceptional Bool
     fromℕ : ℕ -> ε
-    sumRepresentation : ε -> ε -> ε
-    quotientRepresentation : ε -> ε -> ε
+    sumRepresentation
+     quotientRepresentation : ε -> ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     structural-equality-implies-definite-equality :
-      (e1 e2 : ε) ->
-      e1 ≡ e2 ->
-      inj₂ true ≡ definitelyEquals e1 e2
+      (e1 e2 : ε) -> e1 ≡ e2 -> inj₂ true ≡ definitelyEquals e1 e2
 
   traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
   traceEvaluate maxIter = t maxIter List.[] ∘ inj₂
