@@ -1,0 +1,308 @@
+\documentclass{report}
+
+\usepackage{newunicodechar}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{parskip}
+% The coloring distracts the author.
+\usepackage[bw]{agda}
+
+% What is a good place for this crap?
+\newunicodechar{⊤}{\ensuremath{\mathnormal{\top}}}
+\newunicodechar{ℕ}{\ensuremath{\mathnormal{\mathbb{N}}}}
+\newunicodechar{₁}{\ensuremath{\mathnormal{_1}}}
+\newunicodechar{₂}{\ensuremath{\mathnormal{_2}}}
+\newunicodechar{≅}{\ensuremath{\mathnormal{\cong}}}
+
+\title{Casanova Fly: A Formally-Verified Computer Algebra System}
+
+\begin{document}
+\maketitle{}
+
+\begin{abstract}
+The author presents a formally-verified computer algebra system.
+\end{abstract}
+
+\chapter{Prerequisites for Understanding}
+The author recommends that anyone who tries to understand Casanova Fly is familiar with the following modules:
+
+\begin{code}
+open import Function
+open import Data.Fin using (Fin)
+open import Data.Nat
+open import Data.Sum
+open import Level
+open import Data.String
+open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Data.Vec
+open import Data.Maybe
+open import Relation.Nullary
+open import Relation.Binary
+open import Data.Bool
+open import Data.Rational.Unnormalised
+  as ℚ
+  using (ℚᵘ
+        )
+open import Data.Product
+open import Data.List.Relation.Unary.Any using (any?)
+
+import Data.List as List
+\end{code}
+
+\chapter{Useful Abbreviations and Associated Functions}
+A value of type \AgdaFunction{Exceptional} \AgdaBound{A} can be a success-indicating value of \AgdaBound{A} or a \AgdaPostulate{String} which describes some sort of failure.
+
+\begin{code}
+Exceptional : {a : Level} -> Set a -> Set a
+Exceptional A = String ⊎ A
+\end{code}
+
+If no values are exceptional, then the output contains the combination of both non-exceptional values.  Otherwise, the output contains the first exceptional value.
+
+\begin{code}
+condenseExceptions : {a : Level} ->
+                     {A : Set a} ->
+                     Exceptional A ->
+                     Exceptional A ->
+                     Exceptional (A × A)
+condenseExceptions (inj₂ x) (inj₂ y) = inj₂ (x , y)
+condenseExceptions (inj₁ e) _ = inj₁ e
+condenseExceptions _ (inj₁ e) = inj₁ e
+\end{code}
+
+\chapter{The Core Datatypes and Associated Functions}
+
+\section{Type Declarations}
+
+\subsection{\AgdaDatatype{F}'s Type and Summary}
+Values of type \AgdaDatatype{F} represent functions.
+
+\begin{code}
+data F : Set
+\end{code}
+
+\subsection{\AgdaDatatype{ε}'s Type and Summary}
+Values of \AgdaDatatype{ε} represent expressions.
+
+\begin{code}
+data ε : Set
+\end{code}
+
+\section{The Actual Definitions\ldots and Supporting Functions}
+
+\subsection{Completing \AgdaDatatype{F}'s Definition}
+
+\begin{code}
+data F where
+  -- | @Abs@ represents the absolute value function.
+  Abs
+   -- | @Negate@ represents the negation function.
+   Negate
+   -- | @Sum@ represents the sum function.
+   Sum
+   -- | @Difference@ represents the difference, i.e., subtraction, function.
+   Difference
+   -- | @Product@ represents the product, i.e., multiplication, function.
+   Product
+   -- | @Exponent@ represents the exponentiation function.
+   Exponent : F
+  -- | @Lambda names body@ represents a lambda function whose bound variables
+  -- are listen in @names@ and whose body is @body@.  Alternatively, if @names@
+  -- consists of values @n1@, @n2@, @n3@, and so on, one could say that
+  -- @Lambda names body@ is equivalent to Agda's @\ n1 n2 n3 ... -> body2@, where
+  -- @body2@ is an expansion of @body@.
+  Lambda : List.List String -> ε -> F
+\end{code}
+
+\subsection{The Arity-Determining Function}
+\AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
+
+\begin{code}
+arity : F -> ℕ
+arity Abs = 1
+arity Negate = 1
+arity Sum = 2
+arity Difference = 2
+arity Product = 2
+arity Exponent = 2
+arity (Lambda names body) = List.length names
+\end{code}
+
+\subsection{The Commutativity-Determining Function}
+\AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
+
+\begin{code}
+isCommutative : (f : F) -> arity f ≡ 2 -> Bool
+isCommutative Sum refl = true
+isCommutative Difference refl = false
+isCommutative Product refl = true
+isCommutative Exponent refl = false
+isCommutative (Lambda names body) equality = false
+\end{code}
+
+\subsection{Completing \AgdaDatatype{ε}'s Definition}
+
+\begin{code}
+data ε where
+  -- | @Infinity@ represents infinity.
+  Infinity : ε
+  -- | @Variable s@ represents a variable whose name is @n@.
+  Variable : String -> ε
+  -- | @NumberNat n@ represents @n@.
+  NumberNat : ℕ -> ε
+  -- | @NumberNat q@ represents @q@.
+  NumberRat : ℚᵘ -> ε
+  -- | @Ap f e@ represents the result of applying @f@ to @e@.
+  Ap : (f : F) -> Vec ε (arity f) -> ε
+\end{code}
+
+\section{Additional Functions}
+
+\subsection{Decidable Structural Equality on \AgdaDatatype{F}}
+This function is used to determine whether or not the input arguments are structurally equivalent.
+
+\begin{code}
+structuralEqualityOnF : DecidableEquality F
+structuralEqualityOnF = {!!}
+\end{code}
+
+\subsection{Decidable Structural Equality on \AgdaDatatype{ε}}
+This function is used to determine whether or not the input arguments are structurally equivalent.
+
+\begin{code}
+structuralEqualityOnε : DecidableEquality ε
+structuralEqualityOnε = {!!}
+\end{code}
+
+\chapter{Computational Functions and Ilk}
+
+\section{The Single-Step Evaluation Function}
+\AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
+
+\begin{code}
+exceptionallyEvaluate : ε -> Exceptional ε
+exceptionallyEvaluate = {!!}
+\end{code}
+
+\section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
+\AgdaFunction{commutativeEvaluate} \AgdaBound{e} performs a single evaluation step on the input expression but can also do some fancy stuff when applicable, e.g., switching the arguments of commutative functions.
+
+\begin{code}
+commutativeEvaluate : ε -> Exceptional ε
+commutativeEvaluate = {!!}
+\end{code}
+
+\section{The Recursive Trace Evaluation Function}
+Until a repeat is encountered, this function performs all available recursion steps for the input, returning the list of all recursion steps which were used.
+
+\begin{code}
+traceEvaluate : ε -> List.List (Exceptional ε)
+traceEvaluate = nrp ∘ possibleEvaluationSteps ∘ inj₂
+  where
+  possibleEvaluationSteps : Exceptional ε -> List.List (Exceptional ε)
+  possibleEvaluationSteps (inj₁ exc) = List.[ inj₁ exc ]
+  possibleEvaluationSteps (inj₂ e) = inj₂ e List.∷ possibleEvaluationSteps (commutativeEvaluate e)
+  nrp : List.List (Exceptional ε) -> List.List (Exceptional ε)
+  nrp = nrpHelper List.[]
+    where
+    nrpHelper : List.List (Exceptional ε) -> List.List (Exceptional ε) -> List.List (Exceptional ε)
+    nrpHelper x List.[] = x
+    nrpHelper x (inj₁ y List.∷ ys) = x List.++ List.[ inj₁ y ]
+    nrpHelper x (inj₂ y List.∷ ys) with any? (structuralEqualityOnε y) (inj2s x)
+      where
+      inj2s : {a b : Level} ->
+              {A : Set a} ->
+              {B : Set b} ->
+              List.List (A ⊎ B) ->
+              List.List B
+      inj2s List.[] = List.[]
+      inj2s (inj₁ x List.∷ xs) = inj2s xs
+      inj2s (inj₂ x List.∷ xs) = x List.∷ inj2s xs
+    ... | no unique = nrpHelper (x List.++ List.[ inj₂ y ]) ys
+    ... | yes iveSeenEverythingBefore = x
+\end{code}
+
+\section{The Non-Tracing Recursive Evaluation Function}
+Until no more steps can really be taken, \AgdaFunction{recursiveCommutativeEvaluate} \AgdaBound{e} performs evaluation steps on \AgdaBound{e}.  The output is the last different evaluation step, which may or may not indicate failure.
+
+\begin{code}
+recursiveCommutativeEvaluate : ε -> Exceptional ε
+recursiveCommutativeEvaluate e = fromMaybe (inj₂ e) (List.last (traceEvaluate e))
+\end{code}
+
+\section{The Algebraic Equality Function}
+If some sort of failure is encountered, then an appropriate exception is output.  Otherwise, \AgdaFunction{definitelyEquals} \AgdaBound{e} \AgdaBound{f} is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{true} if and only if the function determines that \AgdaBound{e} is algebraically equal to \AgdaBound{f}.
+
+\begin{code}
+definitelyEquals : ε -> ε -> Exceptional Bool
+definitelyEquals x y = Data.Sum.map₂ (\ exp -> List.or (checks x y))
+                                     (condenseExceptions (e x) (e y))
+  where
+  e = exceptionallyEvaluate
+  checks : ε -> ε -> List.List Bool
+  checks a b = List.map (isYes ∘ uncurry structuralEqualityOnε)
+                        (cartesianProduct (perms x) (perms y))
+    where
+    cartesianProduct : {a b : Level} ->
+                       {A : Set a} ->
+                       {B : Set b} ->
+                       List.List A ->
+                       List.List B ->
+                       List.List (A × B)
+    cartesianProduct x y =
+      List.concat (List.map (\ x -> List.map (\ y -> x , y) y) x)
+    perms : ε -> List.List ε
+    perms (Ap f e) = perms' f (Data.Vec.toList e) {!!}
+      where
+      c : {a : Level} ->
+          {A B : Set a} ->
+          A ≡ B ->
+          A -> B
+      c refl t = t
+      combine : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> ε
+      combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
+                                        (Data.Vec.fromList e))
+      perms' : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> List.List ε
+      perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches with isCommutative f lengthMatches
+      ... | false = List.[ combine f e lengthMatches ]
+      ... | true =
+        f' (reverse (e1 ∷ [ e2 ])) List.∷ f' (e1 ∷ [ e2 ]) List.∷
+        List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (perms e2) List.++
+        List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (perms e1) List.++
+        List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
+                                              List.[ f' (e2 ∷ [ e1 ]) ])
+                              (List.zip (perms e1) (perms e2)))
+        where
+        f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
+      perms' f e lengthMatches = List.[ combine f e lengthMatches ]
+    perms o = List.[ o ]
+\end{code}
+
+\chapter{Proofs of Correctness}
+
+\begin{code}
+module DefinitelyEqualsProperties where
+  reflexivity : (e : ε) -> inj₂ true ≡ definitelyEquals e e
+  reflexivity = {!!}
+
+module CommutativeEvaluationProperties where
+  ce = commutativeEvaluate
+
+  module OpsOnTwoNats (a b : ℕ) where
+    a' = NumberNat a
+    b' = NumberNat b
+
+    sum-is-nat-sum :
+      inj₂ (NumberNat (a + b)) ≡ ce (Ap Sum (a' ∷ [ b' ]))
+    sum-is-nat-sum = {!!}
+
+    product-is-nat-product :
+      inj₂ (NumberNat (a * b)) ≡ ce (Ap Product (a' ∷ [ b' ]))
+    product-is-nat-product = {!!}
+
+  0^0-is-1 :
+    inj₂ (NumberNat 0) ≡
+      exceptionallyEvaluate (Ap Exponent (NumberNat 0 ∷ [ NumberNat 0 ]))
+  0^0-is-1 = {!!}
+\end{code}
+\end{document}
