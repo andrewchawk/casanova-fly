@@ -39,9 +39,9 @@ open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
 open import Data.Bool
-open import Data.Rational.Unnormalised
+open import Data.Rational
   as ℚ
-  using (ℚᵘ
+  using (ℚ
         )
 open import Data.Product
 open import Data.List.Relation.Unary.Any using (any?)
@@ -148,10 +148,8 @@ data ε where
   Infinity : ε
   -- | @Variable s@ represents a variable whose name is @n@.
   Variable : String -> ε
-  -- | @NumberNat n@ represents @n@.
-  NumberNat : ℕ -> ε
   -- | @NumberNat q@ represents @q@.
-  NumberRat : ℚᵘ -> ε
+  NumberRat : ℚ -> ε
   -- | @Ap f e@ represents the result of applying @f@ to @e@.
   Ap : (f : F) -> Vec ε (arity f) -> ε
 \end{code}
@@ -288,21 +286,9 @@ module DefinitelyEqualsProperties where
 module CommutativeEvaluationProperties where
   ce = commutativeEvaluate
 
-  module OpsOnTwoNats (a b : ℕ) where
-    a' = NumberNat a
-    b' = NumberNat b
-
-    sum-is-nat-sum :
-      inj₂ (NumberNat (a + b)) ≡ ce (Ap Sum (a' ∷ [ b' ]))
-    sum-is-nat-sum = {!!}
-
-    product-is-nat-product :
-      inj₂ (NumberNat (a * b)) ≡ ce (Ap Product (a' ∷ [ b' ]))
-    product-is-nat-product = {!!}
-
   0^0-is-1 :
-    inj₂ (NumberNat 0) ≡
-      exceptionallyEvaluate (Ap Exponent (NumberNat 0 ∷ [ NumberNat 0 ]))
+    inj₂ (NumberRat ℚ.1ℚ) ≡
+      exceptionallyEvaluate (Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberRat ℚ.0ℚ ]))
   0^0-is-1 = {!!}
 \end{code}
 \end{document}
