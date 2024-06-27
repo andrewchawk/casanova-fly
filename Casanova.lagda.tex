@@ -169,8 +169,9 @@ record CAS {a : Level} (ε : Set a) : Set a where
 For the purposes of this document, a verified computer algebra system is the combination of a \AgdaDatatype{CAS} computer algebra system \emph{and} some guarantees about the functions which are derived from the fields of the \AgdaDatatype{CAS} record.  The non-\AgdaDatatype{CAS} parts of the combination are as follows:
 
 \begin{itemize}
- \item a proof which indicates that any non-bogus element \(e\) of type \AgdaBound{ε} is definitely equal to \(e\) and
- \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\).
+ \item a proof which indicates that any non-bogus element \(e\) of type \AgdaBound{ε} is definitely equal to \(e\),
+ \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\), and
+ \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\).
 \end{itemize}
 
 \subsection{The Reflexivity Field}
@@ -178,6 +179,9 @@ For any \AgdaRecord{VCAS} computer algebra system \(c\), a proof which indicates
 
 \subsection{The Natural Number Sum Field}
 Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural number should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  However, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proof which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
+
+\subsection{The 1-Product Field}
+\AgdaField{VCAS.product-of-e-and-1-is-e} \AgdaBound{c} indicates that for any non-bogus value \(e\) of the expression type for \AgdaBound{c}, the product of \(e\) and one is equal to \(e\).
 
 \subsection{The Definition Proper}
 
@@ -193,6 +197,11 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
       (n1 n2 iterations : ℕ) ->
       rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
         inj₂ (fromℕ (n1 + n2))
+    product-of-e-and-1-is-e :
+      (e : ε) ->
+      (iterations : ℕ)
+      (isJust : Is-just (isInj₂ (rEvaluate iterations e))) ->
+      inj₂ true ≡ definitelyEquals (productRepresentation e (fromℕ 1)) e
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -391,6 +400,7 @@ CasanovaFly-Verified : VCAS ε CasanovaFly-Base
 CasanovaFly-Verified = record
   {reflexivity = {!!}
   ; sum-of-nats-is-nat-sum = {!!}
+  ; product-of-e-and-1-is-e = {!!}
   }
 \end{code}
 \end{document}
