@@ -223,8 +223,6 @@ data F where
    Negate
    -- | @Sum@ represents the sum function.
    Sum
-   -- | @Difference@ represents the difference, i.e., subtraction, function.
-   Difference
    -- | @Product@ represents the product, i.e., multiplication, function.
    Product
    -- | @Exponent@ represents the exponentiation function.
@@ -245,7 +243,6 @@ arity : F -> ℕ
 arity Abs = 1
 arity Negate = 1
 arity Sum = 2
-arity Difference = 2
 arity Product = 2
 arity Exponent = 2
 arity (Lambda names body) = List.length names
@@ -257,7 +254,6 @@ arity (Lambda names body) = List.length names
 \begin{code}
 isCommutative : (f : F) -> arity f ≡ 2 -> Bool
 isCommutative Sum refl = true
-isCommutative Difference refl = false
 isCommutative Product refl = true
 isCommutative Exponent refl = false
 isCommutative (Lambda names body) equality = false
