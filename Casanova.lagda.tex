@@ -359,10 +359,10 @@ module DefinitelyEqualsProperties where
 module CommutativeEvaluationProperties where
   ce = commutativeEvaluate
 
-  0^0-is-1 :
-    inj₂ (NumberRat ℚ.1ℚ) ≡
-      exceptionallyEvaluate (Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberRat ℚ.0ℚ ]))
-  0^0-is-1 = {!!}
+  0^0-is-nonsense :
+    Is-just (isInj₁ (exceptionallyEvaluate
+      (Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberRat ℚ.0ℚ ]))))
+  0^0-is-nonsense = {!!}
 \end{code}
 
 \chapter{Wrapping up Everything}
