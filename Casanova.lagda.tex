@@ -84,7 +84,9 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a proof of decidable structural equality of \(\epsilon\) values,
   \item a function which determines certain algebraic equality on non-bogus \(\epsion\) values,
   \item a function which converts natural number values into \(\epsilon\) values,
+  \item a function which converts the two input expressions into a representation of the sum of the input expressions,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
+  \item a proof which indicates that two values are structurally equivalent only if these same values are also algebraically equal,
   \item a function which performs the maximum number of evaluation steps on the input, and
   \item a function which displays all evaluation steps which are used on a given input.
 \end{itemize}
@@ -112,6 +114,9 @@ In addition to the basic mapping, proofs of the following attributes should exis
   \item Any two natural numbers differ only if the CAS's representations of the numbers differ.
 \end{itemize}
 
+\subsection{The Structural-Equivalence-to-Algebraic-Equality Function}
+Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the same way only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{structural-equality-implies-definite-equality}.
+
 \subsection{The Tracing Maximum Evaluation Function}
 A compliant CAS also has a function which performs the maximum number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
 
@@ -127,6 +132,7 @@ record CAS {a : Level} (ε : Set a) : Set a where
     structuralEquality : DecidableEquality ε
     definitelyEquals : ε -> ε -> Exceptional Bool
     fromℕ : ℕ -> ε
+    sumRepresentation : ε -> ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     structural-equality-implies-definite-equality :
@@ -152,10 +158,15 @@ record CAS {a : Level} (ε : Set a) : Set a where
 For the purposes of this document, a verified computer algebra system is the combination of a \AgdaDatatype{CAS} computer algebra system \emph{and} some guarantees about the functions which are derived from the fields of the \AgdaDatatype{CAS} record.  The non-\AgdaDatatype{CAS} parts of the combination are as follows:
 
 \begin{itemize}
- a proof which indicates that any non-bogus element \(e\) of type \AgdaBound{ε} is definitely equal to \(e\).
+ \item a proof which indicates that any non-bogus element \(e\) of type \AgdaBound{ε} is definitely equal to \(e\) and
+ \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\).
 \end{itemize}
 
 \subsection{The Reflexivity Field}
+For any \AgdaRecord{VCAS} computer algebra system \(c\), a proof which indicates that any non-bogus value \(e\) of the expression type for \(c\) is definitely equal to \(e\).  With \AgdaRecord{VCAS}, this proof is shown through \AgdaField{reflexivity}.
+
+\subsection{The Natural Number Sum Field}
+Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural number should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  However, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proof which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
 
 \subsection{The Definition Proper}
 
@@ -166,6 +177,10 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
     reflexivity : (e : ε) ->
                   Is-just (isInj₁ (rEvaluate e)) ->
                   inj₂ true ≡ definitelyEquals e e
+    sum-of-nats-is-nat-sum :
+      (n1 n2 : ℕ) ->
+      rEvaluate (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
+        inj₂ (fromℕ (n1 + n2))
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -364,6 +379,7 @@ CasanovaFly-Base = record
       NumberRat (ℚ.mkℚ (Data.Integer.+ n)
                        0
                        (Coprimality.sym (Coprimality.1-coprimeTo n)))
+  ; sumRepresentation = \ a b -> Ap Sum (a ∷ b ∷ [])
   ; different-if-nats-are-different = {!!}
   ; structural-equality-implies-definite-equality = {!!}
   }
@@ -371,6 +387,7 @@ CasanovaFly-Base = record
 CasanovaFly-Verified : VCAS ε CasanovaFly-Base
 CasanovaFly-Verified = record
   {reflexivity = {!!}
+  ; sum-of-nats-is-nat-sum = {!!}
   }
 \end{code}
 \end{document}
