@@ -324,16 +324,8 @@ definitelyEquals x y = Data.Sum.map₂ (\ exp -> List.or (checks x y))
   e = exceptionallyEvaluate
   checks : ε -> ε -> List.List Bool
   checks a b = List.map (isYes ∘ uncurry structuralEqualityOnε)
-                        (cartesianProduct (perms x) (perms y))
+                        (List.cartesianProduct (perms x) (perms y))
     where
-    cartesianProduct : {a b : Level} ->
-                       {A : Set a} ->
-                       {B : Set b} ->
-                       List.List A ->
-                       List.List B ->
-                       List.List (A × B)
-    cartesianProduct x y =
-      List.concat (List.map (\ x -> List.map (\ y -> x , y) y) x)
     perms : ε -> List.List ε
     perms (Ap f e) = perms' f (Data.Vec.toList e) {!!}
       where
