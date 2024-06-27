@@ -225,24 +225,24 @@ data ε : Set
 \section{The Actual Definitions\ldots and Supporting Functions}
 
 \subsection{Completing \AgdaDatatype{F}'s Definition}
+The following statements hold:
+
+\begin{itemize}
+  \item \AgdaInductiveConstructor{Abs} represents the absolute value function.
+  \item \AgdaInductiveConstructor{Negate} represents the negation function.
+  \item \AgdaInductiveConstructor{Sum} represents the sum function.
+  \item \AgdaInductiveConstructor{Product} represents the product, i.e., multiplication, function.
+  \item \AgdaInductiveConstructor{Exponentiation} represents the exponentiation function.
+  \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textasciibackslash n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+\end{itemize}
 
 \begin{code}
 data F where
-  -- | @Abs@ represents the absolute value function.
   Abs
-   -- | @Negate@ represents the negation function.
    Negate
-   -- | @Sum@ represents the sum function.
    Sum
-   -- | @Product@ represents the product, i.e., multiplication, function.
    Product
-   -- | @Exponent@ represents the exponentiation function.
    Exponent : F
-  -- | @Lambda names body@ represents a lambda function whose bound variables
-  -- are listen in @names@ and whose body is @body@.  Alternatively, if @names@
-  -- consists of values @n1@, @n2@, @n3@, and so on, one could say that
-  -- @Lambda names body@ is equivalent to Agda's @\ n1 n2 n3 ... -> body2@, where
-  -- @body2@ is an expansion of @body@.
   Lambda : List.List String -> ε -> F
 \end{code}
 
@@ -271,16 +271,20 @@ isCommutative (Lambda names body) equality = false
 \end{code}
 
 \subsection{Completing \AgdaDatatype{ε}'s Definition}
+The following statements hold:
+
+\begin{itemize}
+  \item \AgdaInductiveConstructor{Infinity} represents infinity.
+  \item \AgdaInductiveConstructor{Variable} \AgdaBound{n} represents a variable whose name is \AgdaBound{n}.
+  \item \AgdaInductiveConstructor{NumberRat} \AgdaBound{q} represents \AgdaBound{q}.
+  \item \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound {e} represents the result of applying \AgdaBound{f} to \AgdaBound{e}.
+\end{itemize}
 
 \begin{code}
 data ε where
-  -- | @Infinity@ represents infinity.
   Infinity : ε
-  -- | @Variable s@ represents a variable whose name is @n@.
   Variable : String -> ε
-  -- | @NumberNat q@ represents @q@.
   NumberRat : ℚ -> ε
-  -- | @Ap f e@ represents the result of applying @f@ to @e@.
   Ap : (f : F) -> Vec ε (arity f) -> ε
 \end{code}
 
