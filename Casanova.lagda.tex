@@ -50,6 +50,7 @@ open import Data.Fin as Fin using (Fin)
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
+import Data.Sum.Properties
 \end{code}
 
 \chapter{Useful Abbreviations and Associated Functions}
@@ -134,32 +135,14 @@ record CAS {a : Level} (ε : Set a) : Set a where
       inj₂ true ≡ definitelyEquals e1 e2
 
   traceEvaluate : ε -> List.List (Exceptional ε)
-  traceEvaluate = nrp ∘ possibleEvaluationSteps ∘ inj₂
+  traceEvaluate = t List.[] ∘ inj₂
     where
-    possibleEvaluationSteps : Exceptional ε -> List.List (Exceptional ε)
-    possibleEvaluationSteps (inj₁ exc) = List.[ inj₁ exc ]
-    possibleEvaluationSteps (inj₂ e) =
-      inj₂ e List.∷ possibleEvaluationSteps (exceptionallyEvaluate e)
-    nrp : List.List (Exceptional ε) -> List.List (Exceptional ε)
-    nrp = nrpHelper List.[]
-      where
-      nrpHelper : List.List (Exceptional ε) ->
-                  List.List (Exceptional ε) ->
-                  List.List (Exceptional ε)
-      nrpHelper x List.[] = x
-      nrpHelper x (inj₁ y List.∷ ys) = x List.++ List.[ inj₁ y ]
-      nrpHelper x (inj₂ y List.∷ ys) with any? (structuralEquality y) (inj2s x)
-        where
-        inj2s : {a b : Level} ->
-                {A : Set a} ->
-                {B : Set b} ->
-                List.List (A ⊎ B) ->
-                List.List B
-        inj2s List.[] = List.[]
-        inj2s (inj₁ x List.∷ xs) = inj2s xs
-        inj2s (inj₂ x List.∷ xs) = x List.∷ inj2s xs
-      ... | no unique = nrpHelper (x List.++ List.[ inj₂ y ]) ys
-      ... | yes iveSeenEverythingBefore = x
+    t : List.List (Exceptional ε) -> Exceptional ε -> List.List (Exceptional ε)
+    t xs (inj₁ x) = xs List.++ List.[ inj₁ x ]
+    t xs e@(inj₂ x) with any? is-e xs
+      where is-e = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality e
+    ... | yes _ = xs
+    ... | no _ = t (xs List.++ List.[ inj₂ x ]) (exceptionallyEvaluate x)
 
   rEvaluate : ε -> Exceptional ε
   rEvaluate e = fromMaybe (inj₂ e) (List.last (traceEvaluate e))
