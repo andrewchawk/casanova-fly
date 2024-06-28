@@ -214,12 +214,20 @@ For the purposes of this document, a verified computer algebra system is the com
 
 \begin{itemize}
  \item a proof which indicates that any non-bogus element \(e\) of type \AgdaBound{ε} is definitely equal to \(e\),
+ \item a proof which indicates that the algebraic equality relation is symmetric,
+ \item a proof which indicates that the algebraic equality relation is transitive,
  \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\), and
  \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\).
 \end{itemize}
 
 \subsection{The Reflexivity Field}
 For any \AgdaRecord{VCAS} computer algebra system \(c\), a proof which indicates that any non-bogus value \(e\) of the expression type for \(c\) is definitely equal to \(e\).  With \AgdaRecord{VCAS}, this proof is shown through \AgdaField{reflexivity}.
+
+\subsection{The Equality Symmetry Field}
+A good CAS handles complex numbers, on which equality is symetric.  Accordingly, a verified CAS should have a \emph{symmetric} algebraic equality relation.  \AgdaField{VCAS.symmetry-of-equality} \AgdaBound{V} proves that the algebraic equality relation for the \AgdaBound{V} CAS is symmetric.
+
+\subsection{The Equality Transitivity Field}
+A good CAS handles complex numbers, on which equality is \emph{also} transitive.  Accordingly, a verified CAS should have a \emph{transitive} algebraic equality relation.  \AgdaField{VCAS.transitivity-of-equality} \AgdaBound{V} proves that the algebraic equality relation for the \AgdaBound{V} CAS is transitive.
 
 \subsection{The Natural Number Sum Field}
 Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural number should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  However, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proof which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
@@ -238,6 +246,8 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
                   Is-just (isInj₁ (rEvaluate n e)) ->
                   Σ (e ≈ e)
                     (\ equality -> inj₂ (just equality) ≡ definitelyEquals e e)
+    symmetry-of-equality : Symmetric _≈_
+    transitivity-of-equality : Transitive _≈_
     sum-of-nats-is-nat-sum :
       (n1 n2 iterations : ℕ) ->
       rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
@@ -459,6 +469,8 @@ CasanovaFly-Base = record
 CasanovaFly-Verified : VCAS ε CasanovaFly-Base
 CasanovaFly-Verified = record
   {reflexivity = {!!}
+  ; symmetry-of-equality = {!!}
+  ; transitivity-of-equality = {!!}
   ; sum-of-nats-is-nat-sum = {!!}
   ; product-of-e-and-1-is-e = {!!}
   }
