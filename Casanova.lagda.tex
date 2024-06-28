@@ -32,7 +32,7 @@ open import Data.Fin using (Fin)
 open import Data.Nat
 open import Data.Sum
 open import Level
-open import Data.String
+open import Data.String hiding (_≈_)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open import Data.Vec
 open import Data.Maybe
@@ -80,6 +80,8 @@ condenseExceptions _ (inj₁ e) = inj₁ e
 Fundamentally, a computer algebra system for an expression type \(\epsilon\) can be thought of as being a combination of the following:
 
 \begin{itemize}
+  \item an algebraic equality type,
+  \item an algebraic \emph{in}equality type,
   \item a single-step evaluation function which is capable of describing failures,
   \item a proof of decidable structural equality of \(\epsilon\) values,
   \item a function which determines certain algebraic equality on non-bogus \(\epsion\) values,
@@ -98,6 +100,12 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 
 \AgdaDatatype{CAS} is the type of such computer algebra systems.
 
+\subsection{The Algebraic Equality Type}
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.
+
+\subsection{The Algebraic \emph{In}equality Type}
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}.
+
 \subsection{The Single-Step Evaluation Function}
 If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
 
@@ -106,8 +114,8 @@ For the purposes of this document, an ``evaluation step'' is the application of 
 \subsection{The Proof of Structural Equality}
 This one, which is represented via the \AgdaField{structuralEquality} field, should be simple enough for anyone who is familiar with \AgdaFunction{DecidableEquality}.
 
-\subsection{The Algebraic Equality Function}
-The algebriac equality function is a function \(f\) such that \(\left(f x y\right)\) is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{true} if and only if the CAS can certainly determine that \(x\) is algebraically equal to \(y\).  \AgdaInductiveConstructor{inj₁} values contain descriptions of errors.  The output is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{false} if and only if the CAS \emph{cannot} certainly determine that the arguments are algebraically equal.  This function is represented through \AgdaField{definitelyEquals}.
+\subsection{The Semi-Decidable Algebraic Equality Function}
+\AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{equality}\AgdaSymbol) if and only if the \AgdaFild{CAS.definitelyEquals} function finds an appropriate value.  The \AgdaField{CAS.definitelyEquals} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate proof of equality.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.definitelyEquals} is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
 
 \subsection{The Natural-to-ε Function}
 The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
@@ -152,11 +160,13 @@ A compliant CAS also has a function which performs the specified number of non-r
 \subsection{The Definition Proper}
 
 \begin{code}
-record CAS {a : Level} (ε : Set a) : Set a where
+record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) where
   field
+    _≈_
+     _≉_ : ε -> ε -> Set
     exceptionallyEvaluate : ε -> Exceptional ε
     structuralEquality : DecidableEquality ε
-    definitelyEquals : ε -> ε -> Exceptional Bool
+    definitelyEquals : (e1 e2 : ε) -> Exceptional (Maybe (e1 ≈ e2))
     fromℕ : ℕ -> ε
     variableNamed : String -> ε
     sumRepresentation
@@ -165,7 +175,10 @@ record CAS {a : Level} (ε : Set a) : Set a where
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     structural-equality-implies-definite-equality :
-      (e1 e2 : ε) -> e1 ≡ e2 -> inj₂ true ≡ definitelyEquals e1 e2
+      (e1 e2 : ε) ->
+      e1 ≡ e2 ->
+      (isInj2 : Is-just (isInj₂ (definitelyEquals e1 e2))) ->
+      Is-just (to-witness isInj2)
     differently-named-variables-are-different :
       (name1 name2 : String) ->
       name1 ≢ name2 ->
@@ -173,11 +186,13 @@ record CAS {a : Level} (ε : Set a) : Set a where
     differently-named-variables-are-not-definitely-equal :
       (name1 name2 : String) ->
       name1 ≢ name2 ->
-      inj₂ false ≡ definitelyEquals (variableNamed name1) (variableNamed name2)
+      Σ (variableNamed name1 ≈ variableNamed name2)
+        (\ equality -> inj₂ (just equality) ≡ definitelyEquals (variableNamed name1) (variableNamed name2))
     identically-named-variables-are-equal :
       (name1 name2 : String) ->
       name1 ≡ name2 ->
-      inj₂ true ≡ definitelyEquals (variableNamed name1) (variableNamed name2)
+      Σ (variableNamed name1 ≈ variableNamed name2)
+        (\ equality -> inj₂ (just equality) ≡ definitelyEquals (variableNamed name1) (variableNamed name2))
 
   traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
   traceEvaluate maxIter = t maxIter List.[] ∘ inj₂
@@ -221,7 +236,8 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
     reflexivity : (e : ε) ->
                   (n : ℕ) ->
                   Is-just (isInj₁ (rEvaluate n e)) ->
-                  inj₂ true ≡ definitelyEquals e e
+                  Σ (e ≈ e)
+                    (\ equality -> inj₂ (just equality) ≡ definitelyEquals e e)
     sum-of-nats-is-nat-sum :
       (n1 n2 iterations : ℕ) ->
       rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
@@ -230,7 +246,8 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
       (e : ε) ->
       (iterations : ℕ)
       (isJust : Is-just (isInj₂ (rEvaluate iterations e))) ->
-      inj₂ true ≡ definitelyEquals (productRepresentation e (fromℕ 1)) e
+      Σ (productRepresentation e (fromℕ 1) ≈ e)
+        (\ equality -> inj₂ (just equality) ≡ definitelyEquals (productRepresentation e (fromℕ 1)) e)
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -414,9 +431,11 @@ module CommutativeEvaluationProperties where
 \begin{code}
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
-  { exceptionallyEvaluate = commutativeEvaluate
+  { _≈_ = {!!}
+  ; _≉_ = {!!}
+  ; exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
-  ; definitelyEquals = definitelyEquals
+  ; definitelyEquals = {!!}
   ; fromℕ = \ n ->
       NumberRat (ℚ.mkℚ (Data.Integer.+ n)
                        0
@@ -430,9 +449,7 @@ CasanovaFly-Base = record
   ; structural-equality-implies-definite-equality =
     structural-equality-implies-definite-equality
   ; differently-named-variables-are-different = {!!}
-  ; identically-named-variables-are-equal =
-    \ x y equality ->
-    structural-equality-implies-definite-equality _ _ (cong Variable equality)
+  ; identically-named-variables-are-equal = {!!}
   ; differently-named-variables-are-not-definitely-equal = {!!}
   }
   where
