@@ -348,6 +348,38 @@ structuralEqualityOnε : DecidableEquality ε
 structuralEqualityOnε = {!!}
 \end{code}
 
+\subsection{The Function for Commutativity Permutations}
+\AgdaFunction{commutativePermutations} \AgdaBound{x} is a list of all expressions which are equivalent to \AgdaBound{x} and are derived from \AgdaBound{x} by commutativity.
+
+\begin{code}
+commutativePermutations : ε -> List.List ε
+commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
+  where
+  c : {a : Level} ->
+      {A B : Set a} ->
+      A ≡ B ->
+      A -> B
+  c refl t = t
+  combine : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> ε
+  combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
+                                    (Data.Vec.fromList e))
+  perms' : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> List.List ε
+  perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches with isCommutative f lengthMatches
+  ... | false = List.[ combine f e lengthMatches ]
+  ... | true =
+    f' (reverse (e1 ∷ [ e2 ])) List.∷ f' (e1 ∷ [ e2 ]) List.∷
+    List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
+    List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
+    List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
+                                          List.[ f' (e2 ∷ [ e1 ]) ])
+                          (List.zip (commutativePermutations e1)
+                                    (commutativePermutations e2)))
+    where
+    f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
+  perms' f e lengthMatches = List.[ combine f e lengthMatches ]
+commutativePermutations o = List.[ o ]
+\end{code}
+
 \chapter{Computational Functions and Ilk}
 
 \section{The Single-Step Evaluation Function}
@@ -377,33 +409,8 @@ definitelyEquals x y = Data.Sum.map₂ (\ exp -> List.or (checks x y))
   e = exceptionallyEvaluate
   checks : ε -> ε -> List.List Bool
   checks a b = List.map (isYes ∘ uncurry structuralEqualityOnε)
-                        (List.cartesianProduct (perms x) (perms y))
-    where
-    perms : ε -> List.List ε
-    perms (Ap f e) = perms' f (Data.Vec.toList e) {!!}
-      where
-      c : {a : Level} ->
-          {A B : Set a} ->
-          A ≡ B ->
-          A -> B
-      c refl t = t
-      combine : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> ε
-      combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
-                                        (Data.Vec.fromList e))
-      perms' : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> List.List ε
-      perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches with isCommutative f lengthMatches
-      ... | false = List.[ combine f e lengthMatches ]
-      ... | true =
-        f' (reverse (e1 ∷ [ e2 ])) List.∷ f' (e1 ∷ [ e2 ]) List.∷
-        List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (perms e2) List.++
-        List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (perms e1) List.++
-        List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
-                                              List.[ f' (e2 ∷ [ e1 ]) ])
-                              (List.zip (perms e1) (perms e2)))
-        where
-        f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
-      perms' f e lengthMatches = List.[ combine f e lengthMatches ]
-    perms o = List.[ o ]
+                        (List.cartesianProduct (commutativePermutations x)
+                                               (commutativePermutations y))
 \end{code}
 
 \chapter{Proofs of Correctness}
