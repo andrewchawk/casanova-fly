@@ -20,7 +20,15 @@
 \maketitle{}
 
 \begin{abstract}
-The author presents a formally-verified computer algebra system.
+In writing this paper, the author tries to answer the following questions:
+
+\begin{itemize}
+  \item Formally, what constitutes a computer algebra system, i.e., what are the essential functions of a computer algebra system?
+  \item Formally, what constitutes a formally-verified computer system?  In other words, what guarantees can be made about \emph{all} good computer algebra systems?
+  \item What is an example of such a formally-verified computer algebra system?
+\end{itemize}
+
+In short, the answer to the last question is ``Casanova Fly, of course''.  The remaining questions are hairy and are best answered through the non-abbreviated version of this paper.
 \end{abstract}
 
 \chapter{Prerequisites for Understanding}
@@ -84,14 +92,14 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item an algebraic \emph{in}equality type,
   \item a single-step evaluation function which is capable of describing failures,
   \item a proof of decidable structural equality of \(\epsilon\) values,
-  \item a function which determines certain algebraic equality on non-bogus \(\epsion\) values,
+  \item a function which determines certain algebraic equality on non-bogus \(\epsilon\) values,
   \item a function which converts natural number values into \(\epsilon\) values,
   \item a function which converts the name of a variable into an \(\epsilon\) variable value,
   \item a function which converts the two input expressions into a representation of the sum of the input expressions,
   \item a function which converts the two input expressions into a representation of the quotient of the input expressions,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that two values are structurally equivalent only if these same values are also algebraically equal,
-  \item a proof which indicates that variables of different names are not equivalent, and
+  \item a proof which indicates that variables of different names are not equivalent,
   \item a proof which indicates that variables of different names are not definitely equal,
   \item a proof which indicates that two variables which have the same name are algebraically equal,
   \item a function which performs the maximum number of evaluation steps on the input, and
@@ -210,7 +218,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
-For the purposes of this document, a verified computer algebra system is the combination of a \AgdaDatatype{CAS} computer algebra system \emph{and} some guarantees about the functions which are derived from the fields of the \AgdaDatatype{CAS} record.  The non-\AgdaDatatype{CAS} parts of the combination are as follows:
+For the purposes of this document, a verified computer algebra system is the combination of a \AgdaDatatype{CAS} computer algebra system \emph{and} some guarantees about the corresponding CAS.  The non-\AgdaDatatype{CAS} parts of the combination are as follows:
 
 \begin{itemize}
  \item a proof which indicates that the algebraic equality relation is an equaivalence relation,
