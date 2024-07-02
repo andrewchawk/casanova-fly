@@ -99,8 +99,9 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which converts the two input expressions into a representation of the quotient of the input expressions,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that variables of different names are not equivalent,
-  \item a function which performs the maximum number of evaluation steps on the input, and
-  \item a function which displays all evaluation steps which are used on a given input.
+  \item a function which performs the maximum number of evaluation steps on the input,
+  \item a function which displays all evaluation steps which are used on a given input, and
+  \item some other functions which are really only terribly useful for verification.
 \end{itemize}
 
 \AgdaDatatype{CAS} is the type of such computer algebra systems.
@@ -152,6 +153,15 @@ A compliant CAS also has a function which performs the specified number of non-r
 
 \subsection{The Non-Tracing Maximum Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input but just returns the resulting exception or expression.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{rEvaluate}.
+
+\subsection{The Iteration Equality Function}
+A value of type \AgdaField{CAS.equal-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e1} \AgdaBound{e2} exists if and only if \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e1} \AgdaBound{e2} indicates that \AgdaBound{e1} is algebraically equal to \AgdaBound{e2}.  This function mostly exists to eliminate repetition.
+
+\subsection{The Generic Iteration Equality Function}
+A value of type \AgdaField{CAS.equal-at-some-iteration} \AgdaBound{c} \AgdaBound{e1} \AgdaBound{e2} exists if and only if \AgdaField{CAS.definitelyEquals} \AgdaBound{c} can determine that \AgdaBound{e1} is algebraically equal to \AgdaBound{e2} at some iteration.  Again, this function is really just good for reducing nasty redundancy.
+
+\subsection{The Equality Step Function}
+\AgdaField{CAS.equality-at-n-implies-equality-at-n+1} proves that two expressions are definitely equal at a given iteration only if these same expressions are also definitely equal at the following iteration.
 
 \subsection{The Definition Proper}
 
@@ -215,6 +225,21 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     with-justness (just e) = inj₁ e
     with-justness nothing =
       inj₂ (decToMaybe (any? (uncurry structuralEquality) _))
+
+  equal-at-iteration : ℕ -> (e1 e2 : ε) -> Set a
+  equal-at-iteration iterations e1 e2 =
+    Σ (_≈_ iterations e1 e2)
+      (\ i -> inj₂ (just i) ≡ definitelyEquals iterations e1 e2)
+
+  equal-at-some-iteration : (e1 e2 : ε) -> Set a
+  equal-at-some-iteration e1 e2 = Σ ℕ (\ n -> equal-at-iteration n e1 e2)
+
+  equality-at-n-implies-equality-at-n+1 :
+    (iterations : ℕ) ->
+    (e1 e2 : ε) ->
+    equal-at-iteration iterations e1 e2 ->
+    equal-at-iteration (iterations + 1) e1 e2
+  equality-at-n-implies-equality-at-n+1 = {!!}
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
@@ -269,19 +294,14 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
     identically-named-variables-are-equal :
       (name1 name2 : String) ->
       name1 ≡ name2 ->
-      (iterations : ℕ) ->
-      Σ (_≈_ iterations (variableNamed name1) (variableNamed name2))
-        (\ equality -> inj₂ (just equality) ≡ definitelyEquals iterations (variableNamed name1) (variableNamed name2))
+      equal-at-some-iteration (variableNamed name1) (variableNamed name2)
     sum-of-nats-is-nat-sum :
       (n1 n2 iterations : ℕ) ->
       rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
         inj₂ (fromℕ (n1 + n2))
     product-of-e-and-1-is-e :
       (e : ε) ->
-      (iterations : ℕ) ->
-      (isJust : Is-just (isInj₂ (rEvaluate iterations e))) ->
-      Σ (_≈_ iterations (productRepresentation e (fromℕ 1)) e)
-        (\ equality -> inj₂ (just equality) ≡ definitelyEquals iterations (productRepresentation e (fromℕ 1)) e)
+      equal-at-some-iteration (productRepresentation e (fromℕ 1)) e
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
