@@ -52,7 +52,7 @@ open import Data.Rational
   using (ℚ
         )
 open import Data.Product
-open import Data.List.Relation.Unary.Any using (any?)
+open import Data.List.Relation.Unary.Any as AnyList using (any?)
 open import Data.Fin as Fin using (Fin)
 
 import Data.List as List
@@ -132,11 +132,17 @@ Does a computer algebra system which lacks support for variables even qualify as
 \subsection{The Sum Function}
 Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{sumRepresentation} values are unevaluated sum functions.  More formally, \AgdaField{CAS.sumRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
 
+\subsection{The Sum Function}
+Any half-decent CAS can represent the difference of two given expressions, too.  Accordingly, \AgdaField{differenceRepresentation} values are unevaluated differences.  More formally, \AgdaField{CAS.differenceRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated difference of \AgdaBound{x} and \AgdaBound{y}.
+
 \subsection{The Product Function}
 A decent CAS can represent the unevaluated product of two expressions.  Accordingly, \AgdaField{productRepresentation} values represent unevaluated products.  More formally, one can say that \AgdaField{CAS.productRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated product of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Quotient Function}
 Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{quotientRepresentation} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.quotientRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
+
+\subsection{The Additive Inverse Function}
+\AgdaField{CAS.negationRepresentation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
 
 \subsection{The Natural Number Proofs}
 In addition to the basic mapping, proofs of the following attributes should exist:
@@ -173,8 +179,10 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     fromℕ : ℕ -> ε
     variableNamed : String -> ε
     sumRepresentation
+     differenceRepresentation
      productRepresentation
      quotientRepresentation : ε -> ε -> ε
+    negationRepresentation : ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     differently-named-variables-are-different :
@@ -197,7 +205,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   rEvaluate n e = fromMaybe (inj₂ e) (List.last (traceEvaluate n e))
 
   _≈_ : ℕ -> ε -> ε -> Set a
-  _≈_ iterations x y = Data.List.Relation.Unary.Any.Any (uncurry _≡_) evaluationPairs
+  _≈_ iterations x y = AnyList.Any (uncurry _≡_) evaluationPairs
     where
     traceEvaluate2 = traceEvaluate iterations
     evaluationPairs = inj2s (List.cartesianProduct (traceEvaluate2 x) (traceEvaluate2 y))
@@ -302,6 +310,13 @@ record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
     product-of-e-and-1-is-e :
       (e : ε) ->
       equal-at-some-iteration (productRepresentation e (fromℕ 1)) e
+    difference-is-negated-sum :
+      (e1 e2 : ε) ->
+      equal-at-some-iteration (differenceRepresentation e1 e2)
+                              (sumRepresentation e1 (negationRepresentation e2))
+    inverse-of-inverse-is-original :
+      (e : ε) ->
+      equal-at-some-iteration e (negationRepresentation (negationRepresentation e))
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -481,9 +496,11 @@ CasanovaFly-Base = record
                        (Coprimality.sym (Coprimality.1-coprimeTo n)))
   ; variableNamed = Variable
   ; sumRepresentation = \ a b -> Ap Sum (a ∷ b ∷ [])
+  ; differenceRepresentation = \ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
   ; productRepresentation = \ x y -> Ap Product (x ∷ [ y ])
   ; quotientRepresentation = \ x y ->
      Ap Product (x ∷ Ap Exponent (y ∷ Ap Negate (NumberRat ℚ.1ℚ ∷ []) ∷ []) ∷ [])
+  ; negationRepresentation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
   }
@@ -493,13 +510,11 @@ CasanovaFly-Verified = record
   { equality-is-equivalence = {!!}
   ; sum-of-nats-is-nat-sum = {!!}
   ; product-of-e-and-1-is-e = {!!}
-  ; structural-equality-implies-definite-equality =
-    structural-equality-implies-definite-equality
+  ; structural-equality-implies-definite-equality = {!!}
   ; identically-named-variables-are-equal = {!!}
   ; differently-named-variables-are-not-definitely-equal = {!!}
+  ; difference-is-negated-sum = {!!}
+  ; inverse-of-inverse-is-original = {!!}
   }
-  where
-  structural-equality-implies-definite-equality =
-    {!!}
 \end{code}
 \end{document}
