@@ -196,10 +196,12 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     t : ℕ -> List.List (Exceptional ε) -> Exceptional ε -> List.List (Exceptional ε)
     t ℕ.zero xs e = xs
     t (ℕ.suc iters) xs (inj₁ x) = xs List.++ List.[ inj₁ x ]
-    t (ℕ.suc iters) xs e@(inj₂ x) with any? is-e xs
-      where is-e = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality e
-    ... | yes _ = xs
-    ... | no _ = t iters (xs List.++ List.[ e ]) (exceptionallyEvaluate x)
+    t (ℕ.suc iters) xs e@(inj₂ x) = with-e $ any? is-e xs
+      where
+      is-e = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality e
+      with-e : _
+      with-e (yes _) = xs
+      with-e (no _) = t iters (xs List.++ List.[ e ]) (exceptionallyEvaluate x)
 
   rEvaluate : ℕ -> ε -> Exceptional ε
   rEvaluate n e = fromMaybe (inj₂ e) (List.last (traceEvaluate n e))
@@ -437,16 +439,18 @@ commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
   combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
                                     (Data.Vec.fromList e))
   perms' : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> List.List ε
-  perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches with isCommutative f lengthMatches
-  ... | false = List.[ combine f e lengthMatches ]
-  ... | true =
-    f' (reverse (e1 ∷ [ e2 ])) List.∷ f' (e1 ∷ [ e2 ]) List.∷
-    List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
-    List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
-    List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
-                                          List.[ f' (e2 ∷ [ e1 ]) ])
-                          (List.zip (commutativePermutations e1)
-                                    (commutativePermutations e2)))
+  perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
+    if isCommutative f lengthMatches
+    then
+      List.[ combine f e lengthMatches ]
+    else
+      f' (reverse (e1 ∷ [ e2 ])) List.∷ f' (e1 ∷ [ e2 ]) List.∷
+      List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
+      List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
+      List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
+                                            List.[ f' (e2 ∷ [ e1 ]) ])
+                            (List.zip (commutativePermutations e1)
+                                      (commutativePermutations e2)))
     where
     f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
   perms' f e lengthMatches = List.[ combine f e lengthMatches ]
