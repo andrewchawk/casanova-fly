@@ -474,7 +474,23 @@ exceptionallyEvaluate = {!!}
 
 \begin{code}
 commutativeEvaluate : ε -> Exceptional ε
-commutativeEvaluate = {!!}
+commutativeEvaluate e@(Ap f x) =
+  if (e evaluates) then evaluate e else tryFlip (arity f Data.Nat.≟ 2)
+  where
+  -- evaluate is just an abbreviation.  "exceptionallyEvaluate" is a bit long.
+  evaluate = exceptionallyEvaluate
+  structuralEquality =
+    Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
+  _evaluates : ε -> Bool
+  _evaluates e = isNo (structuralEquality (inj₂ e) (evaluate e))
+  tryFlip : Dec (arity f ≡ 2) -> Exceptional ε
+  tryFlip (no arityDiffers) = evaluate e
+  tryFlip (yes arityMatches) =
+    if commutes ∧ (e2 evaluates) then inj₂ e2 else evaluate e
+    where
+    commutes = isCommutative f arityMatches
+    e2 = Ap f (reverse x)
+commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
 \chapter{Proofs of Correctness}
