@@ -285,7 +285,7 @@ Another aspect of a good computer algebra system is the correct calculation of s
 \subsection{The Definition Proper}
 
 \begin{code}
-record VCAS {a : Level} (ε : Set a) (Cas : CAS ε) : Set a where
+record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
   open CAS Cas
   field
     equality-is-equivalence : (iterations : ℕ) -> IsEquivalence (_≈_ iterations)
@@ -509,7 +509,7 @@ CasanovaFly-Base = record
   ; differently-named-variables-are-different = {!!}
   }
 
-CasanovaFly-Verified : VCAS ε CasanovaFly-Base
+CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
   { equality-is-equivalence = {!!}
   ; sum-of-nats-is-nat-sum = {!!}
