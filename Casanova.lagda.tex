@@ -193,7 +193,10 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
   traceEvaluate maxIter = t maxIter List.[] ∘ inj₂
     where
-    t : ℕ -> List.List (Exceptional ε) -> Exceptional ε -> List.List (Exceptional ε)
+    t : ℕ ->
+        List.List (Exceptional ε) ->
+        Exceptional ε ->
+        List.List (Exceptional ε)
     t ℕ.zero xs e = xs
     t (ℕ.suc iters) xs (inj₁ x) = xs List.++ List.[ inj₁ x ]
     t (ℕ.suc iters) xs e@(inj₂ x) = with-e $ any? is-e xs
@@ -209,9 +212,9 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   _≈_ : ℕ -> ε -> ε -> Set a
   _≈_ iterations x y = AnyList.Any (uncurry _≡_) evaluationPairs
     where
-    traceEvaluate2 = traceEvaluate iterations
-    evaluationPairs = inj2s (List.cartesianProduct (traceEvaluate2 x) (traceEvaluate2 y))
+    evaluationPairs = inj2s (List.cartesianProduct (trace x) (trace y))
       where
+      trace = traceEvaluate iterations
       inj2s : List.List (Exceptional ε × Exceptional ε) -> List.List (ε × ε)
       inj2s ((inj₂ e1 , inj₂ e2) List.∷ es) = (e1 , e2) List.∷ inj2s es
       inj2s (e List.∷ es) = inj2s es
@@ -440,19 +443,18 @@ commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
                                     (Data.Vec.fromList e))
   perms' : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> List.List ε
   perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
-    if isCommutative f lengthMatches
-    then
-      List.[ combine f e lengthMatches ]
-    else
-      f' (reverse (e1 ∷ [ e2 ])) List.∷ f' (e1 ∷ [ e2 ]) List.∷
+    if isCommutative f lengthMatches then solo else list
+    where
+    solo = List.[ combine f e lengthMatches ]
+    list =
+      f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
       List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
       List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
       List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
                                             List.[ f' (e2 ∷ [ e1 ]) ])
                             (List.zip (commutativePermutations e1)
                                       (commutativePermutations e2)))
-    where
-    f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
+      where f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
   perms' f e lengthMatches = List.[ combine f e lengthMatches ]
 commutativePermutations o = List.[ o ]
 \end{code}
@@ -503,7 +505,7 @@ CasanovaFly-Base = record
   ; differenceRepresentation = \ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
   ; productRepresentation = \ x y -> Ap Product (x ∷ [ y ])
   ; quotientRepresentation = \ x y ->
-     Ap Product (x ∷ Ap Exponent (y ∷ Ap Negate (NumberRat ℚ.1ℚ ∷ []) ∷ []) ∷ [])
+     Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
   ; negationRepresentation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
