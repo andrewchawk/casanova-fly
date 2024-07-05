@@ -97,6 +97,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which converts the name of a variable into an \(\epsilon\) variable value,
   \item a function which converts the two input expressions into a representation of the sum of the input expressions,
   \item a function which converts the two input expressions into a representation of the quotient of the input expressions,
+  \item a function which converts the two input expressions \(a\) and \(b\) into \(a^b\),
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that variables of different names are not equivalent,
   \item a function which performs the maximum number of evaluation steps on the input,
@@ -140,6 +141,9 @@ A decent CAS can represent the unevaluated product of two expressions.  Accordin
 
 \subsection{The Quotient Function}
 Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{quotientRepresentation} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.quotientRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
+
+\subsection{The Exponent Function}
+The author is tired of the boilerplate nonsense.  \AgdaField{CAS.quotientRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of \AgdaBound{x} to the power of \AgdaBound{y}.
 
 \subsection{The Additive Inverse Function}
 \AgdaField{CAS.negationRepresentation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
@@ -190,7 +194,8 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     sumRepresentation
      differenceRepresentation
      productRepresentation
-     quotientRepresentation : ε -> ε -> ε
+     quotientRepresentation
+     exponentRepresentation : ε -> ε -> ε
     negationRepresentation : ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
@@ -551,6 +556,7 @@ CasanovaFly-Base = record
   ; productRepresentation = \ x y -> Ap Product (x ∷ [ y ])
   ; quotientRepresentation = \ x y ->
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
+  ; exponentRepresentation = \ x y -> Ap Exponent (x ∷ [ y ])
   ; negationRepresentation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
