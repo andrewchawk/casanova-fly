@@ -169,6 +169,15 @@ A value of type \AgdaField{CAS.equal-at-some-iteration} \AgdaBound{c} \AgdaBound
 \subsection{The Equality Step Function}
 \AgdaField{CAS.equality-at-n-implies-equality-at-n+1} proves that two expressions are definitely equal at a given iteration only if these same expressions are also definitely equal at the following iteration.
 
+\subsection{The Iteration Bogosity Function}
+A value of type \AgdaField{CAS.bogus-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} exists if and only if \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} is an \AgdaInductiveConstructor{inj₂} value.
+
+\subsection{The Generic Iteration Bogosity Function}
+A value of type \AgdaField{CAS.bogus-at-some-iteration} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} is an \AgdaInductiveConstructor{inj₂} value for some \AgdaBound{iterations}.
+
+\subsection{The Bogosity Step Function}
+\AgdaField{CAS.bogosity-at-n-implies-bogosity-at-n+1} proves that a given expression is bogus at some iteration only if the same expression is bogus at the following iteration.
+
 \subsection{The Definition Proper}
 
 \begin{code}
@@ -253,6 +262,19 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     equal-at-iteration iterations e1 e2 ->
     equal-at-iteration (iterations + 1) e1 e2
   equality-at-n-implies-equality-at-n+1 = {!!}
+
+  bogus-at-iteration : ℕ -> ε -> Set a
+  bogus-at-iteration n e = Σ String (\ ex -> inj₁ ex ≡ rEvaluate n e)
+
+  bogus-at-some-iteration : ε -> Set a
+  bogus-at-some-iteration e = Σ ℕ (\ n -> bogus-at-iteration n e)
+
+  bogosity-at-n-implies-bogosity-at-n+1 :
+    (iterations : ℕ) ->
+    (e : ε) ->
+    bogus-at-iteration iterations e ->
+    bogus-at-iteration (iterations + 1) e
+  bogosity-at-n-implies-bogosity-at-n+1 = {!!}
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
@@ -284,6 +306,9 @@ Another aspect of a good computer algebra system is the correct calculation of s
 
 \subsection{The 1-Product Field}
 \AgdaField{VCAS.product-of-e-and-1-is-e} \AgdaBound{c} indicates that for any non-bogus value \(e\) of the expression type for \AgdaBound{c}, the product of \(e\) and one is equal to \(e\).
+
+\subsection{The Bogus Division Field}
+That the quotient of any given number and zero is bogus, i.e., undefined, is well-known.  This fact --- the bogusness, not being well-known --- is represented through \AgdaField{VCAS.division-by-zero-is-bogus}.
 
 \subsection{The Definition Proper}
 
@@ -322,6 +347,10 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     inverse-of-inverse-is-original :
       (e : ε) ->
       equal-at-some-iteration e (negationRepresentation (negationRepresentation e))
+    division-by-zero-is-bogus :
+      (e1 e2 : ε) ->
+      (equal-at-some-iteration (fromℕ 0) e2) ->
+      bogus-at-some-iteration (quotientRepresentation e1 e2)
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -537,6 +566,7 @@ CasanovaFly-Verified = record
   ; differently-named-variables-are-not-definitely-equal = {!!}
   ; difference-is-negated-sum = {!!}
   ; inverse-of-inverse-is-original = {!!}
+  ; division-by-zero-is-bogus = {!!}
   }
 \end{code}
 \end{document}
