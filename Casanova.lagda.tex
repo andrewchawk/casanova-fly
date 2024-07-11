@@ -182,6 +182,9 @@ A value of type \AgdaField{CAS.bogus-at-some-iteration} \AgdaBound{c} \AgdaBound
 \subsection{The Bogosity Step Function}
 \AgdaField{CAS.bogosity-at-n-implies-bogosity-at-n+1} proves that a given expression is bogus at some iteration only if the same expression is bogus at the following iteration.
 
+\subsection{The Non-Bogus Type}
+This type, in addition to not being bogus, is used to indicate that the relevant expression is not bogus.  More formally, a value of type \AgdaField{CAS.IsNotBogus} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaBound{e} is bogus with regard to \AgdaField{CAS.rEvaluate} \AgdaBound{c} at no iteration, i.e., \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is non-bogus for all \AgdaBound{n}.
+
 \subsection{The Definition Proper}
 
 \begin{code}
@@ -280,6 +283,9 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     bogus-at-iteration iterations e ->
     bogus-at-iteration (iterations + 1) e
   bogosity-at-n-implies-bogosity-at-n+1 = {!!}
+
+  IsNotBogus : ε -> Set a
+  IsNotBogus e = (n : ℕ) -> Is-just (isInj₂ (rEvaluate n e))
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
@@ -290,8 +296,11 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that two values are structurally equivalent only if these same values are also algebraically equal,
  \item a proof which indicates that variables of different names are not definitely equal,
  \item a proof which indicates that two variables which have the same name are algebraically equal,
- \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\), and
- \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\).
+ \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\),
+ \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\),
+ \item a proof of commutativity of addition,
+ \item a proof of commutativity of multiplication, and
+ \item a proof of the inverse relationship between multiplication and division.
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -309,11 +318,23 @@ Also, options on variables are only sensible if for all variables \(x\) and \(y\
 \subsection{The Natural Number Sum Field}
 Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural number should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  However, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proof which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
 
+\subsection{The Non-Bogus Sum Field}
+\AgdaField{VCAS.sum-is-not-bogus} indicates that for any given non-bogus values \AgdaBound{e1} and \AgdaBound{e2}, the sum of \AgdaBound{e1} and \AgdaBound{e2} is not bogus.
+
 \subsection{The 1-Product Field}
 \AgdaField{VCAS.product-of-e-and-1-is-e} \AgdaBound{c} indicates that for any non-bogus value \(e\) of the expression type for \AgdaBound{c}, the product of \(e\) and one is equal to \(e\).
 
 \subsection{The Bogus Division Field}
 That the quotient of any given number and zero is bogus, i.e., undefined, is well-known.  This fact --- the bogusness, not being well-known --- is represented through \AgdaField{VCAS.division-by-zero-is-bogus}.
+
+\subsection{The Proof of Commutativity of Addition}
+\AgdaField{VCAS.sum-is-commutative} indicates that addition is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.sum-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
+
+\subsection{The Proof of Commutativity of Multiplication}
+\AgdaField{VCAS.product-is-commutative} indicates that multiplication is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.product-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
+
+\subsection{The Proof of the Inverse Relationship between Multiplication and Division}
+\AgdaField{VCAS.product-of-quotient-is-same} indicates that for the appropriate CAS, multiplication is the inverse of division.  More formally, \AgdaField{product-of-quotient-is-same} \AgdaBound{c} indicates that for all appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, \AgdaBound{e2} is equal to the \AgdaBound{c} CAS product of \AgdaBound{e1} and the \AgdaBound{c} CAS quotient of \AgdaBound{e2} and \AgdaBound{e1}.
 
 \subsection{The Definition Proper}
 
@@ -342,8 +363,14 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (n1 n2 iterations : ℕ) ->
       rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
         inj₂ (fromℕ (n1 + n2))
+    sum-is-not-bogus :
+      (e1 e2 : ε) ->
+      IsNotBogus e1 ->
+      IsNotBogus e2 ->
+      IsNotBogus (sumRepresentation e1 e2)
     product-of-e-and-1-is-e :
       (e : ε) ->
+      IsNotBogus e ->
       equal-at-some-iteration (productRepresentation e (fromℕ 1)) e
     difference-is-negated-sum :
       (e1 e2 : ε) ->
@@ -356,6 +383,22 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e1 e2 : ε) ->
       (equal-at-some-iteration (fromℕ 0) e2) ->
       bogus-at-some-iteration (quotientRepresentation e1 e2)
+    sum-is-commutative :
+      (e1 e2 : ε) ->
+      IsNotBogus e1 ->
+      IsNotBogus e2 ->
+      equal-at-some-iteration (sumRepresentation e1 e2)
+                              (sumRepresentation e2 e1)
+    product-is-commutative :
+      (e1 e2 : ε) ->
+      IsNotBogus e1 ->
+      IsNotBogus e2 ->
+      equal-at-some-iteration (productRepresentation e1 e2)
+                              (productRepresentation e2 e1)
+    product-of-quotient-is-same :
+      (e1 e2 : ε) ->
+      IsNotBogus (quotientRepresentation e2 e1) ->
+      equal-at-some-iteration e2 (productRepresentation e1 (quotientRepresentation e2 e1))
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -573,6 +616,10 @@ CasanovaFly-Verified = record
   ; difference-is-negated-sum = {!!}
   ; inverse-of-inverse-is-original = {!!}
   ; division-by-zero-is-bogus = {!!}
+  ; sum-is-not-bogus = {!!}
+  ; sum-is-commutative = {!!}
+  ; product-is-commutative = {!!}
+  ; product-of-quotient-is-same = {!!}
   }
 \end{code}
 \end{document}
