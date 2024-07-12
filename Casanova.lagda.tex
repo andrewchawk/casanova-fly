@@ -61,7 +61,9 @@ import Data.Integer
 import Data.Sum.Properties
 \end{code}
 
-\chapter{Useful Abbreviations and Associated Functions}
+\chapter{Useful Abbreviations and Ilk}
+
+\section{The Exception Type}
 A value of type \AgdaFunction{Exceptional} \AgdaBound{A} can be a success-indicating value of \AgdaBound{A} or a \AgdaPostulate{String} which describes some sort of failure.
 
 \begin{code}
@@ -69,6 +71,7 @@ Exceptional : {a : Level} -> Set a -> Set a
 Exceptional A = String ⊎ A
 \end{code}
 
+\subsection{The Exception Condensation Function}
 If no values are exceptional, then the output contains the combination of both non-exceptional values.  Otherwise, the output contains the first exceptional value.
 
 \begin{code}
@@ -80,6 +83,91 @@ condenseExceptions : {a : Level} ->
 condenseExceptions (inj₂ x) (inj₂ y) = inj₂ (x , y)
 condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
+\end{code}
+
+\section{The Non-Repeating Subsequence Function}
+\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.
+
+\begin{code}
+nonRepeatingPortion : {a : Level} ->
+                      {A : Set a} ->
+                      DecidableEquality A ->
+                      List.List A ->
+                      List.List A
+nonRepeatingPortion {_} {A} DEQ = helper List.[]
+  where
+  helper : List.List A -> List.List A -> List.List A
+  helper List.[] (x List.∷ xs) = helper List.[ x ] xs
+  helper as List.[] = as
+  helper as (x List.∷ xs) = with-any (any? (DEQ x) as)
+    where
+    with-any : Dec (AnyList.Any (\ a -> x ≡ a) as) -> List.List A
+    with-any (yes listRepeats) = as
+    with-any (no addToList) = helper (as List.++ List.[ x ]) xs
+\end{code}
+
+\subsection{Properties of the Function}
+This module contains a few proofs which indicates that \AgdaFunction{notRepeatingPortion} really \emph{is} as described.  For the sake of improving readability, the author has defined some module-specific variables and abbreviated functions.
+
+\begin{code}
+module nonRepeatingPortion-Properties
+  {a : Level}
+  {A : Set a}
+  (DEQ : DecidableEquality A) where
+
+  private
+    nrp : List.List A -> List.List A
+    nrp = nonRepeatingPortion DEQ
+\end{code}
+
+\subsubsection{The Proof of Non-Repetition}
+\AgdaFunction{contains-no-repeats} \AgdaBound{x} indicates that for any two elements of \AgdaFunction{nrp} \AgdaBound{x} which are indexed by \AgdaBound{i} and \AgdaBound{j}, respectively, are equal only if \AgdaBound{i} is equal to \AgdaBound{j}.  Equivalently, one can say that \AgdaFunction{contains-no-repeats} \AgdaBound{x} indicates that \AgdaFunction{nrp} \AgdaBound{x} is actually a unique list, i.e., \emph{contains no repeats} of values.
+
+\begin{code}
+  contains-no-repeats :
+    (x : List.List A) ->
+    (i1 i2 : Fin (List.length (nrp x))) ->
+    List.lookup (nrp x) i1 ≡ List.lookup (nrp x) i2 ->
+    i1 ≡ i2
+  contains-no-repeats List.[] ()
+  contains-no-repeats (x List.∷ xs) i1 i2 equality with i1 Data.Fin.≟ i2
+  ... | yes alreadyEqual = alreadyEqual
+  ... | no shouldNotBe = {!!}
+\end{code}
+
+\subsubsection{The Proof which Indicates that the Value Really is the Longest Unique Sublist}
+\AgdaFunction{is-really-the-longest} \AgdaBound{x} indicates that any value which immediately follows \AgdaFunction{nrp} \AgdaBound{x}'s last element of \AgdaBound{x} is already contained within \AgdaBound{nrp} \AgdaBound{x}.
+
+\begin{code}
+  is-really-the-longest :
+    (x : List.List A) ->
+    (i : Fin (List.length x)) ->
+    Fin.toℕ i ≡ 1 + List.length (nrp x) ->
+    AnyList.Any (\ i2 -> i2 ≡ List.lookup x i) (nrp x)
+  is-really-the-longest = {!!}
+\end{code}
+
+\subsubsection{The Proof of Emptiness}
+\AgdaFunction{only-empty-if-input-is-empty} indicates that for all lists \AgdaBound{x}, \AgdaFunction{nrp} \AgdaBound{x} is empty only if \AgdaBound{x} is empty.
+
+\begin{code}
+  only-empty-if-input-is-empty :
+    (x : List.List A) ->
+    List.length (nrp x) ≡ 0 ->
+    List.length x ≡ 0
+  only-empty-if-input-is-empty List.[] refl = refl
+  only-empty-if-input-is-empty (x List.∷ xs) empty = contradiction empty {!!}
+\end{code}
+
+\subsubsection{The \emph{Other} Emptiness Proof}
+\AgdaFunction{empty-inputs-beget-empty-outputs} indicates that the result of applying \AgdaFunction{nrp} to an empty list is just an empty list.
+
+\begin{code}
+  empty-inputs-beget-empty-outputs :
+    (x : List.List A) ->
+    List.length x ≡ 0 ->
+    List.length (nrp x) ≡ 0
+  empty-inputs-beget-empty-outputs List.[] refl = refl
 \end{code}
 
 \chapter{The Computer Algebra System Types}
@@ -207,24 +295,14 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
       name1 ≢ name2 ->
       variableNamed name1 ≢ variableNamed name2
 
-  traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
-  traceEvaluate maxIter = t maxIter List.[] ∘ inj₂
-    where
-    t : ℕ ->
-        List.List (Exceptional ε) ->
-        Exceptional ε ->
-        List.List (Exceptional ε)
-    t ℕ.zero xs e = xs
-    t (ℕ.suc iters) xs (inj₁ x) = xs List.++ List.[ inj₁ x ]
-    t (ℕ.suc iters) xs e@(inj₂ x) = with-e $ any? is-e xs
-      where
-      is-e = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality e
-      with-e : _
-      with-e (yes _) = xs
-      with-e (no _) = t iters (xs List.++ List.[ e ]) (exceptionallyEvaluate x)
-
   rEvaluate : ℕ -> ε -> Exceptional ε
-  rEvaluate n e = fromMaybe (inj₂ e) (List.last (traceEvaluate n e))
+  rEvaluate 0 e = inj₂ e
+  rEvaluate (ℕ.suc n) e = [_,_] inj₁ exceptionallyEvaluate (rEvaluate n e)
+
+  traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
+  traceEvaluate n e =
+    nonRepeatingPortion (Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality)
+                        (List.map (flip rEvaluate e) (List.upTo n))
 
   _≈_ : ℕ -> ε -> ε -> Set a
   _≈_ iterations x y = AnyList.Any (uncurry _≡_) evaluationPairs
