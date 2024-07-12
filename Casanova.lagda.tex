@@ -244,7 +244,7 @@ In addition to the basic mapping, proofs of the following attributes should exis
 \end{itemize}
 
 \subsection{The Proof which Indicates that Values of Different Names are Decidedly Not Equivalent}
-Options on variables are only sensible if confusing variables is forbidden, i.e., variables of different names represented differently.  Accordingly, \AgdaField{CAS.differently-named-variables-are-different} \AgdaBound{c} indicates that within \AgdaBound{c}, given any two variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \AgdaBound{c}'s representations of \(x\) and \(y\) differ.
+Operations on variables are only sensible if confusing variables is forbidden, i.e., variables of different names represented differently.  Accordingly, \AgdaField{CAS.differently-named-variables-are-different} \AgdaBound{c} indicates that within \AgdaBound{c}, given any two variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \AgdaBound{c}'s representations of \(x\) and \(y\) differ.
 
 \subsection{The Tracing Recursive Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
