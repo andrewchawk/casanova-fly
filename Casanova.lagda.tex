@@ -196,10 +196,10 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 \AgdaDatatype{CAS} is the type of such computer algebra systems.
 
 \subsection{The Algebraic Equality Type}
-A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{i} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y} within \AgdaBound{i} evaluation steps.
 
 \subsection{The Algebraic \emph{In}equality Type}
-A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}.
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}, i.e., no \AgdaBound{i} exists such that \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y} within \AgdaBound{i} iterations.
 
 \subsection{The Single-Step Evaluation Function}
 If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
@@ -382,7 +382,7 @@ For the purposes of this document, a verified computer algebra system is the com
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
-A good CAS is used for representing the complex numbers, whose equality relation is an equivalence relation.  Accordingly, a verified CAS's algebraic equality relation should be an equivalence relation.  \AgdaField{equality-is-equivance} values indicate that the algebraic equality relations actually are equivalence relations.
+A good CAS represents the complex numbers, whose equality relation is an equivalence relation.  Accordingly, a verified CAS's algebraic equality relation should be an equivalence relation.  \AgdaField{equality-is-equivance} values indicate that the algebraic equality relations actually are equivalence relations.
 
 \subsection{The Structural-Equivalence-to-Algebraic-Equality Function}
 Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the same way only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{structural-equality-implies-definite-equality}.
