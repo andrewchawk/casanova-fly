@@ -1,11 +1,13 @@
 \documentclass{report}
 
 \usepackage{newunicodechar}
+\usepackage{geometry}[margin=1.25in]
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{parskip}
 % The coloring distracts the author.
 \usepackage[bw]{agda}
+\usepackage{unicode-math}
 
 % What is a good place for this crap?
 \newunicodechar{⊤}{\ensuremath{\mathnormal{\top}}}
@@ -13,6 +15,18 @@
 \newunicodechar{₁}{\ensuremath{\mathnormal{_1}}}
 \newunicodechar{₂}{\ensuremath{\mathnormal{_2}}}
 \newunicodechar{≅}{\ensuremath{\mathnormal{\cong}}}
+\newunicodechar{ε}{\ensuremath{\mathnormal{\epsilon}}}
+\newunicodechar{ℚ}{\ensuremath{\mathnormal{\mathbb{Q}}}}
+\newunicodechar{∷}{\ensuremath{\mathnormal{\Colon}}}
+\newunicodechar{⊎}{\ensuremath{\mathnormal{\uplus}}}
+\newunicodechar{≈}{\ensuremath{\mathnormal{\approx}}}
+\newunicodechar{≉}{\ensuremath{\mathnormal{\napprox}}}
+\newunicodechar{≡}{\ensuremath{\mathnormal{\equiv}}}
+\newunicodechar{≢}{\ensuremath{\mathnormal{\nequiv}}}
+\newunicodechar{⊔}{\ensuremath{\mathnormal{\sqcup}}}
+\newunicodechar{≟}{\ensuremath{\mathnormal{\stackrel{?}{=}}}}
+\newunicodechar{∘}{\ensuremath{\mathnormal{\circ}}}
+\newunicodechar{∧}{\ensuremath{\mathnormal{\land}}}
 
 \title{Casanova Fly: A Formally-Verified Computer Algebra System}
 
@@ -121,7 +135,7 @@ module nonRepeatingPortion-Properties
 \end{code}
 
 \subsubsection{The Proof of Non-Repetition}
-\AgdaFunction{contains-no-repeats} \AgdaBound{x} indicates that for any two elements of \AgdaFunction{nrp} \AgdaBound{x} which are indexed by \AgdaBound{i} and \AgdaBound{j}, respectively, are equal only if \AgdaBound{i} is equal to \AgdaBound{j}.  Equivalently, one can say that \AgdaFunction{contains-no-repeats} \AgdaBound{x} indicates that \AgdaFunction{nrp} \AgdaBound{x} is actually a unique list, i.e., \emph{contains no repeats} of values.
+\AgdaFunction{contains-no-repeats} \AgdaBound{x} indicates that any two elements of \AgdaFunction{nrp} \AgdaBound{x} which are indexed by \AgdaBound{i} and \AgdaBound{j}, respectively, are equal only if \AgdaBound{i} is equal to \AgdaBound{j}.  Equivalently, one can say that \AgdaFunction{contains-no-repeats} \AgdaBound{x} indicates that \AgdaFunction{nrp} \AgdaBound{x} is actually a unique list, i.e., \emph{contains no repeats} of values.
 
 \begin{code}
   contains-no-repeats :
@@ -213,7 +227,7 @@ For the purposes of this document, an ``evaluation step'' is the application of 
 This one, which is represented via the \AgdaField{structuralEquality} field, should be simple enough for anyone who is familiar with \AgdaFunction{DecidableEquality}.
 
 \subsection{The Semi-Decidable Algebraic Equality Function}
-\AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{equality}\AgdaSymbol) if and only if the \AgdaFild{CAS.definitelyEquals} function finds an appropriate value.  The \AgdaField{CAS.definitelyEquals} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate proof of equality.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.definitelyEquals} is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
+\AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{equality}\AgdaSymbol) if and only if the \AgdaField{CAS.definitelyEquals} function finds an appropriate value.  The \AgdaField{CAS.definitelyEquals} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate proof of equality.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.definitelyEquals} is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
 
 \subsection{The Natural-to-ε Function}
 The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
@@ -240,7 +254,7 @@ The author is tired of the boilerplate nonsense.  \AgdaField{CAS.quotientReprese
 \AgdaField{CAS.negationRepresentation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
 
 \subsection{The Simple Limit Function}
-\AgdaField{CAS.simpleLimitRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\lim_{\AgdaBound{c} \rightarrow \AgdaBound{x}} \textrm{\Epsilon}\), where ``\(\textrm{\Epsilon}\)'' denotes the expanded version of the \AgdaBound{e} expression.
+\AgdaField{CAS.simpleLimitRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\lim_{\AgdaBound{c} \rightarrow \AgdaBound{x}} \textrm{E}\), where ``\(\textrm{E}\)'' denotes the expanded version of the \AgdaBound{e} expression.  % The "E" is a stand-in for capital epsilon.
 
 \subsection{The Variable Containment Type}
 The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.isNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
@@ -253,7 +267,7 @@ In addition to the basic mapping, proofs of the following attributes should exis
 \end{itemize}
 
 \subsection{The Proof which Indicates that Values of Different Names are Decidedly Not Equivalent}
-Operations on variables are only sensible if confusing variables is forbidden, i.e., variables of different names represented differently.  Accordingly, \AgdaField{CAS.differently-named-variables-are-different} \AgdaBound{c} indicates that within \AgdaBound{c}, given any two variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \AgdaBound{c}'s representations of \(x\) and \(y\) differ.
+Operations on variables are only sensible if confusing variables is forbidden, i.e., variables of different names are represented differently.  Accordingly, \AgdaField{CAS.differently-named-variables-are-different} \AgdaBound{c} indicates that within \AgdaBound{c}, given any two variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \AgdaBound{c}'s representations of \(x\) and \(y\) differ.
 
 \subsection{The Tracing Recursive Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
@@ -312,8 +326,11 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
   traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
   traceEvaluate n e =
-    nonRepeatingPortion (Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality)
+    nonRepeatingPortion decFun
                         (List.map (flip rEvaluate e) (List.upTo n))
+      where
+      decFun = Data.Sum.Properties.≡-dec Data.String._≟_
+                                         structuralEquality
 
   _≈_ : ℕ -> ε -> ε -> Set a
   _≈_ iterations x y = AnyList.Any (uncurry _≡_) evaluationPairs
@@ -378,7 +395,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
-For the purposes of this document, a verified computer algebra system is the combination of a \AgdaDatatype{CAS} computer algebra system \emph{and} some guarantees about the corresponding CAS.  The non-\AgdaDatatype{CAS} parts of the combination are as follows:
+For the purposes of this document, a verified computer algebra system is the combination of a \AgdaRecord{CAS} computer algebra system \(c\) \emph{and} some guarantees about \(c\).  The non-\AgdaRecord{CAS} parts of the combination are as follows:
 
 \begin{itemize}
  \item a proof which indicates that the algebraic equality relation is an equaivalence relation,
@@ -405,7 +422,7 @@ Any two given variables are not necessarily equal.  Accordingly, \AgdaField{VCAS
 Also, options on variables are only sensible if for all variables \(x\) and \(y\), if the name of \(x\) is also the name of \(y\), then \(x\) is algebraically equal to \(y\).  Accordingly, \AgdaField{VCAS.identically-named-variables-are-equal} \AgdaBound{c} indicates that for any \AgdaBound{c}-CAS variables \(x\) and \(y\), if the name of \(x\) is identical to the name of \(y\), then \AgdaBound{c} can determine that \(x\) is algebraically equal to \(y\).
 
 \subsection{The Natural Number Sum Field}
-Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural number should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  However, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proof which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
+Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural numbers should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  To prevent such incorrect implementations, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proofs which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
 
 \subsection{The Non-Bogus Sum Field}
 \AgdaField{VCAS.sum-is-not-bogus} indicates that for any given non-bogus values \AgdaBound{e1} and \AgdaBound{e2}, the sum of \AgdaBound{e1} and \AgdaBound{e2} is not bogus.
@@ -417,16 +434,16 @@ Another aspect of a good computer algebra system is the correct calculation of s
 That the quotient of any given number and zero is bogus, i.e., undefined, is well-known.  This fact --- the bogusness, not being well-known --- is represented through \AgdaField{VCAS.division-by-zero-is-bogus}.
 
 \subsection{The Proof of Commutativity of Addition}
-\AgdaField{VCAS.sum-is-commutative} indicates that addition is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.sum-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
+\AgdaField{VCAS.sum-is-commutative} indicates that addition is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.sum-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that there exists a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
 
 \subsection{The Proof of Commutativity of Multiplication}
-\AgdaField{VCAS.product-is-commutative} indicates that multiplication is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.product-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
+\AgdaField{VCAS.product-is-commutative} indicates that multiplication is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.product-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
 
 \subsection{The Proof of the Inverse Relationship between Multiplication and Division}
 \AgdaField{VCAS.product-of-quotient-is-same} indicates that for the appropriate CAS, multiplication is the inverse of division.  More formally, \AgdaField{product-of-quotient-is-same} \AgdaBound{c} indicates that for all appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, \AgdaBound{e2} is equal to the \AgdaBound{c} CAS product of \AgdaBound{e1} and the \AgdaBound{c} CAS quotient of \AgdaBound{e2} and \AgdaBound{e1}.
 
 \subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
-\AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(v\) is not used in \(e\), then \(\lim_{v \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(v\).
+\AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
 
 \subsection{The Definition Proper}
 
@@ -445,8 +462,15 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (name1 name2 : String) ->
       name1 ≢ name2 ->
       (iterations : ℕ) ->
-      inj₂ nothing ≡ definitelyEquals iterations (variableNamed name1) (variableNamed name2) ⊎
-      Σ String (\ s -> inj₁ s ≡ definitelyEquals iterations (variableNamed name1) (variableNamed name2))
+      _⊎_ (inj₂ nothing ≡
+           definitelyEquals iterations
+                            (variableNamed name1)
+                            (variableNamed name2))
+          (Σ String
+             (\ s -> inj₁ s ≡
+                     definitelyEquals iterations
+                                      (variableNamed name1)
+                                      (variableNamed name2)))
     identically-named-variables-are-equal :
       (name1 name2 : String) ->
       name1 ≡ name2 ->
@@ -528,7 +552,7 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Product} represents the product, i.e., multiplication, function.
   \item \AgdaInductiveConstructor{Exponentiation} represents the exponentiation function.
   \item \AgdaInductiveConstructor{Limit} represents the limit function, i.e., \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Limit} \AgdaBound{name}\AgdaSymbol) \AgdaSymbol(\AgdaBound{bound} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{expression} \AgdaInductiveConstructor{List.[]}\AgdaSymbol) represents the limit of \AgdaBound{expression} as \AgdaBound{name} approaches \AgdaBound{bound}.
-  \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textasciibackslash n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+  \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
 \end{itemize}
 
 \begin{code}
@@ -611,10 +635,7 @@ structuralEqualityOnε = {!!}
 commutativePermutations : ε -> List.List ε
 commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
   where
-  c : {a : Level} ->
-      {A B : Set a} ->
-      A ≡ B ->
-      A -> B
+  c : {a : Level} -> {A B : Set a} -> A ≡ B -> A -> B
   c refl t = t
   combine : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> ε
   combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
