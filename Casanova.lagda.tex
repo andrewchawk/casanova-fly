@@ -73,6 +73,7 @@ import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
 import Data.Sum.Properties
+import Data.List.Relation.Unary.All as AllList
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -99,6 +100,74 @@ condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
 \end{code}
 
+\section{The List Difference Function}
+\AgdaFunction{listDiff} is the list difference function, which can be intuitively understood as being the result of substracting the second input list from the first input list.  More formally, one can say that \AgdaFunction{listDiff} \AgdaBound{x} \AgdaBound{y} is the list of all elements of \AgdaBound{x} which do not appear in \AgdaBound{y}.  Ordering is preserved.
+
+\begin{code}
+module listDiff
+  {a : Level}
+  {A : Set a}
+  (DEQ : DecidableEquality A) where
+
+  with-any : {x : A} ->
+             {y : List.List A} ->
+             Dec (AnyList.Any (_≡_ x) y) ->
+             List.List A
+  with-any (yes isAlreadyIn) = List.[]
+  with-any {x} (no isDifferent) = List.[ x ]
+
+  listDiff : List.List A -> List.List A -> List.List A
+  listDiff List.[] y = List.[]
+  listDiff (x List.∷ xs) y = with-any (any? (DEQ x) y) List.++ listDiff xs y
+
+listDiff = listDiff.listDiff
+\end{code}
+
+\subsection{The Properties of the List Difference Function}
+This module contains a few proofs which indicates that \AgdaFunction{listDiff} is at least mildly functional.  For the sake of improving readability, the author has defined some module-specific variables and abbreviated functions.
+
+\begin{code}
+module listDiff-Properties
+  {a : Level}
+  {A : Set a}
+  (DEQ : DecidableEquality A) where
+
+  ld = listDiff DEQ
+\end{code}
+
+\subsubsection{The Absence Proof}
+\AgdaFunction{every-element-of-second-list-is-absent} \AgdaBound{x} \AgdaBound{y} indicates that every element of \AgdaBound{y} is absent from \AgdaFunction{ld} \AgdaBound{x} \AgdaBound{y}.
+
+\begin{code}
+  every-element-of-second-list-is-absent :
+    (x y : List.List A) ->
+    (i : Fin (List.length y)) ->
+    ¬ AnyList.Any (_≡_ (List.lookup y i)) (ld x y)
+  every-element-of-second-list-is-absent = {!!}
+\end{code}
+
+\subsubsection{The Proof of Containment by the First List}
+\AgdaFunction{output-is-subset-of-first-input} \AgdaBound{x} \AgdaBound{y} indicates that all elements of \AgdaFunction{ld} \AgdaBound{x} \AgdaBound{y} are also elements of \AgdaBound{x}.
+
+\begin{code}
+  output-is-subset-of-first-input :
+    (x y : List.List A) ->
+    AllList.All (\ e -> AnyList.Any (_≡_ e) x) (ld x y)
+  output-is-subset-of-first-input = {!!}
+\end{code}
+
+\subsubsection{The Applicable Containment Proof}
+\AgdaFunction{applicable-elements-are-contained} indicates that every element of \AgdaBound{x} which is not in \AgdaBound{y} is also an element of \AgdaFunction{ld} \AgdaBound{x} \AgdaBound{y}.
+
+\begin{code}
+  applicable-elements-are-contained :
+    (x y : List.List A) ->
+    (i : Fin (List.length x)) ->
+    ¬ AnyList.Any (_≡_ (List.lookup x i)) y ->
+    AnyList.Any (_≡_ (List.lookup x i)) (ld x y)
+  applicable-elements-are-contained = {!!}
+\end{code}
+
 \section{The Non-Repeating Subsequence Function}
 \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.
 
@@ -108,16 +177,8 @@ nonRepeatingPortion : {a : Level} ->
                       DecidableEquality A ->
                       List.List A ->
                       List.List A
-nonRepeatingPortion {_} {A} DEQ = helper List.[]
-  where
-  helper : List.List A -> List.List A -> List.List A
-  helper List.[] (x List.∷ xs) = helper List.[ x ] xs
-  helper as List.[] = as
-  helper as (x List.∷ xs) = with-any (any? (DEQ x) as)
-    where
-    with-any : Dec (AnyList.Any (\ a -> x ≡ a) as) -> List.List A
-    with-any (yes listRepeats) = as
-    with-any (no addToList) = helper (as List.++ List.[ x ]) xs
+nonRepeatingPortion DEQ = List.foldr add List.[]
+  where add = \ x xs -> xs List.++ listDiff DEQ List.[ x ] xs
 \end{code}
 
 \subsection{Properties of the Function}
@@ -182,6 +243,26 @@ module nonRepeatingPortion-Properties
     List.length x ≡ 0 ->
     List.length (nrp x) ≡ 0
   empty-inputs-beget-empty-outputs List.[] refl = refl
+\end{code}
+
+\begin{code}
+  nrp-of-concatenated-lists :
+    (x y : List.List A) ->
+    nrp (x List.++ y) ≡ {!!}
+  nrp-of-concatenated-lists = {!!}
+\end{code}
+
+\subsubsection{The Appending Proof}
+\AgdaFunction{new-values-are-appended} indicates that if \AgdaBound{x} does not appear in \AgdaBound{xs}, then \AgdaFunction{nrp} \AgdaSymbol(\AgdaBound{xs} \AgdaOperator{\AgdaFunction{List.++}} \AgdaOperator{\AgdaFunction{List.[}} \AgdaBound{x} \AgdaOperator{\AgdaFunction{]}} is structurally identical to \AgdaFunction{nrp} \AgdaBound{xs} \AgdaOperator{\AgdaFunction{List.++}} \AgdaOperator{\AgdaFunction{List.[}} \AgdaBound{x} \AgdaOperator{\AgdaFunction{]}}.  More intuitively, one can say that new values which are appended to the input of \AgdaFunction{nrp} are \emph{also} appended to the output of \AgdaFunction{nrp}.
+
+\begin{code}
+  new-values-are-appended :
+    (x : A) ->
+    (xs : List.List A) ->
+    ¬ AnyList.Any (_≡_ x) xs ->
+    nrp (xs List.++ List.[ x ]) ≡ nrp xs List.++ List.[ x ]
+  new-values-are-appended x List.[] notElement = refl
+  new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
 \chapter{The Computer Algebra System Types}
