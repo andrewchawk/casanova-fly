@@ -169,7 +169,7 @@ module listDiff-Properties
 \end{code}
 
 \section{The Non-Repeating Subsequence Function}
-\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.
+\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
 
 \begin{code}
 nonRepeatingPortion : {a : Level} ->
@@ -193,6 +193,16 @@ module nonRepeatingPortion-Properties
   private
     nrp : List.List A -> List.List A
     nrp = nonRepeatingPortion DEQ
+\end{code}
+
+\subsubsection{The Proof of Being the Result of Taking}
+\AgdaFunction{is-first-n-elements} \AgdaBound{x} indicates that \AgdaFunction{nrp} \AgdaBound{x} is really just the list of the first \(n\) elements of \AgdaBound{x}, where \(n\) is \AgdaFunction{List.length} \AgdaSymbol(\AgdaFunction{nrp} \AgdaBound{x}\AgdaSymbol).
+
+\begin{code}
+  is-first-n-elements :
+    (x : List.List A) ->
+    nrp x ≡ List.take (List.length (nrp x)) x
+  is-first-n-elements = {!!}
 \end{code}
 
 \subsubsection{The Proof of Non-Repetition}
