@@ -177,8 +177,8 @@ module listDiff-Properties
 \AgdaFunction{firstRepeatPosition} is such that the following statements hold:
 
 \begin{itemize}
-  \item If applicable, the \(\left(\AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x}\right)\)th position of \AgdaBound{x} is the position of the first repeating value in \AgdaBound{x}.
-  \item If \AgdaBound{x} has no repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} is just the length of \AgdaBound{x}.
+  \item If \AgdaBound{x} contains no repeating elements, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} is \AgdaInductiveConstructor{nothing}.
+  \item If \AgdaBound{x} has repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x}.
 \end{itemize}
 
 \begin{code}
@@ -187,18 +187,18 @@ module firstRepeatPosition
   {A : Set a}
   (DEQ : DecidableEquality A) where
 
-  firstRepeatPosition : (x : List.List A) -> Fin (ℕ.suc (List.length x))
-  firstRepeatPositionHelper : (x y : List.List A) -> Fin (ℕ.suc (List.length y))
+  firstRepeatPosition : (x : List.List A) -> Maybe (Fin (List.length x))
+  firstRepeatPositionHelper : (x y : List.List A) -> Maybe (Fin (List.length y))
 
   firstRepeatPosition = firstRepeatPositionHelper List.[]
 
-  firstRepeatPositionHelper x List.[] = Fin.zero
+  firstRepeatPositionHelper x List.[] = nothing
   firstRepeatPositionHelper List.[] (y List.∷ ys) =
-    Fin.suc (firstRepeatPositionHelper List.[ y ] ys)
+    Data.Maybe.map Fin.suc (firstRepeatPositionHelper List.[ y ] ys)
   firstRepeatPositionHelper (x List.∷ xs) (y List.∷ ys) =
     if isYes (any? (DEQ y) (x List.∷ xs))
-      then Fin.zero
-      else Fin.suc (firstRepeatPositionHelper (y List.∷ x List.∷ xs) ys)
+      then just Fin.zero
+      else Data.Maybe.map Fin.suc (firstRepeatPositionHelper (y List.∷ x List.∷ xs) ys)
 \end{code}
 
 \subsection{The Properties of the Function}
@@ -210,19 +210,19 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
     pos = firstRepeatPosition
 \end{code}
 
-\subsubsection{The Proof of Equalling the Length}
-\AgdaFunction{pos-of-unique-list-is-length} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} is the length of \AgdaBound{x} if all elements of \AgdaBound{x} are unique.
+\subsubsection{The Proof of Being Nothing}
+\AgdaFunction{pos-of-unique-list-is-length} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} is \AgdaInductiveConstructor{nothing} if all elements of \AgdaBound{x} are unique.
 
 \begin{code}
-    pos-of-unique-list-is-length :
+    pos-of-unique-list-is-nothing :
       (x : List.List A) ->
       UniqueList x ->
-      pos x ≡ Fin.fromℕ (List.length x)
-    pos-of-unique-list-is-length = {!!}
+      pos x ≡ nothing
+    pos-of-unique-list-is-nothing = {!!}
 \end{code}
 
 \subsubsection{The Proof of Equalling the Position of the First Repeating Value}
-\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} is the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.
+\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.
 
 \begin{code}
     pos-is-position-of-first-repeat :
@@ -230,8 +230,18 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       (i : Fin (List.length x)) ->
       UniqueList (List.take (Fin.toℕ i) x) ->
       AnyList.Any (_≡_ (List.lookup x i)) (List.take (Fin.toℕ i) x) ->
-      pos x ≡ Fin.suc i
+      pos x ≡ just i
     pos-is-position-of-first-repeat = {!!}
+\end{code}
+
+\subsection{The Proof of the Noncontainment of Zero}
+\AgdaFunction{pos-is-never-zero} indicates that for no \AgdaBound{x}, \AgdaFunction{pos} \AgdaBound{x} contains a zero value.
+
+\begin{code}
+    pos-is-never-zero :
+      (x : List.List A) ->
+      Data.Maybe.map Fin.toℕ (pos x) ≢ just 0
+    pos-is-never-zero = {!!}
 \end{code}
 
 \subsection{Exporting the Function}
@@ -250,7 +260,8 @@ nonRepeatingPortion : {a : Level} ->
                       DecidableEquality A ->
                       List.List A ->
                       List.List A
-nonRepeatingPortion DEQ x = List.take (Fin.toℕ (firstRepeatPosition DEQ x)) x
+nonRepeatingPortion DEQ x = List.take nonRepeatLength x
+  where nonRepeatLength = maybe Fin.toℕ (List.length x) (firstRepeatPosition DEQ x)
 \end{code}
 
 \subsection{Properties of the Function}
