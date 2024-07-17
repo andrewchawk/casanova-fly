@@ -68,12 +68,17 @@ open import Data.Rational
 open import Data.Product
 open import Data.List.Relation.Unary.Any as AnyList using (any?)
 open import Data.Fin as Fin using (Fin)
+open import Data.List.Relation.Unary.Unique.Propositional
+  renaming
+    ( Unique to UniqueList
+    )
 
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
 import Data.Sum.Properties
 import Data.List.Relation.Unary.All as AllList
+import Data.List.Relation.Unary.AllPairs as AllPairsList
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -168,6 +173,74 @@ module listDiff-Properties
   applicable-elements-are-contained = {!!}
 \end{code}
 
+\section{The First Repeat Position Function}
+\AgdaFunction{firstRepeatPosition} is such that the following statements hold:
+
+\begin{itemize}
+  \item If applicable, the \(\left(\AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x}\right)\)th position of \AgdaBound{x} is the position of the first repeating value in \AgdaBound{x}.
+  \item If \AgdaBound{x} has no repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} is just the length of \AgdaBound{x}.
+\end{itemize}
+
+\begin{code}
+module firstRepeatPosition
+  {a : Level}
+  {A : Set a}
+  (DEQ : DecidableEquality A) where
+
+  firstRepeatPosition : (x : List.List A) -> Fin (ℕ.suc (List.length x))
+  firstRepeatPositionHelper : (x y : List.List A) -> Fin (ℕ.suc (List.length y))
+
+  firstRepeatPosition = firstRepeatPositionHelper List.[]
+
+  firstRepeatPositionHelper x List.[] = Fin.zero
+  firstRepeatPositionHelper List.[] (y List.∷ ys) =
+    Fin.suc (firstRepeatPositionHelper List.[ y ] ys)
+  firstRepeatPositionHelper (x List.∷ xs) (y List.∷ ys) =
+    if isYes (any? (DEQ y) (x List.∷ xs))
+      then Fin.zero
+      else Fin.suc (firstRepeatPositionHelper (y List.∷ x List.∷ xs) ys)
+\end{code}
+
+\subsection{The Properties of the Function}
+This module contains a few proofs which indicates that \AgdaFunction{firstRepeatPosition} really does work as described, after all.  For the sake of improving readability and preventing a repetitive strain injury, the author has also provided an abbreviation of the main function's name.
+
+\begin{code}
+  module Properties where
+
+    pos = firstRepeatPosition
+\end{code}
+
+\subsubsection{The Proof of Equalling the Length}
+\AgdaFunction{pos-of-unique-list-is-length} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} is the length of \AgdaBound{x} if all elements of \AgdaBound{x} are unique.
+
+\begin{code}
+    pos-of-unique-list-is-length :
+      (x : List.List A) ->
+      UniqueList x ->
+      pos x ≡ Fin.fromℕ (List.length x)
+    pos-of-unique-list-is-length = {!!}
+\end{code}
+
+\subsubsection{The Proof of Equalling the Position of the First Repeating Value}
+\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} is the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.
+
+\begin{code}
+    pos-is-position-of-first-repeat :
+      (x : List.List A) ->
+      (i : Fin (List.length x)) ->
+      UniqueList (List.take (Fin.toℕ i) x) ->
+      AnyList.Any (_≡_ (List.lookup x i)) (List.take (Fin.toℕ i) x) ->
+      pos x ≡ Fin.suc i
+    pos-is-position-of-first-repeat = {!!}
+\end{code}
+
+\subsection{Exporting the Function}
+``\AgdaFunction{firstRepeatPosition.firstRepeatPosition}'' is a bit long; as such, the author has elected to permit using the relatively short --- but still mildly verbose --- ``\AgdaFunction{firstRepeatPosition}''.  Praise be.
+
+\begin{code}
+firstRepeatPosition = firstRepeatPosition.firstRepeatPosition
+\end{code}
+
 \section{The Non-Repeating Subsequence Function}
 \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
 
@@ -177,8 +250,7 @@ nonRepeatingPortion : {a : Level} ->
                       DecidableEquality A ->
                       List.List A ->
                       List.List A
-nonRepeatingPortion DEQ = List.foldr add List.[]
-  where add = \ x xs -> xs List.++ listDiff DEQ List.[ x ] xs
+nonRepeatingPortion DEQ x = List.take (Fin.toℕ (firstRepeatPosition DEQ x)) x
 \end{code}
 
 \subsection{Properties of the Function}
