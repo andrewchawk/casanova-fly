@@ -27,6 +27,11 @@
 \newunicodechar{≟}{\ensuremath{\mathnormal{\stackrel{?}{=}}}}
 \newunicodechar{∘}{\ensuremath{\mathnormal{\circ}}}
 \newunicodechar{∧}{\ensuremath{\mathnormal{\land}}}
+\newunicodechar{∧}{\ensuremath{\mathnormal{\land}}}
+\newunicodechar{⇒}{\ensuremath{\mathnormal{\Rightarrow}}}
+\newunicodechar{⟨}{\ensuremath{\mathnormal{\langle}}}
+\newunicodechar{⟩}{\ensuremath{\mathnormal{\rangle}}}
+\newunicodechar{∎}{\ensuremath{\mathnormal{\blacksquare}}}
 
 \title{Casanova Fly: A Formally-Verified Computer Algebra System}
 
@@ -56,6 +61,7 @@ open import Data.Sum
 open import Level
 open import Data.String hiding (_≈_)
 open import Relation.Binary.PropositionalEquality hiding ([_])
+open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
 open import Relation.Nullary
@@ -72,13 +78,19 @@ open import Data.List.Relation.Unary.Unique.Propositional
   renaming
     ( Unique to UniqueList
     )
+open import Relation.Nullary.Decidable
+  using
+    ( dec-yes
+    )
 
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
 import Data.Sum.Properties
 import Data.List.Relation.Unary.All as AllList
+import Data.List.Relation.Unary.All.Properties as AllListProp
 import Data.List.Relation.Unary.AllPairs as AllPairsList
+import Data.Maybe.Properties
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -210,6 +222,42 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
   module Properties where
 
     pos = firstRepeatPosition
+    posh = firstRepeatPositionHelper
+\end{code}
+
+\subsubsection{The Unique Prepending Proof}
+\AgdaFunction{uniquePrepend} indicates that if \AgdaBound{x} is not in \AgdaBound{xs} and \AgdaBound{alls}, then \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{List.∷}} \AgdaBound{xs}\AgdaSymbol) contains the successor of \AgdaFunction{pos} \AgdaBound{xs} or is \AgdaInductiveConstructor{nothing}.
+
+\begin{code}
+    unique-prepend :
+      (x : A) ->
+      (xs : List.List A) ->
+      AllList.All (\ e -> x ≢ e) xs ->
+      pos (x List.∷ xs) ≡ Data.Maybe.map Fin.suc (pos xs)
+    unique-prepend = {!!}
+\end{code}
+
+\subsubsection{The Proof of Nothingness's Implication of Uniqueness}
+\AgdaFunction{pos-is-nothing-only-if-list-is-unique} indicates that \AgdaFunction{pos} \AgdaBound{xs} is \AgdaInductiveConstructor{nothing} only if \AgdaBound{xs} is a unique list.
+
+\begin{code}
+    pos-is-nothing-only-if-list-is-unique :
+      (x : List.List A) ->
+      pos x ≡ nothing ->
+      UniqueList x
+    pos-is-nothing-only-if-list-is-unique = {!!}
+\end{code}
+
+\subsubsection{The Proof of Recursive Nothingness}
+\AgdaFunction{pos-is-nothing-only-if-removal-is-nothing} indicates that \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{∷}} \AgdaBound{xs}\AgdaSymbol) is \AgdaBound{nothing} only if \AgdaBound{xs} is unique.  Equivalently, one can say that the function proves that the result of appending an element \(x\) to a list \(xs\) is a unique list only if \(xs\) is a unique list.
+
+\begin{code}
+    pos-is-nothing-only-if-removal-is-nothing :
+      {x : A} ->
+      {xs : List.List A} ->
+      pos (x List.∷ xs) ≡ nothing ->
+      pos xs ≡ nothing
+    pos-is-nothing-only-if-removal-is-nothing = {!!}
 \end{code}
 
 \subsubsection{The Proof of Being Nothing}
@@ -220,7 +268,34 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       (x : List.List A) ->
       UniqueList x ->
       pos x ≡ nothing
-    pos-of-unique-list-is-nothing = {!!}
+    pos-of-unique-list-is-nothing List.[] u = refl
+    pos-of-unique-list-is-nothing (x List.∷ xs) (u AllPairsList.∷ us) =
+      unique-prepend-nothing u (pos-of-unique-list-is-nothing xs us)
+      where
+      unique-prepend-nothing :
+        {x : A} ->
+        {xs : List.List A} ->
+        AllList.All (\ e -> x ≢ e) xs ->
+        pos xs ≡ nothing ->
+        pos (x List.∷ xs) ≡ nothing
+      unique-prepend-nothing AllList.[] refl = refl
+      unique-prepend-nothing {x} xs@{x1 List.∷ xs1} alls eq with any? (DEQ x) xs
+      ... | yes nonsense = contradiction nonsense (AllListProp.All¬⇒¬Any alls)
+      ... | no obviously = begin
+        pos (x List.∷ xs)
+          ≡⟨ unique-prepend x xs alls ⟩
+        Data.Maybe.map Fin.suc (pos xs)
+          ≡⟨ cong (Data.Maybe.map Fin.suc) pos-xs-is-nothing ⟩
+        nothing ∎
+        where
+        x1-is-not-in-xs1 : AllList.All (_≢_ x1) xs1
+        x1-is-not-in-xs1 with pos-is-nothing-only-if-list-is-unique xs eq
+        ... | (u AllPairsList.∷ us) = u
+        pos-xs-is-nothing : pos xs ≡ nothing
+        pos-xs-is-nothing =
+          unique-prepend-nothing {x1} {xs1}
+                                 x1-is-not-in-xs1
+                                 (pos-is-nothing-only-if-removal-is-nothing {x1} {xs1} eq)
 \end{code}
 
 \subsubsection{The Proof of Equalling the Position of the First Repeating Value}
@@ -243,7 +318,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
     pos-is-never-zero :
       (x : List.List A) ->
       Data.Maybe.map Fin.toℕ (pos x) ≢ just 0
-    pos-is-never-zero = {!!}
+    pos-is-never-zero x ()
 \end{code}
 
 \subsection{Exporting the Function}
