@@ -124,53 +124,55 @@ module listDiff
   listDiff : List.List A -> List.List A -> List.List A
   listDiff List.[] y = List.[]
   listDiff (x List.∷ xs) y = with-any (any? (DEQ x) y) List.++ listDiff xs y
-
-listDiff = listDiff.listDiff
 \end{code}
 
 \subsection{The Properties of the List Difference Function}
 This module contains a few proofs which indicates that \AgdaFunction{listDiff} is at least mildly functional.  For the sake of improving readability, the author has defined some module-specific variables and abbreviated functions.
 
 \begin{code}
-module listDiff-Properties
-  {a : Level}
-  {A : Set a}
-  (DEQ : DecidableEquality A) where
+  module Properties where
 
-  ld = listDiff DEQ
+    ld = listDiff
 \end{code}
 
 \subsubsection{The Absence Proof}
 \AgdaFunction{every-element-of-second-list-is-absent} \AgdaBound{x} \AgdaBound{y} indicates that every element of \AgdaBound{y} is absent from \AgdaFunction{ld} \AgdaBound{x} \AgdaBound{y}.
 
 \begin{code}
-  every-element-of-second-list-is-absent :
-    (x y : List.List A) ->
-    (i : Fin (List.length y)) ->
-    ¬ AnyList.Any (_≡_ (List.lookup y i)) (ld x y)
-  every-element-of-second-list-is-absent = {!!}
+    every-element-of-second-list-is-absent :
+      (x y : List.List A) ->
+      (i : Fin (List.length y)) ->
+      ¬ AnyList.Any (_≡_ (List.lookup y i)) (ld x y)
+    every-element-of-second-list-is-absent = {!!}
 \end{code}
 
 \subsubsection{The Proof of Containment by the First List}
 \AgdaFunction{output-is-subset-of-first-input} \AgdaBound{x} \AgdaBound{y} indicates that all elements of \AgdaFunction{ld} \AgdaBound{x} \AgdaBound{y} are also elements of \AgdaBound{x}.
 
 \begin{code}
-  output-is-subset-of-first-input :
-    (x y : List.List A) ->
-    AllList.All (\ e -> AnyList.Any (_≡_ e) x) (ld x y)
-  output-is-subset-of-first-input = {!!}
+    output-is-subset-of-first-input :
+      (x y : List.List A) ->
+      AllList.All (\ e -> AnyList.Any (_≡_ e) x) (ld x y)
+    output-is-subset-of-first-input = {!!}
 \end{code}
 
 \subsubsection{The Applicable Containment Proof}
 \AgdaFunction{applicable-elements-are-contained} indicates that every element of \AgdaBound{x} which is not in \AgdaBound{y} is also an element of \AgdaFunction{ld} \AgdaBound{x} \AgdaBound{y}.
 
 \begin{code}
-  applicable-elements-are-contained :
-    (x y : List.List A) ->
-    (i : Fin (List.length x)) ->
-    ¬ AnyList.Any (_≡_ (List.lookup x i)) y ->
-    AnyList.Any (_≡_ (List.lookup x i)) (ld x y)
-  applicable-elements-are-contained = {!!}
+    applicable-elements-are-contained :
+      (x y : List.List A) ->
+      (i : Fin (List.length x)) ->
+      ¬ AnyList.Any (_≡_ (List.lookup x i)) y ->
+      AnyList.Any (_≡_ (List.lookup x i)) (ld x y)
+    applicable-elements-are-contained = {!!}
+\end{code}
+
+\subsection{Exporting the Function}
+Despite not really being the worst offender in this paper, ``\AgdaFunction{listDiff.listDiff}'' is a bit repetitive and long; accordion, the author encourages instead using ``\AgdaFunction{listDiff}''.
+
+\begin{code}
+listDiff = listDiff.listDiff
 \end{code}
 
 \section{The First Repeat Position Function}
