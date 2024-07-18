@@ -234,7 +234,43 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       (xs : List.List A) ->
       AllList.All (\ e -> x ≢ e) xs ->
       pos (x List.∷ xs) ≡ Data.Maybe.map Fin.suc (pos xs)
-    unique-prepend = {!!}
+    unique-prepend x List.[] all = refl
+    unique-prepend x xs@(x1 List.∷ xs1) alls@(a AllList.∷ as) = begin
+      pos (x List.∷ xs)
+        ≡⟨⟩
+      Data.Maybe.map Fin.suc (posh List.[ x ] xs)
+        ≡⟨⟩
+      Data.Maybe.map Fin.suc
+        (if isYes (any? (DEQ x1) List.[ x ])
+            then just Fin.zero
+            else Data.Maybe.map Fin.suc (posh (x1 List.∷ List.[ x ]) xs1))
+        ≡⟨ cong (\ e -> Data.Maybe.map Fin.suc
+                          (if isYes e
+                              then just Fin.zero
+                              else Data.Maybe.map Fin.suc (posh (x1 List.∷ List.[ x ]) xs1)))
+                x1-is-decidably-not-in-[x] ⟩
+      Data.Maybe.map Fin.suc (Data.Maybe.map Fin.suc (posh (x1 List.∷ List.[ x ]) xs1))
+        ≡⟨ cong (Data.Maybe.map Fin.suc) (sym (posh-moves-elements {x} {x1} {xs1} )) ⟩
+      Data.Maybe.map Fin.suc (posh List.[ x ] xs)
+        ≡⟨ cong (Data.Maybe.map Fin.suc) (sym (pos-is-posh {x} {xs} alls)) ⟩
+      Data.Maybe.map Fin.suc (posh List.[] xs) ∎
+      where
+      posh-moves-elements :
+        {x y : A} ->
+        {xs : List.List A} ->
+        _≡_ (posh List.[ x ] (y List.∷ xs))
+            (Data.Maybe.map Fin.suc (posh (y List.∷ List.[ x ]) xs))
+      posh-moves-elements = {!!}
+      pos-is-posh :
+        {x : A} ->
+        {xs : List.List A} ->
+        AllList.All (_≢_ x) xs ->
+        pos xs ≡ posh List.[ x ] xs
+      pos-is-posh = {!!}
+      x1-is-decidably-not-in-[x] :
+        _≡_ (any? (DEQ x1) List.[ x ])
+            (no (AllListProp.All¬⇒¬Any ((_∘ sym) a AllList.∷ AllList.[])))
+      x1-is-decidably-not-in-[x] = {!!}
 \end{code}
 
 \subsubsection{The Proof of Nothingness's Implication of Uniqueness}
