@@ -227,7 +227,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 \end{code}
 
 \subsubsection{The Unique Prepending Proof}
-\AgdaFunction{uniquePrepend} indicates that if \AgdaBound{x} is not in \AgdaBound{xs} and \AgdaBound{alls}, then \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{List.∷}} \AgdaBound{xs}\AgdaSymbol) contains the successor of \AgdaFunction{pos} \AgdaBound{xs} or is \AgdaInductiveConstructor{nothing}.
+\AgdaFunction{uniquePrepend} indicates that if \AgdaBound{x} is not in \AgdaBound{xs}, then \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{List.∷}} \AgdaBound{xs}\AgdaSymbol) contains the successor of \AgdaFunction{pos} \AgdaBound{xs} or is \AgdaInductiveConstructor{nothing}.
 
 \begin{code}
     unique-prepend :
