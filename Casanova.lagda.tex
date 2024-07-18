@@ -318,7 +318,9 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
     pos-is-never-zero :
       (x : List.List A) ->
       Data.Maybe.map Fin.toℕ (pos x) ≢ just 0
-    pos-is-never-zero x ()
+    pos-is-never-zero List.[] ()
+    pos-is-never-zero (x List.∷ List.[]) ()
+    pos-is-never-zero (x List.∷ xs) = {!!}
 \end{code}
 
 \subsection{Exporting the Function}
