@@ -91,6 +91,7 @@ import Data.List.Relation.Unary.All as AllList
 import Data.List.Relation.Unary.All.Properties as AllListProp
 import Data.List.Relation.Unary.AllPairs as AllPairsList
 import Data.Maybe.Properties
+import Data.Maybe.Relation.Unary.Any as AnyMaybe
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -284,6 +285,18 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
     pos-is-nothing-only-if-list-is-unique = {!!}
 \end{code}
 
+\subsubsection{The Prepended Nonunique List Proof}
+\AgdaFunction{nonunique-prepend} indicates that the result of prepending a value to a non-unique list is \emph{also} a non-unique list.
+
+\begin{code}
+    nonunique-prepend :
+      (x : A) ->
+      (xs : List.List A) ->
+      Is-just (pos xs) ->
+      Is-just (pos (x List.∷ xs))
+    nonunique-prepend = {!!}
+\end{code}
+
 \subsubsection{The Proof of Recursive Nothingness}
 \AgdaFunction{pos-is-nothing-only-if-removal-is-nothing} indicates that \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{∷}} \AgdaBound{xs}\AgdaSymbol) is \AgdaBound{nothing} only if \AgdaBound{xs} is unique.  Equivalently, one can say that the function proves that the result of appending an element \(x\) to a list \(xs\) is a unique list only if \(xs\) is a unique list.
 
@@ -293,7 +306,30 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       {xs : List.List A} ->
       pos (x List.∷ xs) ≡ nothing ->
       pos xs ≡ nothing
-    pos-is-nothing-only-if-removal-is-nothing = {!!}
+    pos-is-nothing-only-if-removal-is-nothing {x} {List.[]} always = refl
+    pos-is-nothing-only-if-removal-is-nothing {x} {y List.∷ ys} isNothing with NOTHINGNESS
+      where
+      NOTHINGNESS : Dec (pos (y List.∷ ys) ≡ nothing)
+      NOTHINGNESS = Data.Maybe.Properties.≡-dec Fin._≟_ _ _
+    ... | yes alreadyDone = alreadyDone
+    ... | no bogus = contradiction isNothing notNothing
+      where
+      nonnothing-is-just :
+        {a : Level} ->
+        {A : Set a} ->
+        {x : Maybe A} ->
+        x ≢ nothing ->
+        Is-just x
+      nonnothing-is-just {x = just x} notNothing = AnyMaybe.just _
+      nonnothing-is-just {x = nothing} notNothing = contradiction refl notNothing
+      just-is-not-nothing :
+        {a : Level} ->
+        {A : Set a} ->
+        {x : Maybe A} ->
+        Is-just x ->
+        x ≢ nothing
+      just-is-not-nothing {x = just x} j ()
+      notNothing = just-is-not-nothing (nonunique-prepend x (y List.∷ ys) (nonnothing-is-just bogus))
 \end{code}
 
 \subsubsection{The Proof of Being Nothing}
