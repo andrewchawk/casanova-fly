@@ -294,7 +294,30 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       (xs : List.List A) ->
       Is-just (pos xs) ->
       Is-just (pos (x List.∷ xs))
-    nonunique-prepend = {!!}
+    nonunique-prepend x (y List.∷ ys) nonUniqueness with any? (DEQ x) (y List.∷ ys)
+    ... | no xIsUniqueInYYs = justness-implies-justness index equality
+      where
+      index : Fin (List.length (x List.∷ y List.∷ ys))
+      index = Fin.suc (to-witness nonUniqueness)
+      justness-implies-justness :
+        {a : Level} ->
+        {A : Set a} ->
+        {x : Maybe A} ->
+        (y : A) ->
+        x ≡ just y ->
+        Is-just x
+      justness-implies-justness y refl = AnyMaybe.just _
+      equality : pos (x List.∷ y List.∷ ys) ≡ just index
+      equality = begin
+        pos (x List.∷ y List.∷ ys)
+          ≡⟨ unique-prepend x (y List.∷ ys)
+                              (AllListProp.¬Any⇒All¬ _ xIsUniqueInYYs) ⟩
+        Data.Maybe.map Fin.suc (pos (y List.∷ ys))
+          ≡⟨ {!!} ⟩
+        Data.Maybe.map Fin.suc (just (to-witness nonUniqueness))
+          ≡⟨⟩
+        just index ∎
+    ... | yes xAppears = {!!}
 \end{code}
 
 \subsubsection{The Proof of Recursive Nothingness}
