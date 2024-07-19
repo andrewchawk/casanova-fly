@@ -227,16 +227,16 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 \end{code}
 
 \subsubsection{The Unique Prepending Proof}
-\AgdaFunction{uniquePrepend} indicates that if \AgdaBound{x} is not in \AgdaBound{xs}, then \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{List.∷}} \AgdaBound{xs}\AgdaSymbol) contains the successor of \AgdaFunction{pos} \AgdaBound{xs} or is \AgdaInductiveConstructor{nothing}.
+\AgdaFunction{unique-element-prepend} indicates that if \AgdaBound{x} is not in \AgdaBound{xs}, then \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{List.∷}} \AgdaBound{xs}\AgdaSymbol) contains the successor of \AgdaFunction{pos} \AgdaBound{xs} or is \AgdaInductiveConstructor{nothing}.
 
 \begin{code}
-    unique-prepend :
+    unique-element-prepend :
       (x : A) ->
       (xs : List.List A) ->
       AllList.All (\ e -> x ≢ e) xs ->
       pos (x List.∷ xs) ≡ Data.Maybe.map Fin.suc (pos xs)
-    unique-prepend x List.[] all = refl
-    unique-prepend x xs@(x1 List.∷ xs1) alls@(a AllList.∷ as) = begin
+    unique-element-prepend x List.[] all = refl
+    unique-element-prepend x xs@(x1 List.∷ xs1) alls@(a AllList.∷ as) = begin
       pos (x List.∷ xs)
         ≡⟨⟩
       Data.Maybe.map Fin.suc (posh List.[ x ] xs)
@@ -310,8 +310,8 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       equality : pos (x List.∷ y List.∷ ys) ≡ just index
       equality = begin
         pos (x List.∷ y List.∷ ys)
-          ≡⟨ unique-prepend x (y List.∷ ys)
-                              (AllListProp.¬Any⇒All¬ _ xIsUniqueInYYs) ⟩
+          ≡⟨ unique-element-prepend x (y List.∷ ys)
+                                    (AllListProp.¬Any⇒All¬ _ xIsUniqueInYYs) ⟩
         Data.Maybe.map Fin.suc (pos (y List.∷ ys))
           ≡⟨ {!!} ⟩
         Data.Maybe.map Fin.suc (just (to-witness nonUniqueness))
@@ -378,7 +378,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       ... | yes nonsense = contradiction nonsense (AllListProp.All¬⇒¬Any alls)
       ... | no obviously = begin
         pos (x List.∷ xs)
-          ≡⟨ unique-prepend x xs alls ⟩
+          ≡⟨ unique-element-prepend x xs alls ⟩
         Data.Maybe.map Fin.suc (pos xs)
           ≡⟨ cong (Data.Maybe.map Fin.suc) pos-xs-is-nothing ⟩
         nothing ∎
