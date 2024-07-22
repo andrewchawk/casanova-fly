@@ -93,6 +93,7 @@ import Data.List.Relation.Unary.AllPairs as AllPairsList
 import Data.Maybe.Properties
 import Data.Maybe.Relation.Unary.Any as AnyMaybe
 import Data.Nat.Properties
+import Data.Product.Properties as ProdProp
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -685,16 +686,36 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     nonRepeatingPortion decFun (List.map (flip rEvaluate e) (List.upTo (ℕ.suc n)))
       where decFun = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality
 
-  _≈_ : ℕ -> ε -> ε -> Set a
-  _≈_ iterations x y = AnyList.Any (uncurry _≡_) evaluationPairs
-    where
-    evaluationPairs = inj2s (List.cartesianProduct (trace x) (trace y))
+  module EqualityVerificationParts where
+    inj2s : List.List (Exceptional ε × Exceptional ε) -> List.List (ε × ε)
+    inj2s ((inj₂ e1 , inj₂ e2) List.∷ es) = (e1 , e2) List.∷ inj2s es
+    inj2s (e List.∷ es) = inj2s es
+    inj2s List.[] = List.[]
+
+    evaluationPairs : ℕ -> ε -> ε -> List.List (ε × ε)
+    evaluationPairs i x y = inj2s (List.cartesianProduct (trace x) (trace y))
       where
-      trace = traceEvaluate iterations
-      inj2s : List.List (Exceptional ε × Exceptional ε) -> List.List (ε × ε)
-      inj2s ((inj₂ e1 , inj₂ e2) List.∷ es) = (e1 , e2) List.∷ inj2s es
-      inj2s (e List.∷ es) = inj2s es
-      inj2s List.[] = List.[]
+      trace = traceEvaluate i
+
+    module ProofsOfCorrectness
+      (i : ℕ)
+      (e1 e2 : ε) where
+
+      evp = evaluationPairs i e1 e2
+
+      length-of-pairlist-is-suc : Σ ℕ (\ n -> ℕ.suc n ≡ List.length evp)
+      length-of-pairlist-is-suc = {!!}
+
+      first-pair-index = Data.Fin.cast (proj₂ length-of-pairlist-is-suc) Fin.zero
+
+      inputs-are-first-evaluation-pair :
+        (e1 , e2) ≡ List.lookup evp first-pair-index
+      inputs-are-first-evaluation-pair = {!!}
+
+  open EqualityVerificationParts
+
+  _≈_ : ℕ -> ε -> ε -> Set a
+  _≈_ iterations x y = AnyList.Any (uncurry _≡_) (evaluationPairs iterations x y)
 
   _≉_ : ε -> ε -> Set a
   x ≉ y = (iterations : ℕ) -> ¬ _≈_ iterations x y
@@ -1095,7 +1116,10 @@ CasanovaFly-Base = record
 
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
-  { equality-is-equivalence = {!!}
+  { equality-is-equivalence = \ iterations → record
+    { refl = equality-is-reflexive iterations;
+      sym = {!!} ;
+      trans = {!!}}
   ; sum-of-nats-is-nat-sum = {!!}
   ; product-of-e-and-1-is-e = {!!}
   ; structural-equality-implies-definite-equality = {!!}
@@ -1110,5 +1134,32 @@ CasanovaFly-Verified = record
   ; product-of-quotient-is-same = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   }
+  where
+  equality = CAS._≈_ CasanovaFly-Base
+  equality-is-reflexive : (i : ℕ) -> Reflexive (CAS._≈_ CasanovaFly-Base i)
+  equality-is-reflexive i {e} = existence-implies-anyness (proj₂ existence)
+    where
+    pairs = CAS.EqualityVerificationParts.evaluationPairs CasanovaFly-Base i e e
+    existence : Σ (Fin (List.length pairs)) (\ i -> uncurry _≡_ (List.lookup pairs i))
+    existence = first-pair-index , is-equal
+      where
+      open CAS.EqualityVerificationParts.ProofsOfCorrectness CasanovaFly-Base i e e
+      firstEv = inputs-are-first-evaluation-pair
+      is-equal : uncurry _≡_ (List.lookup pairs first-pair-index)
+      is-equal = begin
+        proj₁ (List.lookup pairs first-pair-index)
+          ≡⟨ proj₁ (ProdProp.×-≡,≡←≡ (sym inputs-are-first-evaluation-pair)) ⟩
+        e
+          ≡⟨ proj₂ (ProdProp.×-≡,≡←≡ inputs-are-first-evaluation-pair) ⟩
+        proj₂ (List.lookup pairs first-pair-index) ∎
+    existence-implies-anyness :
+      {a p : Level} ->
+      {A : Set a} ->
+      {P : A -> Set p} ->
+      {xs : List.List A} ->
+      {i : Fin (List.length xs)} ->
+      P (List.lookup xs i) ->
+      AnyList.Any P xs
+    existence-implies-anyness = {!!}
 \end{code}
 \end{document}
