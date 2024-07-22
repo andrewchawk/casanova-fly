@@ -1160,6 +1160,8 @@ CasanovaFly-Verified = record
       {i : Fin (List.length xs)} ->
       P (List.lookup xs i) ->
       AnyList.Any P xs
-    existence-implies-anyness = {!!}
+    existence-implies-anyness {xs = x List.∷ xs} {Fin.zero} p = AnyList.here p
+    existence-implies-anyness {xs = x List.∷ xs} {Fin.suc i} p =
+      AnyList.there (existence-implies-anyness p)
 \end{code}
 \end{document}
