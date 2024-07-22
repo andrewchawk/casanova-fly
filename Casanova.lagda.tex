@@ -683,7 +683,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
   traceEvaluate n e =
     nonRepeatingPortion decFun
-                        (List.map (flip rEvaluate e) (List.upTo n))
+                        (List.map (flip rEvaluate e) (List.upTo (ℕ.suc n)))
       where
       decFun = Data.Sum.Properties.≡-dec Data.String._≟_
                                          structuralEquality
