@@ -682,11 +682,8 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
   traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
   traceEvaluate n e =
-    nonRepeatingPortion decFun
-                        (List.map (flip rEvaluate e) (List.upTo (ℕ.suc n)))
-      where
-      decFun = Data.Sum.Properties.≡-dec Data.String._≟_
-                                         structuralEquality
+    nonRepeatingPortion decFun (List.map (flip rEvaluate e) (List.upTo (ℕ.suc n)))
+      where decFun = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality
 
   _≈_ : ℕ -> ε -> ε -> Set a
   _≈_ iterations x y = AnyList.Any (uncurry _≡_) evaluationPairs
@@ -829,15 +826,15 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (name1 name2 : String) ->
       name1 ≢ name2 ->
       (iterations : ℕ) ->
-      _⊎_ (inj₂ nothing ≡
-           definitelyEquals iterations
-                            (variableNamed name1)
-                            (variableNamed name2))
+      _⊎_ (_≡_ (inj₂ nothing)
+               (definitelyEquals iterations
+                                 (variableNamed name1)
+                                 (variableNamed name2)))
           (Σ String
-             (\ s -> inj₁ s ≡
-                     definitelyEquals iterations
-                                      (variableNamed name1)
-                                      (variableNamed name2)))
+             (\ s -> _≡_ (inj₁ s)
+                         (definitelyEquals iterations
+                                           (variableNamed name1)
+                                           (variableNamed name2))))
     identically-named-variables-are-equal :
       (name1 name2 : String) ->
       name1 ≡ name2 ->
