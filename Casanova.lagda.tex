@@ -307,13 +307,20 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
         x ≡ just y ->
         Is-just x
       justness-implies-justness y refl = AnyMaybe.just _
+      self-is-just-to-witness :
+        {a : Level} ->
+        {A : Set a} ->
+        {x : Maybe A} ->
+        (isJust : Is-just x) ->
+        x ≡ just (to-witness isJust)
+      self-is-just-to-witness {x = just x} (AnyMaybe.just isJust) = refl
       equality : pos (x List.∷ y List.∷ ys) ≡ just index
       equality = begin
         pos (x List.∷ y List.∷ ys)
           ≡⟨ unique-element-prepend x (y List.∷ ys)
                                     (AllListProp.¬Any⇒All¬ _ xIsUniqueInYYs) ⟩
         Data.Maybe.map Fin.suc (pos (y List.∷ ys))
-          ≡⟨ {!!} ⟩
+          ≡⟨ cong (Data.Maybe.map Fin.suc) (self-is-just-to-witness nonUniqueness) ⟩
         Data.Maybe.map Fin.suc (just (to-witness nonUniqueness))
           ≡⟨⟩
         just index ∎
