@@ -92,6 +92,7 @@ import Data.List.Relation.Unary.All.Properties as AllListProp
 import Data.List.Relation.Unary.AllPairs as AllPairsList
 import Data.Maybe.Properties
 import Data.Maybe.Relation.Unary.Any as AnyMaybe
+import Data.Nat.Properties
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -743,7 +744,18 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     (e : ε) ->
     bogus-at-iteration iterations e ->
     bogus-at-iteration (iterations + 1) e
-  bogosity-at-n-implies-bogosity-at-n+1 = {!!}
+  bogosity-at-n-implies-bogosity-at-n+1 iter e (exc , bogosity) =
+    exc , trans bogosity (sym eEquality)
+    where
+    eEquality : rEvaluate (iter + 1) e ≡ rEvaluate iter e
+    eEquality = begin
+      rEvaluate (iter + 1) e
+        ≡⟨ cong (flip rEvaluate e) (Data.Nat.Properties.+-comm iter 1) ⟩
+      [_,_]′ inj₁ exceptionallyEvaluate (rEvaluate iter e)
+        ≡⟨ cong ([_,_] inj₁ exceptionallyEvaluate) (sym bogosity) ⟩
+      inj₁ exc
+        ≡⟨ bogosity ⟩
+      rEvaluate iter e ∎
 
   IsNotBogus : ε -> Set a
   IsNotBogus e = (n : ℕ) -> Is-just (isInj₂ (rEvaluate n e))
