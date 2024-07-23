@@ -11,6 +11,7 @@
 
 % What is a good place for this crap?
 \newunicodechar{⊤}{\ensuremath{\mathnormal{\top}}}
+\newunicodechar{⊥}{\ensuremath{\mathnormal{\bot}}}
 \newunicodechar{ℕ}{\ensuremath{\mathnormal{\mathbb{N}}}}
 \newunicodechar{₁}{\ensuremath{\mathnormal{_1}}}
 \newunicodechar{₂}{\ensuremath{\mathnormal{_2}}}
@@ -82,6 +83,7 @@ open import Relation.Nullary.Decidable
   using
     ( dec-yes
     )
+open import Data.Empty.Polymorphic using (⊥)
 
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
@@ -95,6 +97,7 @@ import Data.Maybe.Relation.Unary.Any as AnyMaybe
 import Data.Nat.Properties
 import Data.Product.Properties as ProdProp
 import Data.Vec.Properties as VecProp
+import Data.Vec.Relation.Unary.Any as AnyVec
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -557,6 +560,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which converts the two input expressions \(a\) and \(b\) into \(a^b\),
   \item a limit function,
   \item a function which converts the input into the additive inverse of the input,
+  \item a lambda expression function,
   \item a variable-is-used type,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that variables of different names are not equivalent,
@@ -614,6 +618,9 @@ The author is tired of the boilerplate nonsense.  \AgdaField{CAS.quotientReprese
 \subsection{The Variable Containment Type}
 The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.IsNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
 
+\subsection{The Lambda Expression Function}
+\AgdaField{CAS.lambdaRepresentation} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambdaRepresentation} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
+
 \subsection{The Natural Number Proofs}
 In addition to the basic mapping, proofs of the following attributes should exist:
 
@@ -668,6 +675,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     negationRepresentation : ε -> ε
     limitRepresentation : String -> ε -> ε -> ε
     IsNameOfVariableIn : String -> ε -> Set
+    lambdaRepresentation : String -> ε -> ε -> ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     differently-named-variables-are-different :
@@ -788,8 +796,11 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representation of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\),
  \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\),
  \item a proof of commutativity of addition,
- \item a proof of commutativity of multiplication, and
- \item a proof of the inverse relationship between multiplication and division.
+ \item a proof of commutativity of multiplication,
+ \item a proof of the inverse relationship between multiplication and division,
+ \item a proof which indicates that \(\lim_{x \rightarrow n} e\) is algebraically equal to \(n\) if \(x\) is not referenced in \(e\),
+ \item a proof of the algebraic equality between \(\left(\lambda\ x \rightarrow x\right)\ e\) and \(e\), and
+ \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\).
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -827,6 +838,12 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
 \AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
+
+\subsection{The Proof which Indicates that Simple Lambda Substitution Works}
+\AgdaField{VCAS.simple-lambda-substitution-works} \AgdaBound{v} indicates that, at some iteration, the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(\left(\lambda\ v \rightarrow v\right) e\) is algebrically equal to the \AgdaBound{v} CAS's representation of \(e\).
+
+\subsection{The Proof of the Futility of Applying a Lambda Expression whose Bound Variable is Unused}
+For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), then \(\left(\lambda\ v \rightarrow M\right)\ e = M\).  The preceding fact is encoded through \AgdaField{VCAS.unapplicable-lambda-is-identity-function}.
 
 \subsection{The Definition Proper}
 
@@ -903,6 +920,15 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e bound : ε) ->
       ¬ IsNameOfVariableIn name e ->
       equal-at-some-iteration e (limitRepresentation name bound e)
+    simple-lambda-substitution-works :
+      (name : String) ->
+      (e : ε) ->
+      equal-at-some-iteration e (lambdaRepresentation name (variableNamed name) e)
+    nonapplicable-lambda-is-identity-function :
+      (name : String) ->
+      (e1 e2 : ε) ->
+      ¬ IsNameOfVariableIn name e2 ->
+      equal-at-some-iteration e1 (lambdaRepresentation name e2 e1)
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -1137,6 +1163,17 @@ commutativeEvaluate e@(Ap f x) =
 commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
+\section{The Variable Usedness Type}
+\AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
+
+\begin{code}
+IsReferencedIn : String -> ε -> Set
+IsReferencedIn name Infinity = ⊥
+IsReferencedIn name (NumberRat r) = ⊥
+IsReferencedIn name (Variable name2) = name ≡ name2
+IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
+\end{code}
+
 \chapter{Proofs of Correctness}
 
 \begin{code}
@@ -1168,7 +1205,8 @@ CasanovaFly-Base = record
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
   ; exponentRepresentation = \ x y -> Ap Exponent (x ∷ [ y ])
   ; limitRepresentation = \ n b e -> Ap (Limit n) (b ∷ [ e ])
-  ; IsNameOfVariableIn = {!!}
+  ; IsNameOfVariableIn = IsReferencedIn
+  ; lambdaRepresentation = \ name e1 e2 -> Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negationRepresentation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
@@ -1194,6 +1232,8 @@ CasanovaFly-Verified = record
   ; product-is-commutative = {!!}
   ; product-of-quotient-is-same = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
+  ; simple-lambda-substitution-works = {!!}
+  ; nonapplicable-lambda-is-identity-function = {!!}
   }
   where
   open CAS CasanovaFly-Base
