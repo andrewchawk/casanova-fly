@@ -862,15 +862,10 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (name1 name2 : String) ->
       name1 ≢ name2 ->
       (iterations : ℕ) ->
-      _⊎_ (_≡_ (inj₂ nothing)
-               (definitelyEquals iterations
-                                 (variableNamed name1)
-                                 (variableNamed name2)))
-          (Σ String
-             (\ s -> _≡_ (inj₁ s)
-                         (definitelyEquals iterations
-                                           (variableNamed name1)
-                                           (variableNamed name2))))
+      _≡_ (inj₂ nothing)
+          (definitelyEquals iterations
+                            (variableNamed name1)
+                            (variableNamed name2))
     identically-named-variables-are-equal :
       (name1 name2 : String) ->
       name1 ≡ name2 ->
