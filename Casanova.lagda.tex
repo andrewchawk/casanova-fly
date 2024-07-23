@@ -687,13 +687,13 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
       where decFun = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality
 
   module EqualityVerificationParts where
-    inj2s : List.List (Exceptional ε × Exceptional ε) -> List.List (ε × ε)
-    inj2s ((inj₂ e1 , inj₂ e2) List.∷ es) = (e1 , e2) List.∷ inj2s es
-    inj2s (e List.∷ es) = inj2s es
+    inj2s : List.List (Exceptional ε) -> List.List ε
+    inj2s (inj₂ e List.∷ es) = e List.∷ inj2s es
+    inj2s (inj₁ e List.∷ es) = inj2s es
     inj2s List.[] = List.[]
 
     evaluationPairs : ℕ -> ε -> ε -> List.List (ε × ε)
-    evaluationPairs i x y = inj2s (List.cartesianProduct (trace x) (trace y))
+    evaluationPairs i x y = (List.cartesianProduct on inj2s) (trace x) (trace y)
       where
       trace = traceEvaluate i
 
