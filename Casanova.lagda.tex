@@ -611,7 +611,7 @@ The author is tired of the boilerplate nonsense.  \AgdaField{CAS.quotientReprese
 \AgdaField{CAS.simpleLimitRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\lim_{\AgdaBound{c} \rightarrow \AgdaBound{x}} \textrm{E}\), where ``\(\textrm{E}\)'' denotes the expanded version of the \AgdaBound{e} expression.  % The "E" is a stand-in for capital epsilon.
 
 \subsection{The Variable Containment Type}
-The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.isNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
+The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.IsNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
 
 \subsection{The Natural Number Proofs}
 In addition to the basic mapping, proofs of the following attributes should exist:
@@ -666,7 +666,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
      exponentRepresentation : ε -> ε -> ε
     negationRepresentation : ε -> ε
     limitRepresentation : String -> ε -> ε -> ε
-    isNameOfVariableIn : String -> ε -> Set
+    IsNameOfVariableIn : String -> ε -> Set
     different-if-nats-are-different :
       {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
     differently-named-variables-are-different :
@@ -900,7 +900,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     limit-of-unrelated-value-is-unrelated-value :
       (name : String) ->
       (e bound : ε) ->
-      ¬ isNameOfVariableIn name e ->
+      ¬ IsNameOfVariableIn name e ->
       equal-at-some-iteration e (limitRepresentation name bound e)
 \end{code}
 
@@ -1103,7 +1103,7 @@ CasanovaFly-Base = record
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
   ; exponentRepresentation = \ x y -> Ap Exponent (x ∷ [ y ])
   ; limitRepresentation = \ n b e -> Ap (Limit n) (b ∷ [ e ])
-  ; isNameOfVariableIn = {!!}
+  ; IsNameOfVariableIn = {!!}
   ; negationRepresentation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
