@@ -17,6 +17,7 @@
 \newunicodechar{₂}{\ensuremath{\mathnormal{_2}}}
 \newunicodechar{≅}{\ensuremath{\mathnormal{\cong}}}
 \newunicodechar{ε}{\ensuremath{\mathnormal{\epsilon}}}
+\newunicodechar{λ}{\ensuremath{\mathnormal{\lambda}}}
 \newunicodechar{ℚ}{\ensuremath{\mathnormal{\mathbb{Q}}}}
 \newunicodechar{∷}{\ensuremath{\mathnormal{\Colon}}}
 \newunicodechar{⊎}{\ensuremath{\mathnormal{\uplus}}}
@@ -956,7 +957,7 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Product} represents the product, i.e., multiplication, function.
   \item \AgdaInductiveConstructor{Exponentiation} represents the exponentiation function.
   \item \AgdaInductiveConstructor{Limit} represents the limit function, i.e., \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Limit} \AgdaBound{name}\AgdaSymbol) \AgdaSymbol(\AgdaBound{bound} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{expression} \AgdaInductiveConstructor{List.[]}\AgdaSymbol) represents the limit of \AgdaBound{expression} as \AgdaBound{name} approaches \AgdaBound{bound}.
-  \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+  \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash\ n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
 \end{itemize}
 
 \begin{code}
@@ -1033,10 +1034,10 @@ structuralEqualityOnε = s
   where
   s : DecidableEquality ε
   s Infinity Infinity = yes refl
-  s Infinity (Variable v) = no \ ()
-  s Infinity (NumberRat r) = no \ ()
-  s Infinity (Ap f x) = no \ ()
-  s (Variable v) Infinity = no \ ()
+  s Infinity (Variable v) = no λ ()
+  s Infinity (NumberRat r) = no λ ()
+  s Infinity (Ap f x) = no λ ()
+  s (Variable v) Infinity = no λ ()
   s (Variable v1) (Variable v2) with v1 Data.String.≟ v2
   ... | yes namesAreEqual = yes (cong Variable namesAreEqual)
   ... | no differentNames = no (differentNames ∘ same-variable-implies-same-name)
@@ -1046,10 +1047,10 @@ structuralEqualityOnε = s
       Variable n1 ≡ Variable n2 ->
       n1 ≡ n2
     same-variable-implies-same-name refl = refl
-  s (Variable v) (NumberRat r) = no \ ()
-  s (Variable v) (Ap f x) = no \ ()
-  s (NumberRat r) Infinity = no \ ()
-  s (NumberRat r) (Variable v) = no \ ()
+  s (Variable v) (NumberRat r) = no λ ()
+  s (Variable v) (Ap f x) = no λ ()
+  s (NumberRat r) Infinity = no λ ()
+  s (NumberRat r) (Variable v) = no λ ()
   s (NumberRat r1) (NumberRat r2) with r1 ℚ.≟ r2
   ... | yes ratsAreEqual = yes (cong NumberRat ratsAreEqual)
   ... | no ratsAreDifferent = no (ratsAreDifferent ∘ same-numberRat-implies-same-rat)
@@ -1059,10 +1060,10 @@ structuralEqualityOnε = s
       NumberRat q1 ≡ NumberRat q2 ->
       q1 ≡ q2
     same-numberRat-implies-same-rat refl = refl
-  s (NumberRat r) (Ap f x) = no \ ()
-  s (Ap f x) Infinity = no \ ()
-  s (Ap f x) (Variable v) = no \ ()
-  s (Ap f x) (NumberRat r) = no \ ()
+  s (NumberRat r) (Ap f x) = no λ ()
+  s (Ap f x) Infinity = no λ ()
+  s (Ap f x) (Variable v) = no λ ()
+  s (Ap f x) (NumberRat r) = no λ ()
   s (Ap f1 x1) (Ap f2 x2) with structuralEqualityOnF f2 f1
   ... | no differentF = no (differentF ∘ sym ∘ same-only-with-same-function)
     where
@@ -1188,20 +1189,20 @@ CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
-  ; fromℕ = \ n ->
+  ; fromℕ = λ n ->
       NumberRat (ℚ.mkℚ (Data.Integer.+ n)
                        0
                        (Coprimality.sym (Coprimality.1-coprimeTo n)))
   ; variableNamed = Variable
-  ; sumRepresentation = \ a b -> Ap Sum (a ∷ b ∷ [])
-  ; differenceRepresentation = \ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
-  ; productRepresentation = \ x y -> Ap Product (x ∷ [ y ])
-  ; quotientRepresentation = \ x y ->
+  ; sumRepresentation = λ a b -> Ap Sum (a ∷ b ∷ [])
+  ; differenceRepresentation = λ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
+  ; productRepresentation = λ x y -> Ap Product (x ∷ [ y ])
+  ; quotientRepresentation = λ x y ->
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
-  ; exponentRepresentation = \ x y -> Ap Exponent (x ∷ [ y ])
-  ; limitRepresentation = \ n b e -> Ap (Limit n) (b ∷ [ e ])
+  ; exponentRepresentation = λ x y -> Ap Exponent (x ∷ [ y ])
+  ; limitRepresentation = λ n b e -> Ap (Limit n) (b ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
-  ; lambdaRepresentation = \ name e1 e2 -> Ap (Lambda List.[ name ] e1) [ e2 ]
+  ; lambdaRepresentation = λ name e1 e2 -> Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negationRepresentation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
@@ -1209,7 +1210,7 @@ CasanovaFly-Base = record
 
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
-  { equality-is-equivalence = \ iterations → record
+  { equality-is-equivalence = λ iterations → record
     { refl = equality-is-reflexive iterations
     ; sym = equality-is-symmetric iterations
     ; trans = {!!}
