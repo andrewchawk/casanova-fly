@@ -235,29 +235,30 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
     unique-element-prepend :
       (x : A) ->
       (xs : List.List A) ->
-      AllList.All (\ e -> x ≢ e) xs ->
+      AllList.All (_≢_ x) xs ->
       pos (x List.∷ xs) ≡ Data.Maybe.map Fin.suc (pos xs)
     unique-element-prepend x List.[] all = refl
     unique-element-prepend x xs@(x1 List.∷ xs1) alls@(a AllList.∷ as) = begin
       pos (x List.∷ xs)
         ≡⟨⟩
-      Data.Maybe.map Fin.suc (posh List.[ x ] xs)
+      mapSuc (posh List.[ x ] xs)
         ≡⟨⟩
-      Data.Maybe.map Fin.suc
+      mapSuc
         (if isYes (any? (DEQ x1) List.[ x ])
             then just Fin.zero
-            else Data.Maybe.map Fin.suc (posh (x1 List.∷ List.[ x ]) xs1))
-        ≡⟨ cong (\ e -> Data.Maybe.map Fin.suc
-                          (if isYes e
-                              then just Fin.zero
-                              else Data.Maybe.map Fin.suc (posh (x1 List.∷ List.[ x ]) xs1)))
+            else mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
+        ≡⟨ cong (\ e -> mapSuc (if isYes e
+                                   then just Fin.zero
+                                   else mapSuc (posh (x1 List.∷ List.[ x ]) xs1)))
                 x1-is-decidably-not-in-[x] ⟩
-      Data.Maybe.map Fin.suc (Data.Maybe.map Fin.suc (posh (x1 List.∷ List.[ x ]) xs1))
-        ≡⟨ cong (Data.Maybe.map Fin.suc) (sym (posh-moves-elements {x} {x1} {xs1} )) ⟩
-      Data.Maybe.map Fin.suc (posh List.[ x ] xs)
-        ≡⟨ cong (Data.Maybe.map Fin.suc) (sym (pos-is-posh {x} {xs} alls)) ⟩
-      Data.Maybe.map Fin.suc (posh List.[] xs) ∎
+      mapSuc (mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
+        ≡⟨ cong mapSuc (sym (posh-moves-elements {x} {x1} {xs1} )) ⟩
+      mapSuc (posh List.[ x ] xs)
+        ≡⟨ cong mapSuc (sym (pos-is-posh {x} {xs} alls)) ⟩
+      mapSuc (posh List.[] xs) ∎
       where
+      mapSuc : {n : ℕ} -> Maybe (Fin n) -> Maybe (Fin (ℕ.suc n))
+      mapSuc = Data.Maybe.map Fin.suc
       posh-moves-elements :
         {x y : A} ->
         {xs : List.List A} ->
@@ -344,24 +345,20 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       NOTHINGNESS : Dec (pos (y List.∷ ys) ≡ nothing)
       NOTHINGNESS = Data.Maybe.Properties.≡-dec Fin._≟_ _ _
     ... | yes alreadyDone = alreadyDone
-    ... | no bogus = contradiction isNothing notNothing
+    ... | no bogus = contradiction isNothing (just-is-not-nothing isJust)
       where
-      nonnothing-is-just :
-        {a : Level} ->
-        {A : Set a} ->
-        {x : Maybe A} ->
-        x ≢ nothing ->
-        Is-just x
-      nonnothing-is-just {x = just x} notNothing = AnyMaybe.just _
-      nonnothing-is-just {x = nothing} notNothing = contradiction refl notNothing
-      just-is-not-nothing :
-        {a : Level} ->
-        {A : Set a} ->
-        {x : Maybe A} ->
-        Is-just x ->
-        x ≢ nothing
-      just-is-not-nothing {x = just x} j ()
-      notNothing = just-is-not-nothing (nonunique-prepend x (y List.∷ ys) (nonnothing-is-just bogus))
+      module _
+        {a : Level}
+        {A : Set a} where
+
+        nonnothing-is-just : {x : Maybe A} -> x ≢ nothing -> Is-just x
+        nonnothing-is-just {x = just x} notNothing = AnyMaybe.just _
+        nonnothing-is-just {x = nothing} notNothing = contradiction refl notNothing
+
+        just-is-not-nothing : {x : Maybe A} -> Is-just x -> x ≢ nothing
+        just-is-not-nothing {x = just x} j ()
+
+      isJust = nonunique-prepend x (y List.∷ ys) (nonnothing-is-just bogus)
 \end{code}
 
 \subsubsection{The Proof of Being Nothing}
@@ -379,7 +376,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       unique-prepend-nothing :
         {x : A} ->
         {xs : List.List A} ->
-        AllList.All (\ e -> x ≢ e) xs ->
+        AllList.All (_≢_ x) xs ->
         pos xs ≡ nothing ->
         pos (x List.∷ xs) ≡ nothing
       unique-prepend-nothing AllList.[] refl = refl
@@ -755,7 +752,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   bogus-at-iteration n e = Σ String (\ ex -> inj₁ ex ≡ rEvaluate n e)
 
   bogus-at-some-iteration : ε -> Set a
-  bogus-at-some-iteration e = Σ ℕ (\ n -> bogus-at-iteration n e)
+  bogus-at-some-iteration = Σ ℕ ∘ flip bogus-at-iteration
 
   bogosity-at-n-implies-bogosity-at-n+1 :
     (iterations : ℕ) ->
@@ -1070,10 +1067,8 @@ commutativeEvaluate e@(Ap f x) =
   tryFlip : Dec (arity f ≡ 2) -> Exceptional ε
   tryFlip (no arityDiffers) = evaluate e
   tryFlip (yes arityMatches) =
-    if commutes ∧ (e2 evaluates) then inj₂ e2 else evaluate e
-    where
-    commutes = isCommutative f arityMatches
-    e2 = Ap f (reverse x)
+    if isCommutative f arityMatches ∧ (e2 evaluates) then inj₂ e2 else evaluate e
+    where e2 = Ap f (reverse x)
 commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
@@ -1117,9 +1112,10 @@ CasanovaFly-Base = record
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
   { equality-is-equivalence = \ iterations → record
-    { refl = equality-is-reflexive iterations;
-      sym = {!!} ;
-      trans = {!!}}
+    { refl = equality-is-reflexive iterations
+    ; sym = {!!}
+    ; trans = {!!}
+    }
   ; sum-of-nats-is-nat-sum = {!!}
   ; product-of-e-and-1-is-e = {!!}
   ; structural-equality-implies-definite-equality = {!!}
@@ -1135,12 +1131,13 @@ CasanovaFly-Verified = record
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   }
   where
-  equality = CAS._≈_ CasanovaFly-Base
+  open CAS CasanovaFly-Base
+
   equality-is-reflexive : (i : ℕ) -> Reflexive (CAS._≈_ CasanovaFly-Base i)
   equality-is-reflexive i {e} = existence-implies-anyness (proj₂ existence)
     where
     pairs = CAS.EqualityVerificationParts.evaluationPairs CasanovaFly-Base i e e
-    existence : Σ (Fin (List.length pairs)) (\ i -> uncurry _≡_ (List.lookup pairs i))
+    existence : Σ (Fin (List.length pairs)) (uncurry _≡_ ∘ List.lookup pairs)
     existence = first-pair-index , is-equal
       where
       open CAS.EqualityVerificationParts.ProofsOfCorrectness CasanovaFly-Base i e e
@@ -1160,8 +1157,8 @@ CasanovaFly-Verified = record
       {i : Fin (List.length xs)} ->
       P (List.lookup xs i) ->
       AnyList.Any P xs
-    existence-implies-anyness {xs = x List.∷ xs} {Fin.zero} p = AnyList.here p
-    existence-implies-anyness {xs = x List.∷ xs} {Fin.suc i} p =
-      AnyList.there (existence-implies-anyness p)
+    existence-implies-anyness {xs = x List.∷ xs} {i} p with i
+    ... | Fin.zero = AnyList.here p
+    ... | Fin.suc i = AnyList.there (existence-implies-anyness p)
 \end{code}
 \end{document}
