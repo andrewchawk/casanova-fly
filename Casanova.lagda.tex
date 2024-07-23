@@ -94,6 +94,7 @@ import Data.Maybe.Properties
 import Data.Maybe.Relation.Unary.Any as AnyMaybe
 import Data.Nat.Properties
 import Data.Product.Properties as ProdProp
+import Data.Vec.Properties as VecProp
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -1007,7 +1008,71 @@ This function is used to determine whether or not the input arguments are struct
 
 \begin{code}
 structuralEqualityOnε : DecidableEquality ε
-structuralEqualityOnε = {!!}
+structuralEqualityOnε = s
+  where
+  s : DecidableEquality ε
+  s Infinity Infinity = yes refl
+  s Infinity (Variable v) = no λ ()
+  s Infinity (NumberRat r) = no λ ()
+  s Infinity (Ap f x) = no λ ()
+  s (Variable v) Infinity = no λ ()
+  s (Variable v1) (Variable v2) with v1 Data.String.≟ v2
+  ... | yes namesAreEqual = yes (cong Variable namesAreEqual)
+  ... | no differentNames = no (differentNames ∘ same-variable-implies-same-name)
+    where
+    same-variable-implies-same-name :
+      {n1 n2 : String} ->
+      Variable n1 ≡ Variable n2 ->
+      n1 ≡ n2
+    same-variable-implies-same-name refl = refl
+  s (Variable v) (NumberRat r) = no λ ()
+  s (Variable v) (Ap f x) = no λ ()
+  s (NumberRat r) Infinity = no λ ()
+  s (NumberRat r) (Variable v) = no λ ()
+  s (NumberRat r1) (NumberRat r2) with r1 ℚ.≟ r2
+  ... | yes ratsAreEqual = yes (cong NumberRat ratsAreEqual)
+  ... | no ratsAreDifferent = no (ratsAreDifferent ∘ same-numberRat-implies-same-rat)
+    where
+    same-numberRat-implies-same-rat :
+      {q1 q2 : ℚ} ->
+      NumberRat q1 ≡ NumberRat q2 ->
+      q1 ≡ q2
+    same-numberRat-implies-same-rat refl = refl
+  s (NumberRat r) (Ap f x) = no λ ()
+  s (Ap f x) Infinity = no λ ()
+  s (Ap f x) (Variable v) = no λ ()
+  s (Ap f x) (NumberRat r) = no λ ()
+  s (Ap f1 x1) (Ap f2 x2) with structuralEqualityOnF f2 f1
+  ... | no differentF = no (differentF ∘ sym ∘ same-only-with-same-function)
+    where
+    same-only-with-same-function :
+      {f1 f2 : F} ->
+      {x1 : Vec ε (arity f1)} ->
+      {x2 : Vec ε (arity f2)} ->
+      Ap f1 x1 ≡ Ap f2 x2 ->
+      f1 ≡ f2
+    same-only-with-same-function refl = refl
+  ... | yes sameF with VecProp.≡-dec structuralEqualityOnε x1 (Data.Vec.cast (cong arity sameF) x2)
+  ... | yes sameX = yes (combine sameF sameX)
+    where
+    combine :
+      {f1 f2 : F} ->
+      {x1 : Vec ε (arity f1)} ->
+      {x2 : Vec ε (arity f2)} ->
+      (sameF : f2 ≡ f1) ->
+      x1 ≡ Data.Vec.cast (cong arity sameF) x2 ->
+      Ap f1 x1 ≡ Ap f2 x2
+    combine = {!!}
+  ... | no differentX = no (differentX ∘ same-only-with-same-x sameF)
+    where
+    same-only-with-same-x :
+      {f1 f2 : F} ->
+      {x1 : Vec ε (arity f1)} ->
+      {x2 : Vec ε (arity f2)} ->
+      (sameF : f2 ≡ f1) ->
+      Ap f1 x1 ≡ Ap f2 x2 ->
+      x1 ≡ Data.Vec.cast (cong arity sameF) x2
+    same-only-with-same-x = {!!}
 \end{code}
 
 \subsection{The Function for Commutativity Permutations}
