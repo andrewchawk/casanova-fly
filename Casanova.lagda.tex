@@ -1033,10 +1033,10 @@ structuralEqualityOnε = s
   where
   s : DecidableEquality ε
   s Infinity Infinity = yes refl
-  s Infinity (Variable v) = no λ ()
-  s Infinity (NumberRat r) = no λ ()
-  s Infinity (Ap f x) = no λ ()
-  s (Variable v) Infinity = no λ ()
+  s Infinity (Variable v) = no \ ()
+  s Infinity (NumberRat r) = no \ ()
+  s Infinity (Ap f x) = no \ ()
+  s (Variable v) Infinity = no \ ()
   s (Variable v1) (Variable v2) with v1 Data.String.≟ v2
   ... | yes namesAreEqual = yes (cong Variable namesAreEqual)
   ... | no differentNames = no (differentNames ∘ same-variable-implies-same-name)
@@ -1046,10 +1046,10 @@ structuralEqualityOnε = s
       Variable n1 ≡ Variable n2 ->
       n1 ≡ n2
     same-variable-implies-same-name refl = refl
-  s (Variable v) (NumberRat r) = no λ ()
-  s (Variable v) (Ap f x) = no λ ()
-  s (NumberRat r) Infinity = no λ ()
-  s (NumberRat r) (Variable v) = no λ ()
+  s (Variable v) (NumberRat r) = no \ ()
+  s (Variable v) (Ap f x) = no \ ()
+  s (NumberRat r) Infinity = no \ ()
+  s (NumberRat r) (Variable v) = no \ ()
   s (NumberRat r1) (NumberRat r2) with r1 ℚ.≟ r2
   ... | yes ratsAreEqual = yes (cong NumberRat ratsAreEqual)
   ... | no ratsAreDifferent = no (ratsAreDifferent ∘ same-numberRat-implies-same-rat)
@@ -1059,10 +1059,10 @@ structuralEqualityOnε = s
       NumberRat q1 ≡ NumberRat q2 ->
       q1 ≡ q2
     same-numberRat-implies-same-rat refl = refl
-  s (NumberRat r) (Ap f x) = no λ ()
-  s (Ap f x) Infinity = no λ ()
-  s (Ap f x) (Variable v) = no λ ()
-  s (Ap f x) (NumberRat r) = no λ ()
+  s (NumberRat r) (Ap f x) = no \ ()
+  s (Ap f x) Infinity = no \ ()
+  s (Ap f x) (Variable v) = no \ ()
+  s (Ap f x) (NumberRat r) = no \ ()
   s (Ap f1 x1) (Ap f2 x2) with structuralEqualityOnF f2 f1
   ... | no differentF = no (differentF ∘ sym ∘ same-only-with-same-function)
     where
