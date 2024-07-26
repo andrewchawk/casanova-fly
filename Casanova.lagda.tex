@@ -1029,6 +1029,7 @@ structuralEqualityOnF = {!!}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
 \begin{code}
+{-# TERMINATING #-}
 structuralEqualityOnε : DecidableEquality ε
 structuralEqualityOnε = s
   where
@@ -1101,6 +1102,7 @@ structuralEqualityOnε = s
 \AgdaFunction{commutativePermutations} \AgdaBound{x} is a list of all expressions which are equivalent to \AgdaBound{x} and are derived from \AgdaBound{x} by commutativity.
 
 \begin{code}
+{-# TERMINATING #-}
 commutativePermutations : ε -> List.List ε
 commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
   where
@@ -1163,6 +1165,7 @@ commutativeEvaluate e = exceptionallyEvaluate e
 \AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
 
 \begin{code}
+{-# TERMINATING #-}
 IsReferencedIn : String -> ε -> Set
 IsReferencedIn name Infinity = ⊥
 IsReferencedIn name (NumberRat r) = ⊥
