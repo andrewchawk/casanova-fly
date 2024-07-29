@@ -847,7 +847,7 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 \AgdaField{VCAS.simple-lambda-substitution-works} \AgdaBound{v} indicates that, at some iteration, the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(\left(\lambda\ v \rightarrow v\right) e\) is algebrically equal to the \AgdaBound{v} CAS's representation of \(e\).
 
 \subsection{The Proof of the Futility of Applying a Lambda Expression whose Bound Variable is Unused}
-For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), then \(\left(\lambda\ v \rightarrow M\right)\ e = M\).  The preceding fact is encoded through \AgdaField{VCAS.unapplicable-lambda-is-identity-function}.
+For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), then \(\left(\lambda\ v \rightarrow M\right)\ e = M\).  The preceding fact is encoded through \AgdaField{VCAS.unapplicable-lambda-returns-lambda-body}.
 
 \subsection{The Definition Proper}
 
@@ -923,11 +923,11 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (name : String) ->
       (e : ε) ->
       equal-at-some-iteration e (lambdaRepresentation name (variableNamed name) e)
-    nonapplicable-lambda-is-identity-function :
+    nonapplicable-lambda-returns-lambda-body :
       (name : String) ->
       (e1 e2 : ε) ->
       ¬ IsNameOfVariableIn name e2 ->
-      equal-at-some-iteration e1 (lambdaRepresentation name e2 e1)
+      equal-at-some-iteration e2 (lambdaRepresentation name e2 e1)
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -1235,7 +1235,7 @@ CasanovaFly-Verified = record
   ; product-of-quotient-is-same = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; simple-lambda-substitution-works = {!!}
-  ; nonapplicable-lambda-is-identity-function = {!!}
+  ; nonapplicable-lambda-returns-lambda-body = {!!}
   }
   where
   open CAS CasanovaFly-Base
