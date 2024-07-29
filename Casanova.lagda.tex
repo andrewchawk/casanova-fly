@@ -34,6 +34,8 @@
 \newunicodechar{⟨}{\ensuremath{\mathnormal{\langle}}}
 \newunicodechar{⟩}{\ensuremath{\mathnormal{\rangle}}}
 \newunicodechar{∎}{\ensuremath{\mathnormal{\blacksquare}}}
+\newunicodechar{∈}{\ensuremath{\mathnormal{\in}}}
+\newunicodechar{∉}{\ensuremath{\mathnormal{\notin}}}
 
 \title{Casanova Fly: A Formally-Verified Computer Algebra System}
 
@@ -85,6 +87,7 @@ open import Relation.Nullary.Decidable
     ( dec-yes
     )
 open import Data.Empty.Polymorphic using (⊥)
+open import Data.List.Membership.Propositional
 
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
@@ -136,7 +139,7 @@ module listDiff
 
   with-any : {x : A} ->
              {y : List.List A} ->
-             Dec (AnyList.Any (_≡_ x) y) ->
+             Dec (x ∈ y) ->
              List.List A
   with-any (yes isAlreadyIn) = List.[]
   with-any {x} (no isDifferent) = List.[ x ]
@@ -162,7 +165,7 @@ This module contains a few proofs which indicates that \AgdaFunction{listDiff} i
     every-element-of-second-list-is-absent :
       (x y : List.List A) ->
       (i : Fin (List.length y)) ->
-      ¬ AnyList.Any (_≡_ (List.lookup y i)) (ld x y)
+      List.lookup y i ∉ ld x y
     every-element-of-second-list-is-absent = {!!}
 \end{code}
 
@@ -172,7 +175,7 @@ This module contains a few proofs which indicates that \AgdaFunction{listDiff} i
 \begin{code}
     output-is-subset-of-first-input :
       (x y : List.List A) ->
-      AllList.All (\ e -> AnyList.Any (_≡_ e) x) (ld x y)
+      AllList.All (_∈ x) (ld x y)
     output-is-subset-of-first-input = {!!}
 \end{code}
 
@@ -183,8 +186,8 @@ This module contains a few proofs which indicates that \AgdaFunction{listDiff} i
     applicable-elements-are-contained :
       (x y : List.List A) ->
       (i : Fin (List.length x)) ->
-      ¬ AnyList.Any (_≡_ (List.lookup x i)) y ->
-      AnyList.Any (_≡_ (List.lookup x i)) (ld x y)
+      List.lookup x i ∉ y ->
+      List.lookup x i ∈ ld x y
     applicable-elements-are-contained = {!!}
 \end{code}
 
@@ -412,7 +415,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       (x : List.List A) ->
       (i : Fin (List.length x)) ->
       UniqueList (List.take (Fin.toℕ i) x) ->
-      AnyList.Any (_≡_ (List.lookup x i)) (List.take (Fin.toℕ i) x) ->
+      List.lookup x i ∈ List.take (Fin.toℕ i) x ->
       pos x ≡ just i
     pos-is-position-of-first-repeat = {!!}
 \end{code}
@@ -537,7 +540,7 @@ module nonRepeatingPortion-Properties
   new-values-are-appended :
     (x : A) ->
     (xs : List.List A) ->
-    ¬ AnyList.Any (_≡_ x) xs ->
+    x ∉ xs ->
     nrp (xs List.++ List.[ x ]) ≡ nrp xs List.++ List.[ x ]
   new-values-are-appended x List.[] notElement = refl
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
