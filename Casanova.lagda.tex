@@ -1134,12 +1134,55 @@ commutativePermutations o = List.[ o ]
 
 \chapter{Computational Functions and Ilk}
 
+\section{The Variable Substitution Function}
+\AgdaFunction{varSubstM} is the multi-variable substitution function.  In \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e}, any variable in \AgdaBound{e} which also has an entry in \AgdaBound{l} will be replaced by the corresponding \AgdaDatatype{ε} entry in \AgdaBound{l}.  More formally, one can say that \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e} is a derivative of \AgdaBound{e} such that for any given variable \AgdaBound{x} in \AgdaBound{e}, if a value \AgdaBound{i} exists such that \AgdaField{proj₁} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol) is \AgdaBound{x}, then \AgdaBound{x} is replaced by \AgdaField{proj₂} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol).
+
+\begin{code}
+{-# TERMINATING #-}
+varSubstM : List.List (String × ε) -> ε -> ε
+varSubstM List.[] x = x
+varSubstM vars o@(NumberRat r) = o
+varSubstM vars o@Infinity = o
+varSubstM (v List.∷ vs) (Variable sv) =
+  if proj₁ v Data.String.== sv
+     then proj₂ v
+     else varSubstM vs (Variable sv)
+varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
+\end{code}
+
 \section{The Single-Step Evaluation Function}
 \AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
 
 \begin{code}
 exceptionallyEvaluate : ε -> Exceptional ε
-exceptionallyEvaluate = {!!}
+exceptionallyEvaluate = f
+  where
+  f : ε -> Exceptional ε
+  f o@Infinity = inj₂ o
+  f o@(Variable x) = inj₂ o
+  f o@(NumberRat r) = inj₂ o
+  f (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) =
+    inj₂ (NumberRat (x ℚ.+ y))
+  f (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) =
+    inj₂ (NumberRat (x ℚ.* y))
+  f e@(Ap Exponent (NumberRat x ∷ NumberRat y ∷ [])) =
+    if ((ℚ.denominatorℕ x Data.Nat.≡ᵇ 1) ∧
+        (ℚ.denominatorℕ y Data.Nat.≡ᵇ 1) ∧
+        (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator x) ∧
+        (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator y))
+       then if (numerator x Data.Nat.≡ᵇ 0) ∧
+               (numerator y Data.Nat.≡ᵇ 0)
+             then inj₁ "0^0 is undefined!"
+             else inj₂ (NumberRat (ℚ.mkℚ (Data.Integer.+ naturalExponent)
+                                         0
+                                         (Coprimality.sym (Coprimality.1-coprimeTo _))))
+       else inj₂ e
+       where
+       numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
+       naturalExponent = numerator x ^ numerator y
+  f (Ap (Lambda names body) expressions) =
+    inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
+  f x = {!!}
 \end{code}
 
 \section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
