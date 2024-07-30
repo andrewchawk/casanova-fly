@@ -1020,6 +1020,15 @@ data ε where
 
 \section{Additional Functions}
 
+\subsection{The Natural-Number-to-Expression Function}
+\AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's representation of \AgdaBound{n}.
+
+\begin{code}
+NumberNat : ℕ -> ε
+NumberNat n = NumberRat (ℚ.mkℚ (Data.Integer.+ n)
+                               0
+                               (Coprimality.sym (Coprimality.1-coprimeTo _)))
+\end{code}
 \subsection{Decidable Structural Equality on \AgdaDatatype{F}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
@@ -1173,9 +1182,7 @@ exceptionallyEvaluate = f
        then if (numerator x Data.Nat.≡ᵇ 0) ∧
                (numerator y Data.Nat.≡ᵇ 0)
              then inj₁ "0^0 is undefined!"
-             else inj₂ (NumberRat (ℚ.mkℚ (Data.Integer.+ naturalExponent)
-                                         0
-                                         (Coprimality.sym (Coprimality.1-coprimeTo _))))
+             else inj₂ (NumberNat naturalExponent)
        else inj₂ e
        where
        numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
@@ -1238,10 +1245,7 @@ CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
-  ; fromℕ = λ n ->
-      NumberRat (ℚ.mkℚ (Data.Integer.+ n)
-                       0
-                       (Coprimality.sym (Coprimality.1-coprimeTo n)))
+  ; fromℕ = NumberNat
   ; variableNamed = Variable
   ; sumRepresentation = λ a b -> Ap Sum (a ∷ b ∷ [])
   ; differenceRepresentation = λ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
