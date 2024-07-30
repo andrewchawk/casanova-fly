@@ -1182,11 +1182,9 @@ exceptionallyEvaluate = f
        then if (numerator x Data.Nat.≡ᵇ 0) ∧
                (numerator y Data.Nat.≡ᵇ 0)
              then inj₁ "0^0 is undefined!"
-             else inj₂ (NumberNat naturalExponent)
+             else inj₂ (NumberNat (numerator x ^ numerator y))
        else inj₂ e
-       where
-       numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
-       naturalExponent = numerator x ^ numerator y
+       where numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
   f (Ap (Lambda names body) expressions) =
     inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
   f x = {!!}
