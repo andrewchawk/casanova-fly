@@ -1163,6 +1163,7 @@ varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 \AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
 
 \begin{code}
+{-# TERMINATING #-}
 exceptionallyEvaluate : ε -> Exceptional ε
 exceptionallyEvaluate = f
   where
@@ -1187,7 +1188,16 @@ exceptionallyEvaluate = f
        where numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
   f (Ap (Lambda names body) expressions) =
     inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
-  f x = {!!}
+  f (Ap f x) = [_,_] inj₁ (inj₂ ∘ Ap f) (condense (Data.Vec.map exceptionallyEvaluate x))
+    where
+    condense : {a : Level} ->
+               {A : Set a} ->
+               {n : ℕ} ->
+               Vec (Exceptional A) n ->
+               Exceptional (Vec A n)
+    condense [] = inj₂ []
+    condense (inj₁ x ∷ xs) = inj₁ x
+    condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
 \end{code}
 
 \section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
