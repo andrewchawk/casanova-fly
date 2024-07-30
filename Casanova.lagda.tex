@@ -958,7 +958,7 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Negate} represents the negation function.
   \item \AgdaInductiveConstructor{Sum} represents the sum function.
   \item \AgdaInductiveConstructor{Product} represents the product, i.e., multiplication, function.
-  \item \AgdaInductiveConstructor{Exponentiation} represents the exponentiation function.
+  \item \AgdaInductiveConstructor{Exponent} represents the exponentiation function.
   \item \AgdaInductiveConstructor{Limit} represents the limit function, i.e., \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Limit} \AgdaBound{name}\AgdaSymbol) \AgdaSymbol(\AgdaBound{bound} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{expression} \AgdaInductiveConstructor{List.[]}\AgdaSymbol) represents the limit of \AgdaBound{expression} as \AgdaBound{name} approaches \AgdaBound{bound}.
   \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash\ n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
 \end{itemize}
