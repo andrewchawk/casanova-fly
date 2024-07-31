@@ -1324,18 +1324,21 @@ CasanovaFly-Verified = record
     ... | Fin.suc i = AnyList.there (existence-implies-anyness p)
 
   equality-is-symmetric : (i : ℕ) -> Symmetric (_≈_ i)
-  equality-is-symmetric i {e1} {e2} = cartesian-product-predicate-flip (eval e1) (eval e2)
+  equality-is-symmetric i {e1} {e2} =
+    cartesian-product-predicate-flip sym (eval e1) (eval e2)
     where
     eval = EqualityVerificationParts.inj2s ∘ traceEvaluate i
     cartesian-product-predicate-flip :
       {a p : Level} ->
       {A : Set a} ->
-      {P : A × A -> Set p}
+      {P : A × A -> Set p} ->
+      Symmetric (curry P) ->
       (xs ys : List.List A) ->
       AnyList.Any P (List.cartesianProduct xs ys) ->
       AnyList.Any P (List.cartesianProduct ys xs)
     cartesian-product-predicate-flip = {!!}
-    -- In short, the same element exists in xs and ys, so xs and ys
-    -- have relevant Any proofs.
+    -- In short, the same pair -- well, flipped -- exists in both
+    -- cartesian products, so both cartesian products have relevant
+    -- Any proofs.
 \end{code}
 \end{document}
