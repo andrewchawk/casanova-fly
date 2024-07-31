@@ -1361,9 +1361,7 @@ CasanovaFly-Verified = record
   equality-is-symmetric : Symmetric _≈_
   equality-is-symmetric ((n1 , n2) , eq) = (n2 , n1) , sym-≡₂ eq
     where
-    sym-≡₂ : {e1 e2 : Exceptional ε} ->
-             e1 ≡₂ e2 ->
-             e2 ≡₂ e1
+    sym-≡₂ : {e1 e2 : Exceptional ε} -> e1 ≡₂ e2 -> e2 ≡₂ e1
     sym-≡₂ {inj₂ e1} {inj₂ e2} refl = refl
 
   sum-of-nats-is-nat-sum :
