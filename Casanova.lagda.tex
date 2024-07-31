@@ -19,12 +19,14 @@
 \newunicodechar{ε}{\ensuremath{\mathnormal{\epsilon}}}
 \newunicodechar{λ}{\ensuremath{\mathnormal{\lambda}}}
 \newunicodechar{ℚ}{\ensuremath{\mathnormal{\mathbb{Q}}}}
+\newunicodechar{ℤ}{\ensuremath{\mathnormal{\mathbb{Z}}}}
 \newunicodechar{∷}{\ensuremath{\mathnormal{\Colon}}}
 \newunicodechar{⊎}{\ensuremath{\mathnormal{\uplus}}}
 \newunicodechar{≈}{\ensuremath{\mathnormal{\approx}}}
 \newunicodechar{≉}{\ensuremath{\mathnormal{\napprox}}}
 \newunicodechar{≡}{\ensuremath{\mathnormal{\equiv}}}
 \newunicodechar{≢}{\ensuremath{\mathnormal{\nequiv}}}
+\newunicodechar{≤}{\ensuremath{\mathnormal{\leq}}}
 \newunicodechar{⊔}{\ensuremath{\mathnormal{\sqcup}}}
 \newunicodechar{≟}{\ensuremath{\mathnormal{\stackrel{?}{=}}}}
 \newunicodechar{∘}{\ensuremath{\mathnormal{\circ}}}
@@ -36,6 +38,8 @@
 \newunicodechar{∎}{\ensuremath{\mathnormal{\blacksquare}}}
 \newunicodechar{∈}{\ensuremath{\mathnormal{\in}}}
 \newunicodechar{∉}{\ensuremath{\mathnormal{\notin}}}
+\newunicodechar{ᵇ}{\ensuremath{\mathnormal{^\AgdaFontStyle{b}}}}
+\newunicodechar{∣}{\ensuremath{\mathnormal{\lvert}}}
 
 \title{Casanova Fly: A Formally-Verified Computer Algebra System}
 
@@ -1156,7 +1160,8 @@ structuralEqualityOnε = s
       Ap f1 x1 ≡ Ap f2 x2 ->
       f1 ≡ f2
     same-only-with-same-function refl = refl
-  ... | yes sameF with VecProp.≡-dec structuralEqualityOnε x1 (Data.Vec.cast (cong arity sameF) x2)
+  ... | yes sameF with VecProp.≡-dec structuralEqualityOnε
+                                     x1 (Data.Vec.cast (cong arity sameF) x2)
   ... | yes sameX = yes (combine sameF sameX)
     where
     combine :
@@ -1369,7 +1374,10 @@ CasanovaFly-Verified = record
   equality-is-reflexive = (0 , 0) , refl
 
   equality-is-symmetric : Symmetric _≈_
-  equality-is-symmetric {e1} {e2} ((n1 , n2) , eq) with rEvaluate n1 e1 | rEvaluate n2 e2 | inspect (rEvaluate n1) e1 | inspect (rEvaluate n2) e2
+  equality-is-symmetric {e1} {e2} ((n1 , n2) , eq) with rEvaluate n1 e1
+                                                      | rEvaluate n2 e2
+                                                      | inspect (rEvaluate n1) e1
+                                                      | inspect (rEvaluate n2) e2
   ... | inj₂ n11 | inj₂ n21 | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
     (n1 , n2) , sym-≡₂ {!!}
     where
