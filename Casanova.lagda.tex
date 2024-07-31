@@ -67,7 +67,7 @@ The author recommends that anyone who tries to understand Casanova Fly is famili
 \begin{code}
 open import Function
 open import Data.Fin using (Fin)
-open import Data.Nat
+open import Data.Nat using (ℕ)
 open import Data.Sum
 open import Level
 open import Data.String hiding (_≈_)
@@ -505,7 +505,7 @@ module nonRepeatingPortion-Properties
   is-really-the-longest :
     (x : List.List A) ->
     (i : Fin (List.length x)) ->
-    Fin.toℕ i ≡ 1 + List.length (nrp x) ->
+    Fin.toℕ i ≡ 1 Data.Nat.+ List.length (nrp x) ->
     AnyList.Any (\ i2 -> i2 ≡ List.lookup x i) (nrp x)
   is-really-the-longest = {!!}
 \end{code}
@@ -606,19 +606,19 @@ The author thinks that any computer algebra system which is worthy of being give
 Does a computer algebra system which lacks support for variables even qualify as being a computer algebra system?  The author is doubtful.  Anyway, \AgdaField{CAS.variableNamed} \AgdaBound{c} \AgdaBound{name} is \AgdaBound{c}'s representation of the variable whose name is \AgdaBound{name}.
 
 \subsection{The Sum Function}
-Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{sumRepresentation} values are unevaluated sum functions.  More formally, \AgdaField{CAS.sumRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
+Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}+\AgdaUnderscore{}} values are unevaluated sum functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Difference Function}
-Any half-decent CAS can represent the difference of two given expressions, too.  Accordingly, \AgdaField{differenceRepresentation} values are unevaluated differences.  More formally, \AgdaField{CAS.differenceRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated difference of \AgdaBound{x} and \AgdaBound{y}.
+Any half-decent CAS can represent the difference of two given expressions, too.  Accordingly, \AgdaField{\AgdaUnderscore{}-\AgdaUnderscore{}} values are unevaluated differences.  More formally, \AgdaField{CAS.\AgdaUnderscore{}-\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated difference of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Product Function}
-A decent CAS can represent the unevaluated product of two expressions.  Accordingly, \AgdaField{productRepresentation} values represent unevaluated products.  More formally, one can say that \AgdaField{CAS.productRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated product of \AgdaBound{x} and \AgdaBound{y}.
+A decent CAS can represent the unevaluated product of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}*\AgdaUnderscore{}} values represent unevaluated products.  More formally, one can say that \AgdaField{CAS.\AgdaUnderscore{}*\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated product of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Quotient Function}
-Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{quotientRepresentation} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.quotientRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
+Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}/\AgdaUnderscore{}} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}/\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Exponent Function}
-The author is tired of the boilerplate nonsense.  \AgdaField{CAS.exponentRepresentation} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of \AgdaBound{x} to the power of \AgdaBound{y}.
+The author is tired of the boilerplate nonsense.  \AgdaField{CAS.\AgdaUnderscore{}\textasciicircum\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of \AgdaBound{x} to the power of \AgdaBound{y}.
 
 \subsection{The Additive Inverse Function}
 \AgdaField{CAS.negationRepresentation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
@@ -681,11 +681,11 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     structuralEquality : DecidableEquality ε
     fromℕ : ℕ -> ε
     variableNamed : String -> ε
-    sumRepresentation
-     differenceRepresentation
-     productRepresentation
-     quotientRepresentation
-     exponentRepresentation : ε -> ε -> ε
+    _+_
+     _-_
+     _*_
+     _/_
+     _^_ : ε -> ε -> ε
     negationRepresentation : ε -> ε
     limitRepresentation : String -> ε -> ε -> ε
     IsNameOfVariableIn : String -> ε -> Set
@@ -798,7 +798,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     (iterations : ℕ) ->
     (e1 e2 : ε) ->
     equal-at-iteration iterations e1 e2 ->
-    equal-at-iteration (iterations + 1) e1 e2
+    equal-at-iteration (ℕ.suc iterations) e1 e2
   equality-at-n-implies-equality-at-n+1 = {!!}
 
   bogus-at-iteration : ℕ -> ε -> Set a
@@ -811,14 +811,14 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     (iterations : ℕ) ->
     (e : ε) ->
     bogus-at-iteration iterations e ->
-    bogus-at-iteration (iterations + 1) e
+    bogus-at-iteration (ℕ.suc iterations) e
   bogosity-at-n-implies-bogosity-at-n+1 iter e (exc , bogosity) =
     exc , trans bogosity (sym eEquality)
     where
-    eEquality : rEvaluate (iter + 1) e ≡ rEvaluate iter e
+    eEquality : rEvaluate (ℕ.suc iter) e ≡ rEvaluate iter e
     eEquality = begin
-      rEvaluate (iter + 1) e
-        ≡⟨ cong (flip rEvaluate e) (Data.Nat.Properties.+-comm iter 1) ⟩
+      rEvaluate (ℕ.suc iter) e
+        ≡⟨⟩
       [_,_]′ inj₁ exceptionallyEvaluate (rEvaluate iter e)
         ≡⟨ cong ([_,_] inj₁ exceptionallyEvaluate) (sym bogosity) ⟩
       inj₁ exc
@@ -923,45 +923,43 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       equal-at-some-iteration (variableNamed name1) (variableNamed name2)
     sum-of-nats-is-nat-sum :
       (n1 n2 iterations : ℕ) ->
-      rEvaluate iterations (sumRepresentation (fromℕ n1) (fromℕ n2)) ≡
-        inj₂ (fromℕ (n1 + n2))
+      rEvaluate iterations (fromℕ n1 + fromℕ n2) ≡
+        inj₂ (fromℕ (n1 Data.Nat.+ n2))
     sum-is-not-bogus :
       (e1 e2 : ε) ->
       IsNotBogus e1 ->
       IsNotBogus e2 ->
-      IsNotBogus (sumRepresentation e1 e2)
+      IsNotBogus (e1 + e2)
     product-of-e-and-1-is-e :
       (e : ε) ->
       IsNotBogus e ->
-      equal-at-some-iteration (productRepresentation e (fromℕ 1)) e
+      equal-at-some-iteration (e * fromℕ 1) e
     difference-is-negated-sum :
       (e1 e2 : ε) ->
-      equal-at-some-iteration (differenceRepresentation e1 e2)
-                              (sumRepresentation e1 (negationRepresentation e2))
+      equal-at-some-iteration (e1 - e2)
+                              (e1 + negationRepresentation e2)
     inverse-of-inverse-is-original :
       (e : ε) ->
       equal-at-some-iteration e (negationRepresentation (negationRepresentation e))
     division-by-zero-is-bogus :
       (e1 e2 : ε) ->
       (equal-at-some-iteration (fromℕ 0) e2) ->
-      bogus-at-some-iteration (quotientRepresentation e1 e2)
+      bogus-at-some-iteration (e1 / e2)
     sum-is-commutative :
       (e1 e2 : ε) ->
       IsNotBogus e1 ->
       IsNotBogus e2 ->
-      equal-at-some-iteration (sumRepresentation e1 e2)
-                              (sumRepresentation e2 e1)
+      equal-at-some-iteration (e1 + e2) (e2 + e1)
     product-is-commutative :
       (e1 e2 : ε) ->
       IsNotBogus e1 ->
       IsNotBogus e2 ->
-      equal-at-some-iteration (productRepresentation e1 e2)
-                              (productRepresentation e2 e1)
+      equal-at-some-iteration (e1 * e2) (e2 * e1)
     product-of-quotient-is-same :
       (e1 e2 : ε) ->
-      IsNotBogus (quotientRepresentation e2 e1) ->
-      equal-at-some-iteration e2 (productRepresentation e1 (quotientRepresentation e2 e1))
-    0^0-is-bogus : IsBogus (exponentRepresentation (fromℕ 0) (fromℕ 0))
+      IsNotBogus (e2 / e1) ->
+      equal-at-some-iteration e2 (e1 * (e2 / e1))
+    0^0-is-bogus : IsBogus (fromℕ 0 ^ fromℕ 0)
     limit-of-unrelated-value-is-unrelated-value :
       (name : String) ->
       (e bound : ε) ->
@@ -1232,7 +1230,7 @@ exceptionallyEvaluate = f
        then if (numerator x Data.Nat.≡ᵇ 0) ∧
                (numerator y Data.Nat.≡ᵇ 0)
              then inj₁ "0^0 is undefined!"
-             else inj₂ (NumberNat (numerator x ^ numerator y))
+             else inj₂ (NumberNat (numerator x Data.Nat.^ numerator y))
        else inj₂ e
        where numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
   f (Ap (Lambda names body) expressions) =
@@ -1304,12 +1302,12 @@ CasanovaFly-Base = record
   ; structuralEquality = structuralEqualityOnε
   ; fromℕ = NumberNat
   ; variableNamed = Variable
-  ; sumRepresentation = λ a b -> Ap Sum (a ∷ b ∷ [])
-  ; differenceRepresentation = λ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
-  ; productRepresentation = λ x y -> Ap Product (x ∷ [ y ])
-  ; quotientRepresentation = λ x y ->
+  ; _+_ = λ a b -> Ap Sum (a ∷ b ∷ [])
+  ; _-_ = λ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
+  ; _*_ = λ x y -> Ap Product (x ∷ [ y ])
+  ; _/_ = λ x y ->
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
-  ; exponentRepresentation = λ x y -> Ap Exponent (x ∷ [ y ])
+  ; _^_ = λ x y -> Ap Exponent (x ∷ [ y ])
   ; limitRepresentation = λ n b e -> Ap (Limit n) (b ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
   ; lambdaRepresentation = λ name e1 e2 -> Ap (Lambda List.[ name ] e1) [ e2 ]
@@ -1398,5 +1396,7 @@ CasanovaFly-Verified = record
                Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
            (proj₂ (dec-yes (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1) refl))
       where v1 = Variable n1
+
+open CAS CasanovaFly-Base
 \end{code}
 \end{document}
