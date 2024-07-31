@@ -1286,7 +1286,7 @@ CasanovaFly-Verified = record
   ; sum-of-nats-is-nat-sum = {!!}
   ; product-of-e-and-1-is-e = {!!}
   ; structural-equality-implies-definite-equality = {!!}
-  ; identically-named-variables-are-equal = {!!}
+  ; identically-named-variables-are-equal = invae
   ; differently-named-variables-are-not-definitely-equal = {!!}
   ; difference-is-negated-sum = {!!}
   ; inverse-of-inverse-is-original = {!!}
@@ -1347,5 +1347,25 @@ CasanovaFly-Verified = record
     -- In short, the same pair -- well, flipped -- exists in both
     -- cartesian products, so both cartesian products have relevant
     -- Any proofs.
+
+  invae : (name1 name2 : String) ->
+          name1 ≡ name2 ->
+          equal-at-some-iteration (Variable name1) (Variable name2)
+  invae n1 n2 refl = 0 , _ , sym theProof
+    where
+    theProof = begin
+      definitelyEquals 0 v1 v1
+        ≡⟨⟩
+      inj₂ (decToMaybe (any? (uncurry structuralEquality) _))
+        ≡⟨ cong (inj₂ ∘ decToMaybe)
+                (proj₂ (dec-yes question (AnyList.here refl))) ⟩
+      inj₂ (decToMaybe (yes (proj₁ (dec-yes question (AnyList.here refl)))))
+        ≡⟨⟩
+      inj₂ (just (proj₁ (dec-yes question (AnyList.here refl)))) ∎
+      where
+      open DefinitelyEqualsInternal
+      question = any? (uncurry structuralEquality) _
+      v1 = Variable n1
+      trace = traceEvaluate 0
 \end{code}
 \end{document}
