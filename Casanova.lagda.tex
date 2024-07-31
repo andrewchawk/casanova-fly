@@ -1366,7 +1366,7 @@ CasanovaFly-Verified = record
   open InternalEqualityFunctions
 
   equality-is-reflexive : Reflexive (CAS._≈_ CasanovaFly-Base)
-  equality-is-reflexive {e} = {!!}
+  equality-is-reflexive = (0 , 0) , refl
 
   equality-is-symmetric : Symmetric _≈_
   equality-is-symmetric {e1} {e2} ((n1 , n2) , eq) with rEvaluate n1 e1 | rEvaluate n2 e2 | inspect (rEvaluate n1) e1 | inspect (rEvaluate n2) e2
