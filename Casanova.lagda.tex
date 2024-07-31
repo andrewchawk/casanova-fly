@@ -64,7 +64,7 @@ open import Data.Nat
 open import Data.Sum
 open import Level
 open import Data.String hiding (_≈_)
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality renaming ([_] to ⟦_⟧)
 open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
@@ -126,6 +126,18 @@ condenseExceptions : {a : Level} ->
 condenseExceptions (inj₂ x) (inj₂ y) = inj₂ (x , y)
 condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
+\end{code}
+
+\subsection{The \AgdaDatatype{Maybe}-Sequencing Function}
+\AgdaFunction{sequenceMaybe} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{x}\AgdaSymbol)\AgdaSymbol) is \AgdaInductiveConstructor{just} \AgdaBound{x}.  For all other values \AgdaBound{x}, \AgdaFunction{sequenceMaybe} \AgdaBound{x} is \AgdaInductiveConstructor{nothing}.
+
+\begin{code}
+sequenceMaybe : {a : Level} ->
+                {A : Set a} ->
+                Maybe (Maybe A) ->
+                Maybe A
+sequenceMaybe (just (just x)) = just x
+sequenceMaybe x = nothing
 \end{code}
 
 \section{The List Difference Function}
@@ -576,7 +588,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 \AgdaDatatype{CAS} is the type of such computer algebra systems.
 
 \subsection{The Algebraic Equality Type}
-A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{i} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y} within \AgdaBound{i} evaluation steps.
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y}.
 
 \subsection{The Algebraic \emph{In}equality Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}, i.e., no \AgdaBound{i} exists such that \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y} within \AgdaBound{i} iterations.
@@ -724,13 +736,33 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
   open EqualityVerificationParts
 
-  _≈_ : ℕ -> ε -> ε -> Set a
-  _≈_ iterations x y = AnyList.Any (uncurry _≡_) (evaluationPairs iterations x y)
+  module InternalEqualityFunctions where
+    _≡₂_ : Exceptional ε -> Exceptional ε -> Set a
+    (inj₂ x) ≡₂ (inj₂ y) = x ≡ y
+    x ≡₂ y = ⊥
+
+    _≟₂_ : (x y : Exceptional ε) -> Dec (x ≡₂ y)
+    (inj₂ x) ≟₂ (inj₂ y) = structuralEquality x y
+    (inj₁ x) ≟₂ (inj₂ y) = no (λ ())
+    (inj₁ x) ≟₂ (inj₁ y) = no (λ ())
+    (inj₂ x) ≟₂ (inj₁ y) = no (λ ())
+
+  open InternalEqualityFunctions
+
+  _≈_ : ε -> ε -> Set a
+  _≈_ x y = Σ (ℕ × ℕ) (λ (nx , ny) -> rEvaluate nx x ≡₂ rEvaluate ny y)
 
   _≉_ : ε -> ε -> Set a
-  x ≉ y = (iterations : ℕ) -> ¬ _≈_ iterations x y
+  x ≉ y = (iterations : ℕ) -> ¬ _≈_ x y
 
   module DefinitelyEqualsInternal where
+    checkEqualityAtIteration :
+      (ix iy : ℕ) ->
+      (x y : ε) ->
+      Maybe (x ≈ y)
+    checkEqualityAtIteration ix iy x y =
+      Data.Maybe.map ((ix , iy) ,_) (decToMaybe (rEvaluate ix x ≟₂ rEvaluate iy y))
+
     firstInj1 : List.List (Exceptional ε) -> Maybe String
     firstInj1 List.[] = nothing
     firstInj1 (inj₂ e List.∷ es) = firstInj1 es
@@ -739,14 +771,17 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     with-justness : {iterations : ℕ} ->
                     {x y : ε} ->
                     Maybe String ->
-                    Exceptional (Maybe (_≈_ iterations x y))
+                    Exceptional (Maybe (x ≈ y))
     with-justness (just e) = inj₁ e
-    with-justness nothing =
-      inj₂ (decToMaybe (any? (uncurry structuralEquality) _))
+    with-justness {iters} {x} {y} nothing =
+      inj₂ (sequenceMaybe (List.head (List.map check iterList)))
+      where
+      check = λ (nx , ny) -> checkEqualityAtIteration nx ny x y
+      iterList = (λ l -> List.cartesianProduct l l) (List.upTo iters)
 
   definitelyEquals : (iterations : ℕ) ->
                      (x y : ε) ->
-                     Exceptional (Maybe (_≈_ iterations x y))
+                     Exceptional (Maybe (x ≈ y))
   definitelyEquals iterations x y =
     with-justness {iterations} {x} {y} (firstInj1 (trace x List.++ trace y))
     where
@@ -755,7 +790,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
   equal-at-iteration : ℕ -> (e1 e2 : ε) -> Set a
   equal-at-iteration iterations e1 e2 =
-    Σ (_≈_ iterations e1 e2)
+    Σ (e1 ≈ e2)
       (\ i -> inj₂ (just i) ≡ definitelyEquals iterations e1 e2)
 
   equal-at-some-iteration : (e1 e2 : ε) -> Set a
@@ -862,7 +897,7 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
   open CAS Cas
   field
-    equality-is-equivalence : (iterations : ℕ) -> IsEquivalence (_≈_ iterations)
+    equality-is-equivalence : IsEquivalence _≈_
     structural-equality-implies-definite-equality :
       (e1 e2 : ε) ->
       e1 ≡ e2 ->
@@ -1278,9 +1313,9 @@ CasanovaFly-Base = record
 
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
-  { equality-is-equivalence = λ iterations → record
-    { refl = equality-is-reflexive iterations
-    ; sym = equality-is-symmetric iterations
+  { equality-is-equivalence = record
+    { refl = equality-is-reflexive
+    ; sym = equality-is-symmetric
     ; trans = {!!}
     }
   ; sum-of-nats-is-nat-sum = {!!}
@@ -1301,71 +1336,50 @@ CasanovaFly-Verified = record
   }
   where
   open CAS CasanovaFly-Base
+  open InternalEqualityFunctions
 
-  equality-is-reflexive : (i : ℕ) -> Reflexive (CAS._≈_ CasanovaFly-Base i)
-  equality-is-reflexive i {e} = existence-implies-anyness (proj₂ existence)
-    where
-    pairs = CAS.EqualityVerificationParts.evaluationPairs CasanovaFly-Base i e e
-    existence : Σ (Fin (List.length pairs)) (uncurry _≡_ ∘ List.lookup pairs)
-    existence = first-pair-index , is-equal
-      where
-      open CAS.EqualityVerificationParts.ProofsOfCorrectness CasanovaFly-Base i e e
-      firstEv = inputs-are-first-evaluation-pair
-      is-equal : uncurry _≡_ (List.lookup pairs first-pair-index)
-      is-equal = begin
-        proj₁ (List.lookup pairs first-pair-index)
-          ≡⟨ proj₁ (ProdProp.×-≡,≡←≡ (sym inputs-are-first-evaluation-pair)) ⟩
-        e
-          ≡⟨ proj₂ (ProdProp.×-≡,≡←≡ inputs-are-first-evaluation-pair) ⟩
-        proj₂ (List.lookup pairs first-pair-index) ∎
-    existence-implies-anyness :
-      {a p : Level} ->
-      {A : Set a} ->
-      {P : A -> Set p} ->
-      {xs : List.List A} ->
-      {i : Fin (List.length xs)} ->
-      P (List.lookup xs i) ->
-      AnyList.Any P xs
-    existence-implies-anyness {xs = x List.∷ xs} {i} p with i
-    ... | Fin.zero = AnyList.here p
-    ... | Fin.suc i = AnyList.there (existence-implies-anyness p)
+  equality-is-reflexive : Reflexive (CAS._≈_ CasanovaFly-Base)
+  equality-is-reflexive {e} = {!!}
 
-  equality-is-symmetric : (i : ℕ) -> Symmetric (_≈_ i)
-  equality-is-symmetric i {e1} {e2} =
-    cartesian-product-predicate-flip sym (eval e1) (eval e2)
+  equality-is-symmetric : Symmetric _≈_
+  equality-is-symmetric {e1} {e2} ((n1 , n2) , eq) with rEvaluate n1 e1 | rEvaluate n2 e2 | inspect (rEvaluate n1) e1 | inspect (rEvaluate n2) e2
+  ... | inj₂ n11 | inj₂ n21 | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
+    (n1 , n2) , sym-≡₂ {!!}
     where
-    eval = EqualityVerificationParts.inj2s ∘ traceEvaluate i
-    cartesian-product-predicate-flip :
-      {a p : Level} ->
-      {A : Set a} ->
-      {P : A × A -> Set p} ->
-      Symmetric (curry P) ->
-      (xs ys : List.List A) ->
-      AnyList.Any P (List.cartesianProduct xs ys) ->
-      AnyList.Any P (List.cartesianProduct ys xs)
-    cartesian-product-predicate-flip = {!!}
-    -- In short, the same pair -- well, flipped -- exists in both
-    -- cartesian products, so both cartesian products have relevant
-    -- Any proofs.
+    sym-≡₂ : {e1 e2 : Exceptional ε} ->
+             e1 ≡₂ e2 ->
+             e2 ≡₂ e1
+    sym-≡₂ {inj₂ e1} {inj₂ e2} refl = refl
+  ... | inj₁ x | y | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
+    contradiction eq (subst₂ (¬_ ∘₂ _≡₂_)
+                             eq1
+                             eq2
+                             (inj₁-is-not-≡₂ (rEvaluate n1 e1)
+                                             (rEvaluate n2 e2)
+                                             (x , eq1)))
+    where
+    inj₁-is-not-≡₂ :
+      (e1 e2 : Exceptional ε) ->
+      (Σ String (λ s -> e1 ≡ inj₁ s)) ->
+      ¬ (e1 ≡₂ e2)
+    inj₁-is-not-≡₂ (inj₁ e1) e2 (s , refl) ()
+  ... | x | inj₁ y | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
+    contradiction eq (subst₂ (¬_ ∘₂ _≡₂_)
+                             eq1
+                             eq2
+                             (inj₂-is-not-≡₂ (rEvaluate n1 e1)
+                                             (rEvaluate n2 e2)
+                                             (y , eq2)))
+    where
+    inj₂-is-not-≡₂ :
+      (e1 e2 : Exceptional ε) ->
+      (Σ String (λ s -> e2 ≡ inj₁ s)) ->
+      ¬ (e1 ≡₂ e2)
+    inj₂-is-not-≡₂ (inj₂ e1) (inj₁ e2) (s , refl) ()
 
   invae : (name1 name2 : String) ->
           name1 ≡ name2 ->
           equal-at-some-iteration (Variable name1) (Variable name2)
-  invae n1 n2 refl = 0 , _ , sym theProof
-    where
-    theProof = begin
-      definitelyEquals 0 v1 v1
-        ≡⟨⟩
-      inj₂ (decToMaybe (any? (uncurry structuralEquality) _))
-        ≡⟨ cong (inj₂ ∘ decToMaybe)
-                (proj₂ (dec-yes question (AnyList.here refl))) ⟩
-      inj₂ (decToMaybe (yes (proj₁ (dec-yes question (AnyList.here refl)))))
-        ≡⟨⟩
-      inj₂ (just (proj₁ (dec-yes question (AnyList.here refl)))) ∎
-      where
-      open DefinitelyEqualsInternal
-      question = any? (uncurry structuralEquality) _
-      v1 = Variable n1
-      trace = traceEvaluate 0
+  invae n1 n2 refl = 0 , ((0 , 0) , refl) , {!!}
 \end{code}
 \end{document}
