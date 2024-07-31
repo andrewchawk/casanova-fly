@@ -134,45 +134,6 @@ condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
 \end{code}
 
-\section{The \AgdaDatatype{Maybe}-Sequencing Function}
-\AgdaFunction{sequenceMaybe} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{x}\AgdaSymbol)\AgdaSymbol) is \AgdaInductiveConstructor{just} \AgdaBound{x}.  For all other values \AgdaBound{x}, \AgdaFunction{sequenceMaybe} \AgdaBound{x} is \AgdaInductiveConstructor{nothing}.
-
-\begin{code}
-module SequenceMaybe where
-  sequenceMaybe : {a : Level} ->
-                  {A : Set a} ->
-                  Maybe (Maybe A) ->
-                  Maybe A
-  sequenceMaybe (just (just x)) = just x
-  sequenceMaybe x = nothing
-\end{code}
-
-\subsection{The Properties of the Function}
-
-\begin{code}
-  module Properties
-    {a : Level}
-    {A : Set a} where
-\end{code}
-
-\subsubsection{Sequencing the Head of a Singleton List}
-\AgdaFunction{Properties.sm-of-head-of-singleton-list-is-element} is a proof which indicates that for any given list \AgdaBound{x}, if \AgdaBound{x} is a singleton list which contains a value \(v\), then \AgdaFunction{sequenceMaybe} \AgdaSymbol(\AgdaFunction{List.head} \AgdaBound{x}\AgdaSymbol) is equivalent to \(v\).
-
-\begin{code}
-    sm-of-head-of-singleton-list-is-element :
-      (x : Maybe A) ->
-      sequenceMaybe (List.head List.[ x ]) ≡ x
-    sm-of-head-of-singleton-list-is-element nothing = refl
-    sm-of-head-of-singleton-list-is-element (just x) = refl
-\end{code}
-
-\subsection{Exporting the Function}
-The author recommends --- and facilitates --- using ``\AgdaFunction{sequenceMaybe}'' instead of ``\AgdaFunction{SequenceMaybe.sequenceMaybe}''; ``\AgdaFunction{SequenceMaybe.sequenceMaybe} is a bit long and, according to the author, is not the most readable name.
-
-\begin{code}
-sequenceMaybe = SequenceMaybe.sequenceMaybe
-\end{code}
-
 \section{The List Difference Function}
 \AgdaFunction{listDiff} is the list difference function, which can be intuitively understood as being the result of substracting the second input list from the first input list.  More formally, one can say that \AgdaFunction{listDiff} \AgdaBound{x} \AgdaBound{y} is the list of all elements of \AgdaBound{x} which do not appear in \AgdaBound{y}.  Ordering is preserved.
 
@@ -807,7 +768,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
                     Exceptional (Maybe (x ≈ y))
     with-justness (just e) = inj₁ e
     with-justness {iters} {x} {y} nothing =
-      inj₂ (sequenceMaybe (List.head (List.map check iterList)))
+      inj₂ (List.head (List.mapMaybe check iterList))
       where
       check = λ (nx , ny) -> checkEqualityAtIteration nx ny x y
       iterList = (λ l -> List.cartesianProduct l l) (List.upTo (ℕ.suc iters))
@@ -1422,15 +1383,11 @@ CasanovaFly-Verified = record
     theProof = begin
       definitelyEquals 0 v1 v1
         ≡⟨⟩
-      inj₂ (sequenceMaybe (List.head List.[ checkEqualityAtIteration 0 0 v1 v1 ]))
-        ≡⟨ cong inj₂
-                (SequenceMaybe.Properties.sm-of-head-of-singleton-list-is-element
-                  (checkEqualityAtIteration 0 0 v1 v1)) ⟩
-      inj₂ (checkEqualityAtIteration 0 0 v1 v1)
-        ≡⟨⟩
-      inj₂ (Data.Maybe.map ((0 , 0) ,_)
-                           (decToMaybe (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1)))
-        ≡⟨ cong (inj₂ ∘ Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
+      inj₂ (List.head (List.catMaybes List.[
+        Data.Maybe.map ((0 , 0) ,_)
+                       (decToMaybe (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1)) ]))
+        ≡⟨ cong (inj₂ ∘ List.head ∘ List.catMaybes ∘ List.[_] ∘
+                 Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
                 (proj₂ equality) ⟩
       inj₂ (just ((0 , 0) , proj₁ equality)) ∎
       where
