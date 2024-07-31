@@ -777,7 +777,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
       inj₂ (sequenceMaybe (List.head (List.map check iterList)))
       where
       check = λ (nx , ny) -> checkEqualityAtIteration nx ny x y
-      iterList = (λ l -> List.cartesianProduct l l) (List.upTo iters)
+      iterList = (λ l -> List.cartesianProduct l l) (List.upTo (ℕ.suc iters))
 
   definitelyEquals : (iterations : ℕ) ->
                      (x y : ε) ->
