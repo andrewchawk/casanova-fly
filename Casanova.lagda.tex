@@ -128,16 +128,43 @@ condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
 \end{code}
 
-\subsection{The \AgdaDatatype{Maybe}-Sequencing Function}
+\section{The \AgdaDatatype{Maybe}-Sequencing Function}
 \AgdaFunction{sequenceMaybe} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{x}\AgdaSymbol)\AgdaSymbol) is \AgdaInductiveConstructor{just} \AgdaBound{x}.  For all other values \AgdaBound{x}, \AgdaFunction{sequenceMaybe} \AgdaBound{x} is \AgdaInductiveConstructor{nothing}.
 
 \begin{code}
-sequenceMaybe : {a : Level} ->
-                {A : Set a} ->
-                Maybe (Maybe A) ->
-                Maybe A
-sequenceMaybe (just (just x)) = just x
-sequenceMaybe x = nothing
+module SequenceMaybe where
+  sequenceMaybe : {a : Level} ->
+                  {A : Set a} ->
+                  Maybe (Maybe A) ->
+                  Maybe A
+  sequenceMaybe (just (just x)) = just x
+  sequenceMaybe x = nothing
+\end{code}
+
+\subsection{The Properties of the Function}
+
+\begin{code}
+  module Properties
+    {a : Level}
+    {A : Set a} where
+\end{code}
+
+\subsubsection{Sequencing the Head of a Singleton List}
+\AgdaFunction{Properties.sm-of-head-of-singleton-list-is-element} is a proof which indicates that for any given list \AgdaBound{x}, if \AgdaBound{x} is a singleton list which contains a value \(v\), then \AgdaFunction{sequenceMaybe} \AgdaSymbol(\AgdaFunction{List.head} \AgdaBound{x}\AgdaSymbol) is equivalent to \(v\).
+
+\begin{code}
+    sm-of-head-of-singleton-list-is-element :
+      (x : Maybe A) ->
+      sequenceMaybe (List.head List.[ x ]) ≡ x
+    sm-of-head-of-singleton-list-is-element nothing = refl
+    sm-of-head-of-singleton-list-is-element (just x) = refl
+\end{code}
+
+\subsection{Exporting the Function}
+The author recommends --- and facilitates --- using ``\AgdaFunction{sequenceMaybe}'' instead of ``\AgdaFunction{SequenceMaybe.sequenceMaybe}''; ``\AgdaFunction{SequenceMaybe.sequenceMaybe} is a bit long and, according to the author, is not the most readable name.
+
+\begin{code}
+sequenceMaybe = SequenceMaybe.sequenceMaybe
 \end{code}
 
 \section{The List Difference Function}
@@ -1380,6 +1407,25 @@ CasanovaFly-Verified = record
   invae : (name1 name2 : String) ->
           name1 ≡ name2 ->
           equal-at-some-iteration (Variable name1) (Variable name2)
-  invae n1 n2 refl = 0 , ((0 , 0) , refl) , {!!}
+  invae n1 n2 refl = 0 , _ , sym theProof
+    where
+    theProof = begin
+      definitelyEquals 0 v1 v1
+        ≡⟨⟩
+      inj₂ (sequenceMaybe (List.head List.[ checkEqualityAtIteration 0 0 v1 v1 ]))
+        ≡⟨ cong inj₂
+                (SequenceMaybe.Properties.sm-of-head-of-singleton-list-is-element
+                  (checkEqualityAtIteration 0 0 v1 v1)) ⟩
+      inj₂ (checkEqualityAtIteration 0 0 v1 v1)
+        ≡⟨⟩
+      inj₂ (Data.Maybe.map ((0 , 0) ,_)
+                           (decToMaybe (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1)))
+        ≡⟨ cong (inj₂ ∘ Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
+                (proj₂ equality) ⟩
+      inj₂ (just ((0 , 0) , proj₁ equality)) ∎
+      where
+      open DefinitelyEqualsInternal
+      v1 = Variable n1
+      equality = dec-yes (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1) refl
 \end{code}
 \end{document}
