@@ -71,7 +71,7 @@ open import Data.Nat using (ℕ)
 open import Data.Sum
 open import Level
 open import Data.String hiding (_≈_)
-open import Relation.Binary.PropositionalEquality renaming ([_] to ⟦_⟧)
+open import Relation.Binary.PropositionalEquality hiding ([_])
 open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
@@ -1359,43 +1359,12 @@ CasanovaFly-Verified = record
   equality-is-reflexive = (0 , 0) , refl
 
   equality-is-symmetric : Symmetric _≈_
-  equality-is-symmetric {e1} {e2} ((n1 , n2) , eq) with rEvaluate n1 e1
-                                                      | rEvaluate n2 e2
-                                                      | inspect (rEvaluate n1) e1
-                                                      | inspect (rEvaluate n2) e2
-  ... | inj₂ n11 | inj₂ n21 | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
-    (n1 , n2) , sym-≡₂ {!!}
+  equality-is-symmetric ((n1 , n2) , eq) = (n2 , n1) , sym-≡₂ eq
     where
     sym-≡₂ : {e1 e2 : Exceptional ε} ->
              e1 ≡₂ e2 ->
              e2 ≡₂ e1
     sym-≡₂ {inj₂ e1} {inj₂ e2} refl = refl
-  ... | inj₁ x | y | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
-    contradiction eq (subst₂ (¬_ ∘₂ _≡₂_)
-                             eq1
-                             eq2
-                             (inj₁-is-not-≡₂ (rEvaluate n1 e1)
-                                             (rEvaluate n2 e2)
-                                             (x , eq1)))
-    where
-    inj₁-is-not-≡₂ :
-      (e1 e2 : Exceptional ε) ->
-      (Σ String (λ s -> e1 ≡ inj₁ s)) ->
-      ¬ (e1 ≡₂ e2)
-    inj₁-is-not-≡₂ (inj₁ e1) e2 (s , refl) ()
-  ... | x | inj₁ y | ⟦ eq1 ⟧ | ⟦ eq2 ⟧ =
-    contradiction eq (subst₂ (¬_ ∘₂ _≡₂_)
-                             eq1
-                             eq2
-                             (inj₂-is-not-≡₂ (rEvaluate n1 e1)
-                                             (rEvaluate n2 e2)
-                                             (y , eq2)))
-    where
-    inj₂-is-not-≡₂ :
-      (e1 e2 : Exceptional ε) ->
-      (Σ String (λ s -> e2 ≡ inj₁ s)) ->
-      ¬ (e1 ≡₂ e2)
-    inj₂-is-not-≡₂ (inj₂ e1) (inj₁ e2) (s , refl) ()
 
   sum-of-nats-is-nat-sum :
     (n1 n2 : ℕ) ->
