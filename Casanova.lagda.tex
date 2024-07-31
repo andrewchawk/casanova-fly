@@ -1322,7 +1322,7 @@ CasanovaFly-Verified = record
     ; sym = equality-is-symmetric
     ; trans = {!!}
     }
-  ; sum-of-nats-is-nat-sum = {!!}
+  ; sum-of-nats-is-nat-sum = sum-of-nats-is-nat-sum
   ; product-of-e-and-1-is-e = {!!}
   ; structural-equality-implies-definite-equality = {!!}
   ; identically-named-variables-are-equal = invae
@@ -1342,6 +1342,18 @@ CasanovaFly-Verified = record
   where
   open CAS CasanovaFly-Base
   open InternalEqualityFunctions
+
+  mapMaybe-justness-implies-output-justness :
+    {a b : Level} ->
+    {A : Set a} ->
+    {B : Set b} ->
+    (f : A -> Maybe B) ->
+    (x : List.List A) ->
+    (e : A) ->
+    Is-just (f e) ->
+    e ∈ x ->
+    Σ B (\ y -> List.head (List.mapMaybe f x) ≡ just y)
+  mapMaybe-justness-implies-output-justness = {!!}
 
   equality-is-reflexive : Reflexive (CAS._≈_ CasanovaFly-Base)
   equality-is-reflexive = (0 , 0) , refl
@@ -1384,6 +1396,44 @@ CasanovaFly-Verified = record
       (Σ String (λ s -> e2 ≡ inj₁ s)) ->
       ¬ (e1 ≡₂ e2)
     inj₂-is-not-≡₂ (inj₂ e1) (inj₁ e2) (s , refl) ()
+
+  sum-of-nats-is-nat-sum :
+    (n1 n2 : ℕ) ->
+    equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
+  sum-of-nats-is-nat-sum n1 n2 = 1 , _ , sym theProof
+    where
+    theProof = begin
+      definitelyEquals 1 (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
+        ≡⟨ {!!} ⟩
+      with-justness {1} nothing
+        ≡⟨ refl ⟩
+      inj₂ (List.head (List.mapMaybe check iterList))
+        ≡⟨ cong inj₂
+                (proj₂ (mapMaybe-justness-implies-output-justness
+                         check
+                         iterList
+                         (1 , 0)
+                         {!!}
+                         (AnyList.there (AnyList.there (AnyList.here refl))))) ⟩
+      inj₂ _ ∎
+        where
+        open DefinitelyEqualsInternal
+        check = λ (nx , ny) ->
+          checkEqualityAtIteration nx ny (fromℕ n1 + fromℕ n2)
+                                         (fromℕ (n1 Data.Nat.+ n2))
+        iterList = (λ l -> List.cartesianProduct l l) (List.upTo 2)
+        sumEqualityProof = begin
+          rEvaluate 1 (Ap Sum (NumberNat n1 ∷ [ NumberNat n2 ]))
+            ≡⟨⟩
+          inj₂ (NumberRat (ℚ._+_ (ℚ.mkℚ (Data.Integer.+ n1) 0
+                                        (Coprimality.sym (Coprimality.1-coprimeTo _)))
+                                 (ℚ.mkℚ (Data.Integer.+ n2) 0
+                                        (Coprimality.sym (Coprimality.1-coprimeTo _)))))
+            ≡⟨ cong (inj₂ ∘ NumberRat) {!!} ⟩
+          inj₂ (NumberRat (ℚ.mkℚ (Data.Integer.+ (n1 Data.Nat.+ n2)) 0
+                                 (Coprimality.sym (Coprimality.1-coprimeTo _))))
+            ≡⟨⟩
+          inj₂ (NumberNat (n1 Data.Nat.+ n2)) ∎
 
   invae : (name1 name2 : String) ->
           name1 ≡ name2 ->
