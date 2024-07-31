@@ -730,21 +730,28 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   _≉_ : ε -> ε -> Set a
   x ≉ y = (iterations : ℕ) -> ¬ _≈_ iterations x y
 
-  definitelyEquals : (iterations : ℕ) ->
-                     (x y : ε) ->
-                     Exceptional (Maybe (_≈_ iterations x y))
-  definitelyEquals iterations x y = with-justness (firstInj1 (trace x List.++ trace y))
-    where
+  module DefinitelyEqualsInternal where
     firstInj1 : List.List (Exceptional ε) -> Maybe String
     firstInj1 List.[] = nothing
     firstInj1 (inj₂ e List.∷ es) = firstInj1 es
     firstInj1 (inj₁ e List.∷ es) = just e
-    trace = traceEvaluate iterations
-    with-justness : Maybe String ->
+
+    with-justness : {iterations : ℕ} ->
+                    {x y : ε} ->
+                    Maybe String ->
                     Exceptional (Maybe (_≈_ iterations x y))
     with-justness (just e) = inj₁ e
     with-justness nothing =
       inj₂ (decToMaybe (any? (uncurry structuralEquality) _))
+
+  definitelyEquals : (iterations : ℕ) ->
+                     (x y : ε) ->
+                     Exceptional (Maybe (_≈_ iterations x y))
+  definitelyEquals iterations x y =
+    with-justness {iterations} {x} {y} (firstInj1 (trace x List.++ trace y))
+    where
+    open DefinitelyEqualsInternal
+    trace = traceEvaluate iterations
 
   equal-at-iteration : ℕ -> (e1 e2 : ε) -> Set a
   equal-at-iteration iterations e1 e2 =
