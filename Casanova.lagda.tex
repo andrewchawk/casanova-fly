@@ -922,9 +922,8 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       name1 ≡ name2 ->
       equal-at-some-iteration (variableNamed name1) (variableNamed name2)
     sum-of-nats-is-nat-sum :
-      (n1 n2 iterations : ℕ) ->
-      rEvaluate iterations (fromℕ n1 + fromℕ n2) ≡
-        inj₂ (fromℕ (n1 Data.Nat.+ n2))
+      (n1 n2 : ℕ) ->
+      equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
     sum-is-not-bogus :
       (e1 e2 : ε) ->
       IsNotBogus e1 ->
