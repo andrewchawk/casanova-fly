@@ -1217,6 +1217,7 @@ exceptionallyEvaluate = f
   f o@Infinity = inj₂ o
   f o@(Variable x) = inj₂ o
   f o@(NumberRat r) = inj₂ o
+  f (Ap Negate (Ap Negate (x ∷ []) ∷ [])) = inj₂ x
   f (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) =
     inj₂ (NumberRat (x ℚ.+ y))
   f (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) =
