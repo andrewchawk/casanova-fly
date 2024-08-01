@@ -1330,8 +1330,8 @@ CasanovaFly-Verified = record
   ; identically-named-variables-are-equal = invae
   ; differently-named-variables-are-not-definitely-equal = {!!}
   ; difference-is-negated-sum = {!!}
-  ; inverse-of-inverse-is-original = {!!}
-  ; division-by-zero-is-bogus = {!!}
+  ; inverse-of-inverse-is-original = invert-inverse
+  ; division-by-zero-is-bogus = division-by-zero-is-bogus
   ; sum-is-not-bogus = {!!}
   ; sum-is-commutative = {!!}
   ; product-is-commutative = {!!}
@@ -1403,6 +1403,41 @@ CasanovaFly-Verified = record
                                  (Coprimality.sym (Coprimality.1-coprimeTo _))))
             ≡⟨⟩
           inj₂ (NumberNat (n1 Data.Nat.+ n2)) ∎
+
+  invert-inverse : (e : ε) → equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
+  invert-inverse e = 1 , _ , sym inj2Equality
+    where
+    inv = Ap Negate ∘ [_]
+    inv-inv-propEq :
+      (e : ε) ->
+      inj₂ e ≡₂ CAS.exceptionallyEvaluate CasanovaFly-Base (inv (inv e))
+    -- Regardless of *eventual* bogosity, the first step *should* be fine.
+    inv-inv-propEq e = {!!}
+    inj2Equality = begin
+      definitelyEquals 1 e (inv (inv e))
+        ≡⟨ {!!} ⟩
+      inj₂ (just (proj₁ eq)) ∎
+      where
+      eq = dec-yes _ ((0 , 1) , inv-inv-propEq e)
+
+  division-by-zero-is-bogus :
+    (e1 e2 : ε) →
+    equal-at-some-iteration (fromℕ 0) e2 →
+    bogus-at-some-iteration (e1 / e2)
+  division-by-zero-is-bogus x y (iters , eq) with bogusBeforeIteration? (ℕ.suc iters) (x / y)
+    where
+    bogusBeforeIteration? :
+      (n : ℕ) ->
+      (e : ε) ->
+      Dec ((Σ (Fin n) (λ f -> bogus-at-iteration (Fin.toℕ f) e)))
+    bogusBeforeIteration? = {!!}
+  ... | yes (f , bogus) = Fin.toℕ f , bogus
+  ... | no notQuiteBogusYet = ℕ.suc iters , _ , sym inj1Equality
+    where
+    inj1Equality = begin
+      rEvaluate (ℕ.suc iters) (x / y)
+        ≡⟨ {!!} ⟩
+      inj₁ {!!} ∎
 
   invae : (name1 name2 : String) ->
           name1 ≡ name2 ->
