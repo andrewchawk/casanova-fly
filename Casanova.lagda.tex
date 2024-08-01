@@ -1404,7 +1404,7 @@ CasanovaFly-Verified = record
             ≡⟨⟩
           inj₂ (NumberNat (n1 Data.Nat.+ n2)) ∎
 
-  invert-inverse : (e : ε) → equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
+  invert-inverse : (e : ε) -> equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
   invert-inverse e = 1 , _ , sym inj2Equality
     where
     inv = Ap Negate ∘ [_]
@@ -1421,8 +1421,8 @@ CasanovaFly-Verified = record
       eq = dec-yes _ ((0 , 1) , inv-inv-propEq e)
 
   division-by-zero-is-bogus :
-    (e1 e2 : ε) →
-    equal-at-some-iteration (fromℕ 0) e2 →
+    (e1 e2 : ε) ->
+    equal-at-some-iteration (fromℕ 0) e2 ->
     bogus-at-some-iteration (e1 / e2)
   division-by-zero-is-bogus x y (iters , eq) with bogusBeforeIteration? (ℕ.suc iters) (x / y)
     where
