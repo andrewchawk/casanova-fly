@@ -1409,7 +1409,7 @@ CasanovaFly-Verified = record
     where
     theProof =
       cong (inj₂ ∘ List.head ∘ List.catMaybes ∘ List.[_] ∘
-               Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
+            Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
            (proj₂ (dec-yes (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1) refl))
       where v1 = Variable n1
 \end{code}
