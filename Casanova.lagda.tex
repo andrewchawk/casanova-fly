@@ -1429,10 +1429,10 @@ CasanovaFly-Verified = record
     bogusBeforeIteration? :
       (n : ℕ) ->
       (e : ε) ->
-      Dec ((Σ (Fin n) (λ f -> bogus-at-iteration (Fin.toℕ f) e)))
+      Maybe ((Σ (Fin n) (λ f -> bogus-at-iteration (Fin.toℕ f) e)))
     bogusBeforeIteration? = {!!}
-  ... | yes (f , bogus) = Fin.toℕ f , bogus
-  ... | no notQuiteBogusYet = ℕ.suc iters , _ , sym inj1Equality
+  ... | just (f , bogus) = Fin.toℕ f , bogus
+  ... | nothing = ℕ.suc iters , _ , sym inj1Equality
     where
     inj1Equality = begin
       rEvaluate (ℕ.suc iters) (x / y)
