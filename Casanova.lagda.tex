@@ -748,10 +748,10 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   open InternalEqualityFunctions
 
   _≈_ : ε -> ε -> Set a
-  _≈_ x y = Σ (ℕ × ℕ) (λ (nx , ny) -> rEvaluate nx x ≡₂ rEvaluate ny y)
+  x ≈ y = Σ (ℕ × ℕ) (λ (nx , ny) -> rEvaluate nx x ≡₂ rEvaluate ny y)
 
   _≉_ : ε -> ε -> Set a
-  x ≉ y = (iterations : ℕ) -> ¬ _≈_ x y
+  x ≉ y = (iterations : ℕ) -> ¬ x ≈ y
 
   module DefinitelyEqualsInternal where
     checkEqualityAtIteration :
