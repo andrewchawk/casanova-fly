@@ -1405,7 +1405,7 @@ CasanovaFly-Verified = record
           inj₂ (NumberNat (n1 Data.Nat.+ n2)) ∎
 
   invert-inverse : (e : ε) -> equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
-  invert-inverse e = 1 , _ , sym inj2Equality
+  invert-inverse e = 1 , {!!} , {!!}
     where
     inv = Ap Negate ∘ [_]
     inv-inv-propEq :
@@ -1413,12 +1413,6 @@ CasanovaFly-Verified = record
       inj₂ e ≡₂ CAS.exceptionallyEvaluate CasanovaFly-Base (inv (inv e))
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
     inv-inv-propEq e = {!!}
-    inj2Equality = begin
-      definitelyEquals 1 e (inv (inv e))
-        ≡⟨ {!!} ⟩
-      inj₂ (just (proj₁ eq)) ∎
-      where
-      eq = dec-yes _ ((0 , 1) , inv-inv-propEq e)
 
   division-by-zero-is-bogus :
     (e1 e2 : ε) ->
