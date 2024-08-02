@@ -844,6 +844,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\),
  \item a proof of commutativity of addition,
  \item a proof of commutativity of multiplication,
+ \item a proof of the associativity of addition,
  \item a proof of the inverse relationship between multiplication and division,
  \item a proof of the bogosity of \(0^0\),
  \item a proof which indicates that \(\lim_{x \rightarrow n} e\) is algebraically equal to \(n\) if \(x\) is not referenced in \(e\),
@@ -880,6 +881,10 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \subsection{The Proof of Commutativity of Multiplication}
 \AgdaField{VCAS.product-is-commutative} indicates that multiplication is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.product-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.productRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
+
+\subsection{The Proof of Associativity of Addition}
+\AgdaField{VCAS.sum-is-commutative} indicates that addition is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.sum-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that there exists a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.sumRepresentation} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
+
 
 \subsection{The Proof of the Inverse Relationship between Multiplication and Division}
 \AgdaField{VCAS.product-of-quotient-is-same} indicates that for the appropriate CAS, multiplication is the inverse of division.  More formally, \AgdaField{product-of-quotient-is-same} \AgdaBound{c} indicates that for all appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, \AgdaBound{e2} is equal to the \AgdaBound{c} CAS product of \AgdaBound{e1} and the \AgdaBound{c} CAS quotient of \AgdaBound{e2} and \AgdaBound{e1}.
@@ -954,6 +959,12 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus e1 ->
       IsNotBogus e2 ->
       equal-at-some-iteration (e1 * e2) (e2 * e1)
+    sum-is-associative :
+      (a b c : ε) ->
+      IsNotBogus a ->
+      IsNotBogus b ->
+      IsNotBogus c ->
+      equal-at-some-iteration (a + (b + c)) ((a + b) + c)
     product-of-quotient-is-same :
       (e1 e2 : ε) ->
       IsNotBogus (e2 / e1) ->
@@ -1335,6 +1346,7 @@ CasanovaFly-Verified = record
   ; sum-is-not-bogus = {!!}
   ; sum-is-commutative = {!!}
   ; product-is-commutative = {!!}
+  ; sum-is-associative = {!!}
   ; product-of-quotient-is-same = {!!}
   ; 0^0-is-bogus = 1 , _ , refl
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
