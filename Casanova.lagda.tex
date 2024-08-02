@@ -1336,7 +1336,8 @@ CasanovaFly-Verified = record
     }
   ; sum-of-nats-is-nat-sum = sum-of-nats-is-nat-sum
   ; product-of-e-and-1-is-e = {!!}
-  ; structural-equality-implies-definite-equality = {!!}
+  ; structural-equality-implies-definite-equality =
+    structural-equality-implies-definite-equality
   ; identically-named-variables-are-equal = invae
   ; differently-named-variables-are-not-definitely-equal = {!!}
   ; difference-is-negated-sum = {!!}
@@ -1444,15 +1445,26 @@ CasanovaFly-Verified = record
         ≡⟨ {!!} ⟩
       inj₁ {!!} ∎
 
-  invae : (name1 name2 : String) ->
-          name1 ≡ name2 ->
-          equal-at-some-iteration (Variable name1) (Variable name2)
-  invae n1 n2 refl = 0 , _ , sym theProof
+  structural-equality-implies-definite-equality :
+    (e1 e2 : ε) ->
+    e1 ≡ e2 ->
+    (iterations : ℕ) ->
+    equal-at-iteration iterations e1 e2
+  structural-equality-implies-definite-equality e1 e2 refl 0 =
+    ((0 , 0) , _) , sym theProof
     where
     theProof =
       cong (inj₂ ∘ List.head ∘ List.catMaybes ∘ List.[_] ∘
             Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
-           (proj₂ (dec-yes (rEvaluate 0 v1 ≟₂ rEvaluate 0 v1) refl))
-      where v1 = Variable n1
+           (proj₂ (dec-yes (rEvaluate 0 e1 ≟₂ rEvaluate 0 e1) refl))
+  structural-equality-implies-definite-equality e1 e2 refl (ℕ.suc n) =
+    equality-at-n-implies-equality-at-n+1 n e1 e2 (struck-def e1 e2 refl n)
+      where struck-def = structural-equality-implies-definite-equality
+
+  invae : (name1 name2 : String) ->
+          name1 ≡ name2 ->
+          equal-at-some-iteration (Variable name1) (Variable name2)
+  invae n1 n2 refl = 0 , struck-def (Variable n1) (Variable n2) refl 0
+    where struck-def = structural-equality-implies-definite-equality
 \end{code}
 \end{document}
