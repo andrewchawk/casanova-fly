@@ -912,8 +912,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e1 e2 : ε) ->
       e1 ≡ e2 ->
       (iterations : ℕ) ->
-      (isInj2 : Is-just (isInj₂ (definitelyEquals iterations e1 e2))) ->
-      Is-just (to-witness isInj2)
+      equal-at-iteration iterations e1 e2
     differently-named-variables-are-not-definitely-equal :
       (name1 name2 : String) ->
       name1 ≢ name2 ->
