@@ -570,6 +570,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which converts the two input expressions into a representation of the quotient of the input expressions,
   \item a function which converts the two input expressions \(a\) and \(b\) into \(a^b\),
   \item a derivative function,
+  \item an antiderivative function,
   \item a limit function,
   \item a function which converts the input into the additive inverse of the input,
   \item a lambda expression function,
@@ -623,6 +624,9 @@ The author is tired of the boilerplate nonsense.  \AgdaField{CAS.\AgdaUnderscore
 
 \subsection{The Derivative Function}
 \AgdaField{CAS.derivative} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e} represents the derivative of \AgdaBound{e} with respect to the variable whose name is \AgdaBound{name}.
+
+\subsection{The Antiderivative Function}
+\AgdaField{CAS.antiderivative} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e} represents the antiderivative of \AgdaBound{e} with regard to the variable whose name is \AgdaBound{name}.
 
 \subsection{The Additive Inverse Function}
 \AgdaField{CAS.negation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
@@ -691,7 +695,8 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
      _/_
      _^_ : ε -> ε -> ε
     negation : ε -> ε
-    derivative : String -> ε -> ε
+    derivative
+     antiderivative : String -> ε -> ε
     limit : String -> ε -> ε -> ε
     IsNameOfVariableIn : String -> ε -> Set
     lambda : String -> ε -> ε -> ε
@@ -1333,6 +1338,7 @@ CasanovaFly-Base = record
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
   ; _^_ = λ x y -> Ap Exponent (x ∷ [ y ])
   ; derivative = {!!}
+  ; antiderivative = {!!}
   ; limit = λ n b e -> Ap (Limit n) (b ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
   ; lambda = λ name e1 e2 -> Ap (Lambda List.[ name ] e1) [ e2 ]
