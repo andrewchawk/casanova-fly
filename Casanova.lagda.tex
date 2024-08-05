@@ -853,8 +853,9 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the inverse relationship between multiplication and division,
  \item a proof of the bogosity of \(0^0\),
  \item a proof which indicates that \(\lim_{x \rightarrow n} e\) is algebraically equal to \(n\) if \(x\) is not referenced in \(e\),
- \item a proof of the algebraic equality between \(\left(\lambda\ x \rightarrow x\right)\ e\) and \(e\), and
- \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\).
+ \item a proof of the algebraic equality between \(\left(\lambda\ x \rightarrow x\right)\ e\) and \(e\),
+ \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\), and
+ \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\).
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -905,6 +906,9 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \subsection{The Proof of the Futility of Applying a Lambda Expression whose Bound Variable is Unused}
 For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), then \(\left(\lambda\ v \rightarrow M\right)\ e = M\).  The preceding fact is encoded through \AgdaField{VCAS.unapplicable-lambda-returns-lambda-body}.
+
+\subsection{The Unrelated Derivative Proof}
+\AgdaField{VCAS.unrelated-derivative} \AgdaBound{v} indicates that for all appropriate \AgdaBound{v} CAS expressions \(E\) and all appropriate \(n\), if the variable whose name is \(n\) does not appear in \(E\), then the \AgdaBound{v} CAS can determine that \(E\) is algebraically equal to the derivative of \AgdaBound{E} with respect to the variable whose name is \(n\).
 
 \subsection{The Definition Proper}
 
@@ -988,6 +992,10 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e1 e2 : ε) ->
       ¬ IsNameOfVariableIn name e2 ->
       equal-at-some-iteration e2 (lambdaRepresentation name e2 e1)
+    unrelated-derivative :
+      (name : String) ->
+      (e : ε) ->
+      equal-at-some-iteration e (derivativeRepresentation name e)
 \end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
@@ -1358,6 +1366,7 @@ CasanovaFly-Verified = record
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
+  ; unrelated-derivative = {!!}
   }
   where
   open CAS CasanovaFly-Base
