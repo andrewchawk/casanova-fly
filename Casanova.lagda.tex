@@ -117,7 +117,7 @@ import Data.Vec.Relation.Unary.Any as AnyVec
 A value of type \AgdaFunction{Exceptional} \AgdaBound{A} can be a success-indicating value of \AgdaBound{A} or a \AgdaPostulate{String} which describes some sort of failure.
 
 \begin{code}
-Exceptional : {a : Level} -> Set a -> Set a
+Exceptional : {a : Level} → Set a → Set a
 Exceptional A = String ⊎ A
 \end{code}
 
@@ -125,10 +125,10 @@ Exceptional A = String ⊎ A
 If no values are exceptional, then the output contains the combination of both non-exceptional values.  Otherwise, the output contains the first exceptional value.
 
 \begin{code}
-condenseExceptions : {a : Level} ->
-                     {A : Set a} ->
-                     Exceptional A ->
-                     Exceptional A ->
+condenseExceptions : {a : Level} →
+                     {A : Set a} →
+                     Exceptional A →
+                     Exceptional A →
                      Exceptional (A × A)
 condenseExceptions (inj₂ x) (inj₂ y) = inj₂ (x , y)
 condenseExceptions (inj₁ e) _ = inj₁ e
@@ -144,14 +144,14 @@ module listDiff
   {A : Set a}
   (DEQ : DecidableEquality A) where
 
-  with-any : {x : A} ->
-             {y : List.List A} ->
-             Dec (x ∈ y) ->
+  with-any : {x : A} →
+             {y : List.List A} →
+             Dec (x ∈ y) →
              List.List A
   with-any (yes isAlreadyIn) = List.[]
   with-any {x} (no isDifferent) = List.[ x ]
 
-  listDiff : List.List A -> List.List A -> List.List A
+  listDiff : List.List A → List.List A → List.List A
   listDiff List.[] y = List.[]
   listDiff (x List.∷ xs) y = with-any (any? (DEQ x) y) List.++ listDiff xs y
 \end{code}
@@ -170,8 +170,8 @@ This module contains a few proofs which indicates that \AgdaFunction{listDiff} i
 
 \begin{code}
     every-element-of-second-list-is-absent :
-      (x y : List.List A) ->
-      (i : Fin (List.length y)) ->
+      (x y : List.List A) →
+      (i : Fin (List.length y)) →
       List.lookup y i ∉ ld x y
     every-element-of-second-list-is-absent = {!!}
 \end{code}
@@ -181,7 +181,7 @@ This module contains a few proofs which indicates that \AgdaFunction{listDiff} i
 
 \begin{code}
     output-is-subset-of-first-input :
-      (x y : List.List A) ->
+      (x y : List.List A) →
       AllList.All (_∈ x) (ld x y)
     output-is-subset-of-first-input = {!!}
 \end{code}
@@ -191,9 +191,9 @@ This module contains a few proofs which indicates that \AgdaFunction{listDiff} i
 
 \begin{code}
     applicable-elements-are-contained :
-      (x y : List.List A) ->
-      (i : Fin (List.length x)) ->
-      List.lookup x i ∉ y ->
+      (x y : List.List A) →
+      (i : Fin (List.length x)) →
+      List.lookup x i ∉ y →
       List.lookup x i ∈ ld x y
     applicable-elements-are-contained = {!!}
 \end{code}
@@ -219,8 +219,8 @@ module firstRepeatPosition
   {A : Set a}
   (DEQ : DecidableEquality A) where
 
-  firstRepeatPosition : (x : List.List A) -> Maybe (Fin (List.length x))
-  firstRepeatPositionHelper : (x y : List.List A) -> Maybe (Fin (List.length y))
+  firstRepeatPosition : (x : List.List A) → Maybe (Fin (List.length x))
+  firstRepeatPositionHelper : (x y : List.List A) → Maybe (Fin (List.length y))
 
   firstRepeatPosition = firstRepeatPositionHelper List.[]
 
@@ -248,9 +248,9 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     unique-element-prepend :
-      (x : A) ->
-      (xs : List.List A) ->
-      AllList.All (_≢_ x) xs ->
+      (x : A) →
+      (xs : List.List A) →
+      AllList.All (_≢_ x) xs →
       pos (x List.∷ xs) ≡ Data.Maybe.map Fin.suc (pos xs)
     unique-element-prepend x List.[] all = refl
     unique-element-prepend x xs@(x1 List.∷ xs1) alls@(a AllList.∷ as) = begin
@@ -262,7 +262,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
         (if isYes (any? (DEQ x1) List.[ x ])
             then just Fin.zero
             else mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
-        ≡⟨ cong (\ e -> mapSuc (if isYes e
+        ≡⟨ cong (\ e → mapSuc (if isYes e
                                    then just Fin.zero
                                    else mapSuc (posh (x1 List.∷ List.[ x ]) xs1)))
                 x1-is-decidably-not-in-[x] ⟩
@@ -272,18 +272,18 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
         ≡⟨ cong mapSuc (sym (pos-is-posh {x} {xs} alls)) ⟩
       mapSuc (posh List.[] xs) ∎
       where
-      mapSuc : {n : ℕ} -> Maybe (Fin n) -> Maybe (Fin (ℕ.suc n))
+      mapSuc : {n : ℕ} → Maybe (Fin n) → Maybe (Fin (ℕ.suc n))
       mapSuc = Data.Maybe.map Fin.suc
       posh-moves-elements :
-        {x y : A} ->
-        {xs : List.List A} ->
+        {x y : A} →
+        {xs : List.List A} →
         _≡_ (posh List.[ x ] (y List.∷ xs))
             (Data.Maybe.map Fin.suc (posh (y List.∷ List.[ x ]) xs))
       posh-moves-elements = {!!}
       pos-is-posh :
-        {x : A} ->
-        {xs : List.List A} ->
-        AllList.All (_≢_ x) xs ->
+        {x : A} →
+        {xs : List.List A} →
+        AllList.All (_≢_ x) xs →
         pos xs ≡ posh List.[ x ] xs
       pos-is-posh = {!!}
       x1-is-decidably-not-in-[x] :
@@ -297,8 +297,8 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     pos-is-nothing-only-if-list-is-unique :
-      (x : List.List A) ->
-      pos x ≡ nothing ->
+      (x : List.List A) →
+      pos x ≡ nothing →
       UniqueList x
     pos-is-nothing-only-if-list-is-unique = {!!}
 \end{code}
@@ -308,9 +308,9 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     nonunique-prepend :
-      (x : A) ->
-      (xs : List.List A) ->
-      Is-just (pos xs) ->
+      (x : A) →
+      (xs : List.List A) →
+      Is-just (pos xs) →
       Is-just (pos (x List.∷ xs))
     nonunique-prepend x (y List.∷ ys) nonUniqueness with any? (DEQ x) (y List.∷ ys)
     ... | no xIsUniqueInYYs = justness-implies-justness index equality
@@ -318,18 +318,18 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       index : Fin (List.length (x List.∷ y List.∷ ys))
       index = Fin.suc (to-witness nonUniqueness)
       justness-implies-justness :
-        {a : Level} ->
-        {A : Set a} ->
-        {x : Maybe A} ->
-        (y : A) ->
-        x ≡ just y ->
+        {a : Level} →
+        {A : Set a} →
+        {x : Maybe A} →
+        (y : A) →
+        x ≡ just y →
         Is-just x
       justness-implies-justness y refl = AnyMaybe.just _
       self-is-just-to-witness :
-        {a : Level} ->
-        {A : Set a} ->
-        {x : Maybe A} ->
-        (isJust : Is-just x) ->
+        {a : Level} →
+        {A : Set a} →
+        {x : Maybe A} →
+        (isJust : Is-just x) →
         x ≡ just (to-witness isJust)
       self-is-just-to-witness {x = just x} (AnyMaybe.just isJust) = refl
       equality : pos (x List.∷ y List.∷ ys) ≡ just index
@@ -350,9 +350,9 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     pos-is-nothing-only-if-removal-is-nothing :
-      {x : A} ->
-      {xs : List.List A} ->
-      pos (x List.∷ xs) ≡ nothing ->
+      {x : A} →
+      {xs : List.List A} →
+      pos (x List.∷ xs) ≡ nothing →
       pos xs ≡ nothing
     pos-is-nothing-only-if-removal-is-nothing {x} {List.[]} always = refl
     pos-is-nothing-only-if-removal-is-nothing {x} {y List.∷ ys} isNothing with NOTHINGNESS
@@ -366,11 +366,11 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
         {a : Level}
         {A : Set a} where
 
-        nonnothing-is-just : {x : Maybe A} -> x ≢ nothing -> Is-just x
+        nonnothing-is-just : {x : Maybe A} → x ≢ nothing → Is-just x
         nonnothing-is-just {x = just x} notNothing = AnyMaybe.just _
         nonnothing-is-just {x = nothing} notNothing = contradiction refl notNothing
 
-        just-is-not-nothing : {x : Maybe A} -> Is-just x -> x ≢ nothing
+        just-is-not-nothing : {x : Maybe A} → Is-just x → x ≢ nothing
         just-is-not-nothing {x = just x} j ()
 
       isJust = nonunique-prepend x (y List.∷ ys) (nonnothing-is-just bogus)
@@ -381,18 +381,18 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     pos-of-unique-list-is-nothing :
-      (x : List.List A) ->
-      UniqueList x ->
+      (x : List.List A) →
+      UniqueList x →
       pos x ≡ nothing
     pos-of-unique-list-is-nothing List.[] u = refl
     pos-of-unique-list-is-nothing (x List.∷ xs) (u AllPairsList.∷ us) =
       unique-prepend-nothing u (pos-of-unique-list-is-nothing xs us)
       where
       unique-prepend-nothing :
-        {x : A} ->
-        {xs : List.List A} ->
-        AllList.All (_≢_ x) xs ->
-        pos xs ≡ nothing ->
+        {x : A} →
+        {xs : List.List A} →
+        AllList.All (_≢_ x) xs →
+        pos xs ≡ nothing →
         pos (x List.∷ xs) ≡ nothing
       unique-prepend-nothing AllList.[] refl = refl
       unique-prepend-nothing {x} xs@{x1 List.∷ xs1} alls eq with any? (DEQ x) xs
@@ -419,10 +419,10 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     pos-is-position-of-first-repeat :
-      (x : List.List A) ->
-      (i : Fin (List.length x)) ->
-      UniqueList (List.take (Fin.toℕ i) x) ->
-      List.lookup x i ∈ List.take (Fin.toℕ i) x ->
+      (x : List.List A) →
+      (i : Fin (List.length x)) →
+      UniqueList (List.take (Fin.toℕ i) x) →
+      List.lookup x i ∈ List.take (Fin.toℕ i) x →
       pos x ≡ just i
     pos-is-position-of-first-repeat = {!!}
 \end{code}
@@ -432,7 +432,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 
 \begin{code}
     pos-is-never-zero :
-      (x : List.List A) ->
+      (x : List.List A) →
       Data.Maybe.map Fin.toℕ (pos x) ≢ just 0
     pos-is-never-zero List.[] ()
     pos-is-never-zero (x List.∷ List.[]) ()
@@ -450,10 +450,10 @@ firstRepeatPosition = firstRepeatPosition.firstRepeatPosition
 \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
 
 \begin{code}
-nonRepeatingPortion : {a : Level} ->
-                      {A : Set a} ->
-                      DecidableEquality A ->
-                      List.List A ->
+nonRepeatingPortion : {a : Level} →
+                      {A : Set a} →
+                      DecidableEquality A →
+                      List.List A →
                       List.List A
 nonRepeatingPortion DEQ x = List.take nonRepeatLength x
   where nonRepeatLength = maybe Fin.toℕ (List.length x) (firstRepeatPosition DEQ x)
@@ -469,7 +469,7 @@ module nonRepeatingPortion-Properties
   (DEQ : DecidableEquality A) where
 
   private
-    nrp : List.List A -> List.List A
+    nrp : List.List A → List.List A
     nrp = nonRepeatingPortion DEQ
 \end{code}
 
@@ -478,7 +478,7 @@ module nonRepeatingPortion-Properties
 
 \begin{code}
   is-first-n-elements :
-    (x : List.List A) ->
+    (x : List.List A) →
     nrp x ≡ List.take (List.length (nrp x)) x
   is-first-n-elements = {!!}
 \end{code}
@@ -488,9 +488,9 @@ module nonRepeatingPortion-Properties
 
 \begin{code}
   contains-no-repeats :
-    (x : List.List A) ->
-    (i1 i2 : Fin (List.length (nrp x))) ->
-    List.lookup (nrp x) i1 ≡ List.lookup (nrp x) i2 ->
+    (x : List.List A) →
+    (i1 i2 : Fin (List.length (nrp x))) →
+    List.lookup (nrp x) i1 ≡ List.lookup (nrp x) i2 →
     i1 ≡ i2
   contains-no-repeats List.[] ()
   contains-no-repeats (x List.∷ xs) i1 i2 equality with i1 Data.Fin.≟ i2
@@ -503,10 +503,10 @@ module nonRepeatingPortion-Properties
 
 \begin{code}
   is-really-the-longest :
-    (x : List.List A) ->
-    (i : Fin (List.length x)) ->
-    Fin.toℕ i ≡ 1 Data.Nat.+ List.length (nrp x) ->
-    AnyList.Any (\ i2 -> i2 ≡ List.lookup x i) (nrp x)
+    (x : List.List A) →
+    (i : Fin (List.length x)) →
+    Fin.toℕ i ≡ 1 Data.Nat.+ List.length (nrp x) →
+    AnyList.Any (\ i2 → i2 ≡ List.lookup x i) (nrp x)
   is-really-the-longest = {!!}
 \end{code}
 
@@ -515,8 +515,8 @@ module nonRepeatingPortion-Properties
 
 \begin{code}
   only-empty-if-input-is-empty :
-    (x : List.List A) ->
-    List.length (nrp x) ≡ 0 ->
+    (x : List.List A) →
+    List.length (nrp x) ≡ 0 →
     List.length x ≡ 0
   only-empty-if-input-is-empty List.[] refl = refl
   only-empty-if-input-is-empty (x List.∷ xs) empty = contradiction empty {!!}
@@ -527,15 +527,15 @@ module nonRepeatingPortion-Properties
 
 \begin{code}
   empty-inputs-beget-empty-outputs :
-    (x : List.List A) ->
-    List.length x ≡ 0 ->
+    (x : List.List A) →
+    List.length x ≡ 0 →
     List.length (nrp x) ≡ 0
   empty-inputs-beget-empty-outputs List.[] refl = refl
 \end{code}
 
 \begin{code}
   nrp-of-concatenated-lists :
-    (x y : List.List A) ->
+    (x y : List.List A) →
     nrp (x List.++ y) ≡ {!!}
   nrp-of-concatenated-lists = {!!}
 \end{code}
@@ -545,9 +545,9 @@ module nonRepeatingPortion-Properties
 
 \begin{code}
   new-values-are-appended :
-    (x : A) ->
-    (xs : List.List A) ->
-    x ∉ xs ->
+    (x : A) →
+    (xs : List.List A) →
+    x ∉ xs →
     nrp (xs List.++ List.[ x ]) ≡ nrp xs List.++ List.[ x ]
   new-values-are-appended x List.[] notElement = refl
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
@@ -700,50 +700,50 @@ This type is not bogus but \emph{is} used to indicate that a given expression \e
 \begin{code}
 record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) where
   field
-    exceptionallyEvaluate : ε -> Exceptional ε
+    exceptionallyEvaluate : ε → Exceptional ε
     structuralEquality : DecidableEquality ε
-    fromℕ : ℕ -> ε
-    variableNamed : String -> ε
+    fromℕ : ℕ → ε
+    variableNamed : String → ε
     _+_
      _-_
      _*_
      _/_
-     _^_ : ε -> ε -> ε
-    negation : ε -> ε
+     _^_ : ε → ε → ε
+    negation : ε → ε
     sin
      cos
      tan
      csc
      sec
-     cot : ε -> ε
+     cot : ε → ε
     derivative
-     antiderivative : String -> ε -> ε
-    limit : String -> ε -> ε -> ε
-    IsNameOfVariableIn : String -> ε -> Set
-    lambda : String -> ε -> ε -> ε
+     antiderivative : String → ε → ε
+    limit : String → ε → ε → ε
+    IsNameOfVariableIn : String → ε → Set
+    lambda : String → ε → ε → ε
     different-if-nats-are-different :
-      {n1 n2 : ℕ} -> n1 ≢ n2 -> fromℕ n1 ≢ fromℕ n2
+      {n1 n2 : ℕ} → n1 ≢ n2 → fromℕ n1 ≢ fromℕ n2
     differently-named-variables-are-different :
-      (name1 name2 : String) ->
-      name1 ≢ name2 ->
+      (name1 name2 : String) →
+      name1 ≢ name2 →
       variableNamed name1 ≢ variableNamed name2
 
-  rEvaluate : ℕ -> ε -> Exceptional ε
+  rEvaluate : ℕ → ε → Exceptional ε
   rEvaluate 0 e = inj₂ e
   rEvaluate (ℕ.suc n) e = [_,_] inj₁ exceptionallyEvaluate (rEvaluate n e)
 
-  traceEvaluate : ℕ -> ε -> List.List (Exceptional ε)
+  traceEvaluate : ℕ → ε → List.List (Exceptional ε)
   traceEvaluate n e =
     nonRepeatingPortion decFun (List.map (flip rEvaluate e) (List.upTo (ℕ.suc n)))
       where decFun = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEquality
 
   module EqualityVerificationParts where
-    inj2s : List.List (Exceptional ε) -> List.List ε
+    inj2s : List.List (Exceptional ε) → List.List ε
     inj2s (inj₂ e List.∷ es) = e List.∷ inj2s es
     inj2s (inj₁ e List.∷ es) = inj2s es
     inj2s List.[] = List.[]
 
-    evaluationPairs : ℕ -> ε -> ε -> List.List (ε × ε)
+    evaluationPairs : ℕ → ε → ε → List.List (ε × ε)
     evaluationPairs i x y = (List.cartesianProduct on inj2s) (trace x) (trace y)
       where
       trace = traceEvaluate i
@@ -754,7 +754,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
       evp = evaluationPairs i e1 e2
 
-      length-of-pairlist-is-suc : Σ ℕ (\ n -> ℕ.suc n ≡ List.length evp)
+      length-of-pairlist-is-suc : Σ ℕ (\ n → ℕ.suc n ≡ List.length evp)
       length-of-pairlist-is-suc = {!!}
 
       first-pair-index = Data.Fin.cast (proj₂ length-of-pairlist-is-suc) Fin.zero
@@ -766,11 +766,11 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
   open EqualityVerificationParts
 
   module InternalEqualityFunctions where
-    _≡₂_ : Exceptional ε -> Exceptional ε -> Set a
+    _≡₂_ : Exceptional ε → Exceptional ε → Set a
     (inj₂ x) ≡₂ (inj₂ y) = x ≡ y
     x ≡₂ y = ⊥
 
-    _≟₂_ : (x y : Exceptional ε) -> Dec (x ≡₂ y)
+    _≟₂_ : (x y : Exceptional ε) → Dec (x ≡₂ y)
     (inj₂ x) ≟₂ (inj₂ y) = structuralEquality x y
     (inj₁ x) ≟₂ (inj₂ y) = no (λ ())
     (inj₁ x) ≟₂ (inj₁ y) = no (λ ())
@@ -778,38 +778,38 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
   open InternalEqualityFunctions
 
-  _≈_ : ε -> ε -> Set a
-  x ≈ y = Σ (ℕ × ℕ) (λ (nx , ny) -> rEvaluate nx x ≡₂ rEvaluate ny y)
+  _≈_ : ε → ε → Set a
+  x ≈ y = Σ (ℕ × ℕ) (λ (nx , ny) → rEvaluate nx x ≡₂ rEvaluate ny y)
 
-  _≉_ : ε -> ε -> Set a
-  x ≉ y = (iterations : ℕ) -> ¬ x ≈ y
+  _≉_ : ε → ε → Set a
+  x ≉ y = (iterations : ℕ) → ¬ x ≈ y
 
   module DefinitelyEqualsInternal where
     checkEqualityAtIteration :
-      (ix iy : ℕ) ->
-      (x y : ε) ->
+      (ix iy : ℕ) →
+      (x y : ε) →
       Maybe (x ≈ y)
     checkEqualityAtIteration ix iy x y =
       Data.Maybe.map ((ix , iy) ,_) (decToMaybe (rEvaluate ix x ≟₂ rEvaluate iy y))
 
-    firstInj1 : List.List (Exceptional ε) -> Maybe String
+    firstInj1 : List.List (Exceptional ε) → Maybe String
     firstInj1 List.[] = nothing
     firstInj1 (inj₂ e List.∷ es) = firstInj1 es
     firstInj1 (inj₁ e List.∷ es) = just e
 
-    with-justness : {iterations : ℕ} ->
-                    {x y : ε} ->
-                    Maybe String ->
+    with-justness : {iterations : ℕ} →
+                    {x y : ε} →
+                    Maybe String →
                     Exceptional (Maybe (x ≈ y))
     with-justness (just e) = inj₁ e
     with-justness {iters} {x} {y} nothing =
       inj₂ (List.head (List.mapMaybe check iterList))
       where
-      check = λ (nx , ny) -> checkEqualityAtIteration nx ny x y
-      iterList = (λ l -> List.cartesianProduct l l) (List.upTo (ℕ.suc iters))
+      check = λ (nx , ny) → checkEqualityAtIteration nx ny x y
+      iterList = (λ l → List.cartesianProduct l l) (List.upTo (ℕ.suc iters))
 
-  definitelyEquals : (iterations : ℕ) ->
-                     (x y : ε) ->
+  definitelyEquals : (iterations : ℕ) →
+                     (x y : ε) →
                      Exceptional (Maybe (x ≈ y))
   definitelyEquals iterations x y =
     with-justness {iterations} {x} {y} (firstInj1 (trace x List.++ trace y))
@@ -817,31 +817,31 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     open DefinitelyEqualsInternal
     trace = traceEvaluate iterations
 
-  equal-at-iteration : ℕ -> (e1 e2 : ε) -> Set a
+  equal-at-iteration : ℕ → (e1 e2 : ε) → Set a
   equal-at-iteration iterations e1 e2 =
     Σ (e1 ≈ e2)
-      (\ i -> inj₂ (just i) ≡ definitelyEquals iterations e1 e2)
+      (\ i → inj₂ (just i) ≡ definitelyEquals iterations e1 e2)
 
-  equal-at-some-iteration : (e1 e2 : ε) -> Set a
-  equal-at-some-iteration e1 e2 = Σ ℕ (\ n -> equal-at-iteration n e1 e2)
+  equal-at-some-iteration : (e1 e2 : ε) → Set a
+  equal-at-some-iteration e1 e2 = Σ ℕ (\ n → equal-at-iteration n e1 e2)
 
   equality-at-n-implies-equality-at-n+1 :
-    (iterations : ℕ) ->
-    (e1 e2 : ε) ->
-    equal-at-iteration iterations e1 e2 ->
+    (iterations : ℕ) →
+    (e1 e2 : ε) →
+    equal-at-iteration iterations e1 e2 →
     equal-at-iteration (ℕ.suc iterations) e1 e2
   equality-at-n-implies-equality-at-n+1 = {!!}
 
-  bogus-at-iteration : ℕ -> ε -> Set a
-  bogus-at-iteration n e = Σ String (\ ex -> inj₁ ex ≡ rEvaluate n e)
+  bogus-at-iteration : ℕ → ε → Set a
+  bogus-at-iteration n e = Σ String (\ ex → inj₁ ex ≡ rEvaluate n e)
 
-  bogus-at-some-iteration : ε -> Set a
+  bogus-at-some-iteration : ε → Set a
   bogus-at-some-iteration = Σ ℕ ∘ flip bogus-at-iteration
 
   bogosity-at-n-implies-bogosity-at-n+1 :
-    (iterations : ℕ) ->
-    (e : ε) ->
-    bogus-at-iteration iterations e ->
+    (iterations : ℕ) →
+    (e : ε) →
+    bogus-at-iteration iterations e →
     bogus-at-iteration (ℕ.suc iterations) e
   bogosity-at-n-implies-bogosity-at-n+1 iter e (exc , bogosity) =
     exc , trans bogosity (sym eEquality)
@@ -856,11 +856,11 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
         ≡⟨ bogosity ⟩
       rEvaluate iter e ∎
 
-  IsNotBogus : ε -> Set a
-  IsNotBogus e = (n : ℕ) -> Is-just (isInj₂ (rEvaluate n e))
+  IsNotBogus : ε → Set a
+  IsNotBogus e = (n : ℕ) → Is-just (isInj₂ (rEvaluate n e))
 
-  IsBogus : ε -> Set a
-  IsBogus e = Σ ℕ (λ n -> Σ String (\ s -> rEvaluate n e ≡ inj₁ s))
+  IsBogus : ε → Set a
+  IsBogus e = Σ ℕ (λ n → Σ String (\ s → rEvaluate n e ≡ inj₁ s))
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
@@ -944,83 +944,83 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
   field
     equality-is-equivalence : IsEquivalence _≈_
     structural-equality-implies-definite-equality :
-      (e1 e2 : ε) ->
-      e1 ≡ e2 ->
-      (iterations : ℕ) ->
+      (e1 e2 : ε) →
+      e1 ≡ e2 →
+      (iterations : ℕ) →
       equal-at-iteration iterations e1 e2
     differently-named-variables-are-not-definitely-equal :
-      (name1 name2 : String) ->
-      name1 ≢ name2 ->
-      (iterations : ℕ) ->
+      (name1 name2 : String) →
+      name1 ≢ name2 →
+      (iterations : ℕ) →
       _≡_ (inj₂ nothing)
           (definitelyEquals iterations
                             (variableNamed name1)
                             (variableNamed name2))
     identically-named-variables-are-equal :
-      (name1 name2 : String) ->
-      name1 ≡ name2 ->
+      (name1 name2 : String) →
+      name1 ≡ name2 →
       equal-at-some-iteration (variableNamed name1) (variableNamed name2)
     sum-of-nats-is-nat-sum :
-      (n1 n2 : ℕ) ->
+      (n1 n2 : ℕ) →
       equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
     sum-is-not-bogus :
-      (e1 e2 : ε) ->
-      IsNotBogus e1 ->
-      IsNotBogus e2 ->
+      (e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
       IsNotBogus (e1 + e2)
     product-of-e-and-1-is-e :
-      (e : ε) ->
-      IsNotBogus e ->
+      (e : ε) →
+      IsNotBogus e →
       equal-at-some-iteration (e * fromℕ 1) e
     difference-is-negated-sum :
-      (e1 e2 : ε) ->
+      (e1 e2 : ε) →
       equal-at-some-iteration (e1 - e2)
                               (e1 + negation e2)
     inverse-of-inverse-is-original :
-      (e : ε) ->
+      (e : ε) →
       equal-at-some-iteration e (negation (negation e))
     division-by-zero-is-bogus :
-      (e1 e2 : ε) ->
-      (equal-at-some-iteration (fromℕ 0) e2) ->
+      (e1 e2 : ε) →
+      (equal-at-some-iteration (fromℕ 0) e2) →
       bogus-at-some-iteration (e1 / e2)
     sum-is-commutative :
-      (e1 e2 : ε) ->
-      IsNotBogus e1 ->
-      IsNotBogus e2 ->
+      (e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
       equal-at-some-iteration (e1 + e2) (e2 + e1)
     product-is-commutative :
-      (e1 e2 : ε) ->
-      IsNotBogus e1 ->
-      IsNotBogus e2 ->
+      (e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
       equal-at-some-iteration (e1 * e2) (e2 * e1)
     sum-is-associative :
-      (a b c : ε) ->
-      IsNotBogus a ->
-      IsNotBogus b ->
-      IsNotBogus c ->
+      (a b c : ε) →
+      IsNotBogus a →
+      IsNotBogus b →
+      IsNotBogus c →
       equal-at-some-iteration (a + (b + c)) ((a + b) + c)
     product-of-quotient-is-same :
-      (e1 e2 : ε) ->
-      IsNotBogus (e2 / e1) ->
+      (e1 e2 : ε) →
+      IsNotBogus (e2 / e1) →
       equal-at-some-iteration e2 (e1 * (e2 / e1))
     0^0-is-bogus : IsBogus (fromℕ 0 ^ fromℕ 0)
     limit-of-unrelated-value-is-unrelated-value :
-      (name : String) ->
-      (e bound : ε) ->
-      ¬ IsNameOfVariableIn name e ->
+      (name : String) →
+      (e bound : ε) →
+      ¬ IsNameOfVariableIn name e →
       equal-at-some-iteration e (limit name bound e)
     simple-lambda-substitution-works :
-      (name : String) ->
-      (e : ε) ->
+      (name : String) →
+      (e : ε) →
       equal-at-some-iteration e (lambda name (variableNamed name) e)
     nonapplicable-lambda-returns-lambda-body :
-      (name : String) ->
-      (e1 e2 : ε) ->
-      ¬ IsNameOfVariableIn name e2 ->
+      (name : String) →
+      (e1 e2 : ε) →
+      ¬ IsNameOfVariableIn name e2 →
       equal-at-some-iteration e2 (lambda name e2 e1)
     unrelated-derivative :
-      (name : String) ->
-      (e : ε) ->
+      (name : String) →
+      (e : ε) →
       equal-at-some-iteration e (derivative name e)
 \end{code}
 
@@ -1064,15 +1064,15 @@ data F where
    Sum
    Product
    Exponent : F
-  Lambda : List.List String -> ε -> F
-  Limit : String -> F
+  Lambda : List.List String → ε → F
+  Limit : String → F
 \end{code}
 
 \subsection{The Arity-Determining Function}
 \AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
 
 \begin{code}
-arity : F -> ℕ
+arity : F → ℕ
 arity Abs = 1
 arity Negate = 1
 arity Sum = 2
@@ -1086,7 +1086,7 @@ arity (Limit name) = 2
 \AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
 
 \begin{code}
-isCommutative : (f : F) -> arity f ≡ 2 -> Bool
+isCommutative : (f : F) → arity f ≡ 2 → Bool
 isCommutative Sum refl = true
 isCommutative Product refl = true
 isCommutative Exponent refl = false
@@ -1107,9 +1107,9 @@ The following statements hold:
 \begin{code}
 data ε where
   Infinity : ε
-  Variable : String -> ε
-  NumberRat : ℚ -> ε
-  Ap : (f : F) -> Vec ε (arity f) -> ε
+  Variable : String → ε
+  NumberRat : ℚ → ε
+  Ap : (f : F) → Vec ε (arity f) → ε
 \end{code}
 
 \section{Additional Functions}
@@ -1118,7 +1118,7 @@ data ε where
 \AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's representation of \AgdaBound{n}.
 
 \begin{code}
-NumberNat : ℕ -> ε
+NumberNat : ℕ → ε
 NumberNat n = NumberRat (ℚ.mkℚ (Data.Integer.+ n)
                                0
                                (Coprimality.sym (Coprimality.1-coprimeTo _)))
@@ -1150,8 +1150,8 @@ structuralEqualityOnε = s
   ... | no differentNames = no (differentNames ∘ same-variable-implies-same-name)
     where
     same-variable-implies-same-name :
-      {n1 n2 : String} ->
-      Variable n1 ≡ Variable n2 ->
+      {n1 n2 : String} →
+      Variable n1 ≡ Variable n2 →
       n1 ≡ n2
     same-variable-implies-same-name refl = refl
   s (Variable v) (NumberRat r) = no λ ()
@@ -1163,8 +1163,8 @@ structuralEqualityOnε = s
   ... | no ratsAreDifferent = no (ratsAreDifferent ∘ same-numberRat-implies-same-rat)
     where
     same-numberRat-implies-same-rat :
-      {q1 q2 : ℚ} ->
-      NumberRat q1 ≡ NumberRat q2 ->
+      {q1 q2 : ℚ} →
+      NumberRat q1 ≡ NumberRat q2 →
       q1 ≡ q2
     same-numberRat-implies-same-rat refl = refl
   s (NumberRat r) (Ap f x) = no λ ()
@@ -1175,10 +1175,10 @@ structuralEqualityOnε = s
   ... | no differentF = no (differentF ∘ sym ∘ same-only-with-same-function)
     where
     same-only-with-same-function :
-      {f1 f2 : F} ->
-      {x1 : Vec ε (arity f1)} ->
-      {x2 : Vec ε (arity f2)} ->
-      Ap f1 x1 ≡ Ap f2 x2 ->
+      {f1 f2 : F} →
+      {x1 : Vec ε (arity f1)} →
+      {x2 : Vec ε (arity f2)} →
+      Ap f1 x1 ≡ Ap f2 x2 →
       f1 ≡ f2
     same-only-with-same-function refl = refl
   ... | yes sameF with VecProp.≡-dec structuralEqualityOnε
@@ -1186,21 +1186,21 @@ structuralEqualityOnε = s
   ... | yes sameX = yes (combine sameF sameX)
     where
     combine :
-      {f1 f2 : F} ->
-      {x1 : Vec ε (arity f1)} ->
-      {x2 : Vec ε (arity f2)} ->
-      (sameF : f2 ≡ f1) ->
-      x1 ≡ Data.Vec.cast (cong arity sameF) x2 ->
+      {f1 f2 : F} →
+      {x1 : Vec ε (arity f1)} →
+      {x2 : Vec ε (arity f2)} →
+      (sameF : f2 ≡ f1) →
+      x1 ≡ Data.Vec.cast (cong arity sameF) x2 →
       Ap f1 x1 ≡ Ap f2 x2
     combine = {!!}
   ... | no differentX = no (differentX ∘ same-only-with-same-x sameF)
     where
     same-only-with-same-x :
-      {f1 f2 : F} ->
-      {x1 : Vec ε (arity f1)} ->
-      {x2 : Vec ε (arity f2)} ->
-      (sameF : f2 ≡ f1) ->
-      Ap f1 x1 ≡ Ap f2 x2 ->
+      {f1 f2 : F} →
+      {x1 : Vec ε (arity f1)} →
+      {x2 : Vec ε (arity f2)} →
+      (sameF : f2 ≡ f1) →
+      Ap f1 x1 ≡ Ap f2 x2 →
       x1 ≡ Data.Vec.cast (cong arity sameF) x2
     same-only-with-same-x = {!!}
 \end{code}
@@ -1210,24 +1210,24 @@ structuralEqualityOnε = s
 
 \begin{code}
 {-# TERMINATING #-}
-commutativePermutations : ε -> List.List ε
+commutativePermutations : ε → List.List ε
 commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
   where
-  c : {a : Level} -> {A B : Set a} -> A ≡ B -> A -> B
+  c : {a : Level} → {A B : Set a} → A ≡ B → A → B
   c refl t = t
-  combine : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> ε
+  combine : (f : F) → (e : List.List ε) → arity f ≡ List.length e → ε
   combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
                                     (Data.Vec.fromList e))
-  perms' : (f : F) -> (e : List.List ε) -> arity f ≡ List.length e -> List.List ε
+  perms' : (f : F) → (e : List.List ε) → arity f ≡ List.length e → List.List ε
   perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
     if isCommutative f lengthMatches then solo else list
     where
     solo = List.[ combine f e lengthMatches ]
     list =
       f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
-      List.map (\ e2 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
-      List.map (\ e1 -> f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
-      List.concat (List.map (\ (e1 , e2) -> f' (e1 ∷ [ e2 ]) List.∷
+      List.map (\ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
+      List.map (\ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
+      List.concat (List.map (\ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
                                             List.[ f' (e2 ∷ [ e1 ]) ])
                             (List.zip (commutativePermutations e1)
                                       (commutativePermutations e2)))
@@ -1243,7 +1243,7 @@ commutativePermutations o = List.[ o ]
 
 \begin{code}
 {-# TERMINATING #-}
-varSubstM : List.List (String × ε) -> ε -> ε
+varSubstM : List.List (String × ε) → ε → ε
 varSubstM List.[] x = x
 varSubstM vars o@(NumberRat r) = o
 varSubstM vars o@Infinity = o
@@ -1259,10 +1259,10 @@ varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 
 \begin{code}
 {-# TERMINATING #-}
-exceptionallyEvaluate : ε -> Exceptional ε
+exceptionallyEvaluate : ε → Exceptional ε
 exceptionallyEvaluate = f
   where
-  f : ε -> Exceptional ε
+  f : ε → Exceptional ε
   f o@Infinity = inj₂ o
   f o@(Variable x) = inj₂ o
   f o@(NumberRat r) = inj₂ o
@@ -1287,10 +1287,10 @@ exceptionallyEvaluate = f
     inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
   f (Ap f x) = [_,_] inj₁ (inj₂ ∘ Ap f) (condense (Data.Vec.map exceptionallyEvaluate x))
     where
-    condense : {a : Level} ->
-               {A : Set a} ->
-               {n : ℕ} ->
-               Vec (Exceptional A) n ->
+    condense : {a : Level} →
+               {A : Set a} →
+               {n : ℕ} →
+               Vec (Exceptional A) n →
                Exceptional (Vec A n)
     condense [] = inj₂ []
     condense (inj₁ x ∷ xs) = inj₁ x
@@ -1301,7 +1301,7 @@ exceptionallyEvaluate = f
 \AgdaFunction{commutativeEvaluate} \AgdaBound{e} performs a single evaluation step on the input expression but can also do some fancy stuff when applicable, e.g., switching the arguments of commutative functions.
 
 \begin{code}
-commutativeEvaluate : ε -> Exceptional ε
+commutativeEvaluate : ε → Exceptional ε
 commutativeEvaluate e@(Ap f x) =
   if (e evaluates) then evaluate e else tryFlip (arity f Data.Nat.≟ 2)
   where
@@ -1309,9 +1309,9 @@ commutativeEvaluate e@(Ap f x) =
   evaluate = exceptionallyEvaluate
   structuralEquality =
     Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
-  _evaluates : ε -> Bool
+  _evaluates : ε → Bool
   _evaluates e = isNo (structuralEquality (inj₂ e) (evaluate e))
-  tryFlip : Dec (arity f ≡ 2) -> Exceptional ε
+  tryFlip : Dec (arity f ≡ 2) → Exceptional ε
   tryFlip (no arityDiffers) = evaluate e
   tryFlip (yes arityMatches) =
     if isCommutative f arityMatches ∧ (e2 evaluates) then inj₂ e2 else evaluate e
@@ -1324,7 +1324,7 @@ commutativeEvaluate e = exceptionallyEvaluate e
 
 \begin{code}
 {-# TERMINATING #-}
-IsReferencedIn : String -> ε -> Set
+IsReferencedIn : String → ε → Set
 IsReferencedIn name Infinity = ⊥
 IsReferencedIn name (NumberRat r) = ⊥
 IsReferencedIn name (Variable name2) = name ≡ name2
@@ -1352,12 +1352,12 @@ CasanovaFly-Base = record
   ; structuralEquality = structuralEqualityOnε
   ; fromℕ = NumberNat
   ; variableNamed = Variable
-  ; _+_ = λ a b -> Ap Sum (a ∷ b ∷ [])
-  ; _-_ = λ x y -> Ap Sum (x ∷ [ Ap Negate [ y ] ])
-  ; _*_ = λ x y -> Ap Product (x ∷ [ y ])
-  ; _/_ = λ x y ->
+  ; _+_ = λ a b → Ap Sum (a ∷ b ∷ [])
+  ; _-_ = λ x y → Ap Sum (x ∷ [ Ap Negate [ y ] ])
+  ; _*_ = λ x y → Ap Product (x ∷ [ y ])
+  ; _/_ = λ x y →
      Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
-  ; _^_ = λ x y -> Ap Exponent (x ∷ [ y ])
+  ; _^_ = λ x y → Ap Exponent (x ∷ [ y ])
   ; sin = {!!}
   ; cos = {!!}
   ; tan = {!!}
@@ -1366,9 +1366,9 @@ CasanovaFly-Base = record
   ; cot = {!!}
   ; derivative = {!!}
   ; antiderivative = {!!}
-  ; limit = λ n b e -> Ap (Limit n) (b ∷ [ e ])
+  ; limit = λ n b e → Ap (Limit n) (b ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
-  ; lambda = λ name e1 e2 -> Ap (Lambda List.[ name ] e1) [ e2 ]
+  ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
@@ -1406,15 +1406,15 @@ CasanovaFly-Verified = record
   open InternalEqualityFunctions
 
   mapMaybe-justness-implies-output-justness :
-    {a b : Level} ->
-    {A : Set a} ->
-    {B : Set b} ->
-    (f : A -> Maybe B) ->
-    (x : List.List A) ->
-    (e : A) ->
-    Is-just (f e) ->
-    e ∈ x ->
-    Σ B (\ y -> List.head (List.mapMaybe f x) ≡ just y)
+    {a b : Level} →
+    {A : Set a} →
+    {B : Set b} →
+    (f : A → Maybe B) →
+    (x : List.List A) →
+    (e : A) →
+    Is-just (f e) →
+    e ∈ x →
+    Σ B (\ y → List.head (List.mapMaybe f x) ≡ just y)
   mapMaybe-justness-implies-output-justness = {!!}
 
   equality-is-reflexive : Reflexive (CAS._≈_ CasanovaFly-Base)
@@ -1423,11 +1423,11 @@ CasanovaFly-Verified = record
   equality-is-symmetric : Symmetric _≈_
   equality-is-symmetric ((n1 , n2) , eq) = (n2 , n1) , sym-≡₂ eq
     where
-    sym-≡₂ : {e1 e2 : Exceptional ε} -> e1 ≡₂ e2 -> e2 ≡₂ e1
+    sym-≡₂ : {e1 e2 : Exceptional ε} → e1 ≡₂ e2 → e2 ≡₂ e1
     sym-≡₂ {inj₂ e1} {inj₂ e2} refl = refl
 
   sum-of-nats-is-nat-sum :
-    (n1 n2 : ℕ) ->
+    (n1 n2 : ℕ) →
     equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
   sum-of-nats-is-nat-sum n1 n2 = 1 , _ , sym theProof
     where
@@ -1447,10 +1447,10 @@ CasanovaFly-Verified = record
       inj₂ _ ∎
         where
         open DefinitelyEqualsInternal
-        check = λ (nx , ny) ->
+        check = λ (nx , ny) →
           checkEqualityAtIteration nx ny (fromℕ n1 + fromℕ n2)
                                          (fromℕ (n1 Data.Nat.+ n2))
-        iterList = (λ l -> List.cartesianProduct l l) (List.upTo 2)
+        iterList = (λ l → List.cartesianProduct l l) (List.upTo 2)
         sumEqualityProof = begin
           rEvaluate 1 (Ap Sum (NumberNat n1 ∷ [ NumberNat n2 ]))
             ≡⟨⟩
@@ -1464,26 +1464,26 @@ CasanovaFly-Verified = record
             ≡⟨⟩
           inj₂ (NumberNat (n1 Data.Nat.+ n2)) ∎
 
-  invert-inverse : (e : ε) -> equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
+  invert-inverse : (e : ε) → equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
   invert-inverse e = 1 , {!!} , {!!}
     where
     inv = Ap Negate ∘ [_]
     inv-inv-propEq :
-      (e : ε) ->
+      (e : ε) →
       inj₂ e ≡₂ CAS.exceptionallyEvaluate CasanovaFly-Base (inv (inv e))
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
     inv-inv-propEq e = {!!}
 
   division-by-zero-is-bogus :
-    (e1 e2 : ε) ->
-    equal-at-some-iteration (fromℕ 0) e2 ->
+    (e1 e2 : ε) →
+    equal-at-some-iteration (fromℕ 0) e2 →
     bogus-at-some-iteration (e1 / e2)
   division-by-zero-is-bogus x y (iters , eq) with bogusBeforeIteration? (ℕ.suc iters) (x / y)
     where
     bogusBeforeIteration? :
-      (n : ℕ) ->
-      (e : ε) ->
-      Maybe ((Σ (Fin n) (λ f -> bogus-at-iteration (Fin.toℕ f) e)))
+      (n : ℕ) →
+      (e : ε) →
+      Maybe ((Σ (Fin n) (λ f → bogus-at-iteration (Fin.toℕ f) e)))
     bogusBeforeIteration? = {!!}
   ... | just (f , bogus) = Fin.toℕ f , bogus
   ... | nothing = ℕ.suc iters , _ , sym inj1Equality
@@ -1494,9 +1494,9 @@ CasanovaFly-Verified = record
       inj₁ {!!} ∎
 
   structural-equality-implies-definite-equality :
-    (e1 e2 : ε) ->
-    e1 ≡ e2 ->
-    (iterations : ℕ) ->
+    (e1 e2 : ε) →
+    e1 ≡ e2 →
+    (iterations : ℕ) →
     equal-at-iteration iterations e1 e2
   structural-equality-implies-definite-equality e1 e2 refl 0 =
     ((0 , 0) , _) , sym theProof
@@ -1509,8 +1509,8 @@ CasanovaFly-Verified = record
     equality-at-n-implies-equality-at-n+1 n e1 e2 (struck-def e1 e2 refl n)
       where struck-def = structural-equality-implies-definite-equality
 
-  invae : (name1 name2 : String) ->
-          name1 ≡ name2 ->
+  invae : (name1 name2 : String) →
+          name1 ≡ name2 →
           equal-at-some-iteration (Variable name1) (Variable name2)
   invae n1 n2 refl = 0 , struck-def (Variable n1) (Variable n2) refl 0
     where struck-def = structural-equality-implies-definite-equality
