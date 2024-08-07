@@ -578,6 +578,9 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which converts the input into the additive inverse of the input,
   \item a lambda expression function,
   \item a variable-is-used type,
+  \item an expression-is-real type,
+  \item an expression-is-imaginary type,
+  \item an expression-is-valid-constant type,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that variables of different names are not equivalent,
   \item a function which performs the maximum number of evaluation steps on the input,
@@ -657,6 +660,15 @@ As previously indicated, a CAS also supports certain trigonometric functions.  T
 \subsection{The Variable Containment Type}
 The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.IsNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
 
+\subsection{The Realness Type}
+\AgdaBound{e} represents a real number with regard to \AgdaBounc{c} if and only if there exists a value of type \AgdaField{CAS.IsReal} \AgdaBound{c} \AgdaBound{e}.
+
+\subsection{The Complexity Type}
+\AgdaBound{e} represents an imaginary number with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsImaginary} \AgdaBound{c} \AgdaBound{e}.
+
+\subsection{The Constant Type}
+\AgdaBound{e} represents a constant with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsConstant} \AgdaBound{c} \AgdaBound{e}.
+
 \subsection{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
 
@@ -726,6 +738,8 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
     limit : String → ε → ε → ε
     boundedIntegral : String → ε → ε → ε → ε
     IsNameOfVariableIn : String → ε → Set
+    IsReal : ε → Set
+    IsImaginary : ε → Set
     lambda : String → ε → ε → ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} → n1 ≢ n2 → fromℕ n1 ≢ fromℕ n2
@@ -733,6 +747,9 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
       (name1 name2 : String) →
       name1 ≢ name2 →
       variableNamed name1 ≢ variableNamed name2
+
+  IsConstant : ε → Set
+  IsConstant e = (name : String) → ¬ IsNameOfVariableIn name e
 
   rEvaluate : ℕ → ε → Exceptional ε
   rEvaluate 0 e = inj₂ e
@@ -1382,6 +1399,8 @@ CasanovaFly-Base = record
   ; limit = λ n b e → Ap (Limit n) (b ∷ [ e ])
   ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
+  ; IsReal = {!!}
+  ; IsImaginary = {!!}
   ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
