@@ -8,6 +8,7 @@
 % The coloring distracts the author.
 \usepackage[bw]{agda}
 \usepackage{unicode-math}
+\usepackage{physics}
 
 % What is a good place for this crap?
 \newunicodechar{⊤}{\ensuremath{\mathnormal{\top}}}
@@ -1060,6 +1061,9 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Exponent} represents the exponentiation function.
   \item \AgdaInductiveConstructor{Limit} represents the limit function, i.e., \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Limit} \AgdaBound{name}\AgdaSymbol) \AgdaSymbol(\AgdaBound{bound} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{expression} \AgdaInductiveConstructor{List.[]}\AgdaSymbol) represents the limit of \AgdaBound{expression} as \AgdaBound{name} approaches \AgdaBound{bound}.
   \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash\ n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+  \item \AgdaInductiveConstructor{Derivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \derivative{\AgdaBound{name}} e\right)\).
+  \item \AgdaInductiveConstructor{Antiderivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \int_{\AgdaBound{name}} e\right)\).
+  \item \AgdaInductiveConstructor{BoundedIntegral} \AgdaBound{name} represents \(\left(\lambda\ b_1\ b_2\ e \rightarrow \int_{\AgdaBound{name} = b_1}^{b_2} e\right)\).
 \end{itemize}
 
 \begin{code}
@@ -1070,7 +1074,10 @@ data F where
    Product
    Exponent : F
   Lambda : List.List String → ε → F
-  Limit : String → F
+  Limit
+   Derivative
+   Antiderivative
+   BoundedIntegral : String → F
 \end{code}
 
 \subsection{The Arity-Determining Function}
@@ -1085,6 +1092,9 @@ arity Product = 2
 arity Exponent = 2
 arity (Lambda names body) = List.length names
 arity (Limit name) = 2
+arity (Derivative name) = 1
+arity (Antiderivative name) = 1
+arity (BoundedIntegral name) = 3
 \end{code}
 
 \subsection{The Commutativity-Determining Function}
@@ -1367,10 +1377,10 @@ CasanovaFly-Base = record
   ; csc = {!!}
   ; sec = {!!}
   ; cot = {!!}
-  ; derivative = {!!}
-  ; antiderivative = {!!}
+  ; derivative = λ name e → Ap (Derivative name) [ e ]
+  ; antiderivative = λ name e → Ap (Antiderivative name) [ e ]
   ; limit = λ n b e → Ap (Limit n) (b ∷ [ e ])
-  ; boundedIntegral = {!!}
+  ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
   ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negation = Ap Negate ∘ [_]
