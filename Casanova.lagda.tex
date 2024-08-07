@@ -1218,11 +1218,9 @@ structuralEqualityOnε = s
 commutativePermutations : ε → List.List ε
 commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
   where
-  c : {a : Level} → {A B : Set a} → A ≡ B → A → B
-  c refl t = t
   combine : (f : F) → (e : List.List ε) → arity f ≡ List.length e → ε
-  combine f e lengthMatch = Ap f (c (sym (cong (Vec ε) lengthMatch))
-                                    (Data.Vec.fromList e))
+  combine f e lengthMatch = Ap f (Data.Vec.cast (sym lengthMatch)
+                                                (Data.Vec.fromList e))
   perms' : (f : F) → (e : List.List ε) → arity f ≡ List.length e → List.List ε
   perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
     if isCommutative f lengthMatches then solo else list
@@ -1236,7 +1234,7 @@ commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
                                             List.[ f' (e2 ∷ [ e1 ]) ])
                             (List.zip (commutativePermutations e1)
                                       (commutativePermutations e2)))
-      where f' = Ap f ∘ c (sym (cong (Vec ε) lengthMatches))
+      where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
   perms' f e lengthMatches = List.[ combine f e lengthMatches ]
 commutativePermutations o = List.[ o ]
 \end{code}
