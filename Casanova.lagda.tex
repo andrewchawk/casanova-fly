@@ -710,7 +710,7 @@ A value of type \AgdaField{CAS.bogus-at-some-iteration} \AgdaBound{c} \AgdaBound
 This type, in addition to not being bogus, is used to indicate that the relevant expression is not bogus.  More formally, a value of type \AgdaField{CAS.IsNotBogus} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaBound{e} is bogus with regard to \AgdaField{CAS.rEvaluate} \AgdaBound{c} at no iteration, i.e., \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is non-bogus for all \AgdaBound{n}.
 
 \subsection{The Bogus Type}
-This type is not bogus but \emph{is} used to indicate that a given expression \emph{is} bogus.  More formally, one can say that a value of type \AgdaField{CAS.IsBogus} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaBound{e} is bogus with regard to \AgdaField{CAS.rEvaluate} \AgdaBound{c} at some iteration.
+This type is not bogus but \emph{is} used to indicate that a given expression is bogus.  More formally, one can say that a value of type \AgdaField{CAS.IsBogus} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaBound{e} is bogus with regard to \AgdaField{CAS.rEvaluate} \AgdaBound{c} at some iteration.
 
 \subsection{The Definition Proper}
 
