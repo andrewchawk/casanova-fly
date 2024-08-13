@@ -717,8 +717,12 @@ This type is not bogus but \emph{is} used to indicate that a given expression is
 \subsection{The Definition Proper}
 
 \begin{code}
-record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) where
+record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   field
+    _≈_ : ε → ε → Set a
+    definitelyEquals : (iterations : ℕ) →
+                       (x y : ε) →
+                       Exceptional (Maybe (x ≈ y))
     exceptionallyEvaluate : ε → Exceptional ε
     structuralEquality : DecidableEquality ε
     fromℕ : ℕ → ε
@@ -803,44 +807,8 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc Level.zero Level.⊔ a) whe
 
   open InternalEqualityFunctions
 
-  _≈_ : ε → ε → Set a
-  x ≈ y = Σ (ℕ × ℕ) (λ (nx , ny) → rEvaluate nx x ≡₂ rEvaluate ny y)
-
   _≉_ : ε → ε → Set a
   x ≉ y = (iterations : ℕ) → ¬ x ≈ y
-
-  module DefinitelyEqualsInternal where
-    checkEqualityAtIteration :
-      (ix iy : ℕ) →
-      (x y : ε) →
-      Maybe (x ≈ y)
-    checkEqualityAtIteration ix iy x y =
-      Data.Maybe.map ((ix , iy) ,_) (decToMaybe (rEvaluate ix x ≟₂ rEvaluate iy y))
-
-    firstInj1 : List.List (Exceptional ε) → Maybe String
-    firstInj1 List.[] = nothing
-    firstInj1 (inj₂ e List.∷ es) = firstInj1 es
-    firstInj1 (inj₁ e List.∷ es) = just e
-
-    with-justness : {iterations : ℕ} →
-                    {x y : ε} →
-                    Maybe String →
-                    Exceptional (Maybe (x ≈ y))
-    with-justness (just e) = inj₁ e
-    with-justness {iters} {x} {y} nothing =
-      inj₂ (List.head (List.mapMaybe check iterList))
-      where
-      check = λ (nx , ny) → checkEqualityAtIteration nx ny x y
-      iterList = (λ l → List.cartesianProduct l l) (List.upTo (ℕ.suc iters))
-
-  definitelyEquals : (iterations : ℕ) →
-                     (x y : ε) →
-                     Exceptional (Maybe (x ≈ y))
-  definitelyEquals iterations x y =
-    with-justness {iterations} {x} {y} (firstInj1 (trace x List.++ trace y))
-    where
-    open DefinitelyEqualsInternal
-    trace = traceEvaluate iterations
 
   equal-at-iteration : ℕ → (e1 e2 : ε) → Set a
   equal-at-iteration iterations e1 e2 =
@@ -1148,6 +1116,14 @@ data ε where
   Ap : (f : F) → Vec ε (arity f) → ε
 \end{code}
 
+\subsection{The Algebraic Equality Type}
+A value of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is \emph{algebraically} equal to \AgdaBound{y}, i.e., \AgdaBound{x} and \AgdaBound{y} represent the same numerical value.  This algebraic equality type should not be confused with the \emph{propositional} equality type, which, as intended, fails to recognize that \(x + y\) is in some way equal to \(y + x\).
+
+\begin{code}
+AlgebraicEquality : ε → ε → Set
+AlgebraicEquality = {!!}
+\end{code}
+
 \section{Additional Functions}
 
 \subsection{The Natural-Number-to-Expression Function}
@@ -1382,7 +1358,9 @@ module CommutativeEvaluationProperties where
 \begin{code}
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
-  { exceptionallyEvaluate = commutativeEvaluate
+  { _≈_ = AlgebraicEquality
+  ; definitelyEquals = {!!}
+  ; exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
   ; fromℕ = NumberNat
   ; variableNamed = Variable
@@ -1414,8 +1392,8 @@ CasanovaFly-Base = record
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
   { equality-is-equivalence = record
-    { refl = equality-is-reflexive
-    ; sym = equality-is-symmetric
+    { refl = {!!}
+    ; sym = {!!}
     ; trans = {!!}
     }
   ; sum-of-nats-is-nat-sum = sum-of-nats-is-nat-sum
@@ -1454,52 +1432,10 @@ CasanovaFly-Verified = record
     Σ B (\ y → List.head (List.mapMaybe f x) ≡ just y)
   mapMaybe-justness-implies-output-justness = {!!}
 
-  equality-is-reflexive : Reflexive (CAS._≈_ CasanovaFly-Base)
-  equality-is-reflexive = (0 , 0) , refl
-
-  equality-is-symmetric : Symmetric _≈_
-  equality-is-symmetric ((n1 , n2) , eq) = (n2 , n1) , sym-≡₂ eq
-    where
-    sym-≡₂ : {e1 e2 : Exceptional ε} → e1 ≡₂ e2 → e2 ≡₂ e1
-    sym-≡₂ {inj₂ e1} {inj₂ e2} refl = refl
-
   sum-of-nats-is-nat-sum :
     (n1 n2 : ℕ) →
     equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
-  sum-of-nats-is-nat-sum n1 n2 = 1 , _ , sym theProof
-    where
-    theProof = begin
-      definitelyEquals 1 (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
-        ≡⟨ {!!} ⟩
-      with-justness {1} nothing
-        ≡⟨ refl ⟩
-      inj₂ (List.head (List.mapMaybe check iterList))
-        ≡⟨ cong inj₂
-                (proj₂ (mapMaybe-justness-implies-output-justness
-                         check
-                         iterList
-                         (1 , 0)
-                         {!!}
-                         (AnyList.there (AnyList.there (AnyList.here refl))))) ⟩
-      inj₂ _ ∎
-        where
-        open DefinitelyEqualsInternal
-        check = λ (nx , ny) →
-          checkEqualityAtIteration nx ny (fromℕ n1 + fromℕ n2)
-                                         (fromℕ (n1 Data.Nat.+ n2))
-        iterList = (λ l → List.cartesianProduct l l) (List.upTo 2)
-        sumEqualityProof = begin
-          rEvaluate 1 (Ap Sum (NumberNat n1 ∷ [ NumberNat n2 ]))
-            ≡⟨⟩
-          inj₂ (NumberRat (ℚ._+_ (ℚ.mkℚ (Data.Integer.+ n1) 0
-                                        (Coprimality.sym (Coprimality.1-coprimeTo _)))
-                                 (ℚ.mkℚ (Data.Integer.+ n2) 0
-                                        (Coprimality.sym (Coprimality.1-coprimeTo _)))))
-            ≡⟨ cong (inj₂ ∘ NumberRat) {!!} ⟩
-          inj₂ (NumberRat (ℚ.mkℚ (Data.Integer.+ (n1 Data.Nat.+ n2)) 0
-                                 (Coprimality.sym (Coprimality.1-coprimeTo _))))
-            ≡⟨⟩
-          inj₂ (NumberNat (n1 Data.Nat.+ n2)) ∎
+  sum-of-nats-is-nat-sum n1 n2 = 1 , {!!}
 
   invert-inverse : (e : ε) → equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
   invert-inverse e = 1 , {!!} , {!!}
@@ -1535,21 +1471,11 @@ CasanovaFly-Verified = record
     e1 ≡ e2 →
     (iterations : ℕ) →
     equal-at-iteration iterations e1 e2
-  structural-equality-implies-definite-equality e1 e2 refl 0 =
-    ((0 , 0) , _) , sym theProof
-    where
-    theProof =
-      cong (inj₂ ∘ List.head ∘ List.catMaybes ∘ List.[_] ∘
-            Data.Maybe.map ((0 , 0) ,_) ∘ decToMaybe)
-           (proj₂ (dec-yes (rEvaluate 0 e1 ≟₂ rEvaluate 0 e1) refl))
-  structural-equality-implies-definite-equality e1 e2 refl (ℕ.suc n) =
-    equality-at-n-implies-equality-at-n+1 n e1 e2 (struck-def e1 e2 refl n)
-      where struck-def = structural-equality-implies-definite-equality
+  structural-equality-implies-definite-equality = {!!}
 
   invae : (name1 name2 : String) →
           name1 ≡ name2 →
           equal-at-some-iteration (Variable name1) (Variable name2)
-  invae n1 n2 refl = 0 , struck-def (Variable n1) (Variable n2) refl 0
-    where struck-def = structural-equality-implies-definite-equality
+  invae = {!!}
 \end{code}
 \end{document}
