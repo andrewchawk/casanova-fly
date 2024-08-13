@@ -1116,6 +1116,14 @@ data ε where
   Ap : (f : F) → Vec ε (arity f) → ε
 \end{code}
 
+\subsection{The Algebraic Equality Type}
+A value of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is \emph{algebraically} equal to \AgdaBound{y}, i.e., \AgdaBound{x} and \AgdaBound{y} represent the same numerical value.  This algebraic equality type should not be confused with the \emph{propositional} equality type, which, as intended, fails to recognize that \(x + y\) is in some way equal to \(y + x\).
+
+\begin{code}
+AlgebraicEquality : ε → ε → Set
+AlgebraicEquality = {!!}
+\end{code}
+
 \section{Additional Functions}
 
 \subsection{The Natural-Number-to-Expression Function}
@@ -1350,7 +1358,7 @@ module CommutativeEvaluationProperties where
 \begin{code}
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
-  { _≈_ = {!!}
+  { _≈_ = AlgebraicEquality
   ; definitelyEquals = {!!}
   ; exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
