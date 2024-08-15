@@ -1370,6 +1370,20 @@ AlgebraicEquality x y =
   AE (Ap f x) Infinity = {!!}
   AE (Ap f x) (Variable y) = {!!}
   AE (Ap f x) (NumberRat y) = {!!}
+  AE (Ap Sum (x1 ∷ Ap Sum (x2 ∷ x3 ∷ []) ∷ []))
+     (Ap Sum (Ap Sum (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
+     _×_ (AllList.All (λ x → AnyList.Any (AE x) ys) xs)
+         (AllList.All (λ y → AnyList.Any (AE y) xs) ys)
+     where
+     xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
+     ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
+  AE (Ap Product (x1 ∷ Ap Product (x2 ∷ x3 ∷ []) ∷ []))
+     (Ap Product (Ap Product (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
+     _×_ (AllList.All (λ x → AnyList.Any (AE x) ys) xs)
+         (AllList.All (λ y → AnyList.Any (AE y) xs) ys)
+     where
+     xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
+     ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
   AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
     (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
   AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
