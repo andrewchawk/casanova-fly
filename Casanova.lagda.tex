@@ -1355,6 +1355,9 @@ AlgebraicEquality x y =
                              (repeatExceptional m exceptionallyEvaluate y))
   where
   AE : ε → ε → Set
+  AE2 : Exceptional ε → Exceptional ε → Set
+  AE2 (inj₂ x) (inj₂ y) = AE x y
+  AE2 _ _ = ⊥
 \end{code}
 
 \subsection{\AgdaInductiveConstructor{Infinity}-Related Types}
@@ -1419,14 +1422,6 @@ AlgebraicEquality x y =
   AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
     (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
   AE (Ap f x) (Ap g y) = {!!}
-\end{code}
-
-\subsection{\ldots{} and the Rest}
-
-\begin{code}
-  AE2 : Exceptional ε → Exceptional ε → Set
-  AE2 (inj₂ x) (inj₂ y) = AE x y
-  AE2 _ _ = ⊥
 \end{code}
 
 \section{Completing the Single-Step Evaluation Function}
