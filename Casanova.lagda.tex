@@ -139,6 +139,26 @@ condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
 \end{code}
 
+\section{The Exceptional Function Reapplication Function}
+Informally, one can say that \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} applies \AgdaBound{f} to \AgdaBound{x} \AgdaBound{n} times; \AgdaInductiveConstructor{inj₂} values are subject to reapplication, and \AgdaInductiveConstructor{inj₁} values are immediately returned.  Formally, one can say that the following statements apply:
+
+\begin{itemize}
+  \item \AgdaFunction{repeatExceptional} \AgdaNumber{0} \AgdaBound{f} \AgdaBound{x} is \AgdaBound{f} \AgdaBound{x}.
+  \item If \AgdaBound{f} \AgdaBound{x} is some \AgdaInductiveConstructor{inj₁} value, then then \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} is \AgdaBound{f} \AgdaBound{x}.
+  \item If \AgdaBound{f} \AgdaBound{x} is some value \AgdaInductiveConstructor{inj₂} \AgdaBound{x'}, then \AgdaFunction{repeatExceptional} \AgdaSymbol(\AgdaInductiveConstructor{ℕ.suc} \AgdaBound{n}\AgdaSymbol) \AgdaBound{f} \AgdaBound{x} is equivalent to \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x'}.
+\end{itemize}
+
+\begin{code}
+repeatExceptional :
+  {a b : Level} →
+  {A : Set a} →
+  {B : Set b} →
+  ℕ → (f : A → B ⊎ A) → A → B ⊎ A
+repeatExceptional 0 f x = f x
+repeatExceptional (ℕ.suc n) f x =
+  [_,_] inj₁ (repeatExceptional n f) (f x)
+\end{code}
+
 \section{The List Difference Function}
 \AgdaFunction{listDiff} is the list difference function, which can be intuitively understood as being the result of substracting the second input list from the first input list.  More formally, one can say that \AgdaFunction{listDiff} \AgdaBound{x} \AgdaBound{y} is the list of all elements of \AgdaBound{x} which do not appear in \AgdaBound{y}.  Ordering is preserved.
 
@@ -1117,36 +1137,6 @@ data ε where
   Ap : (f : F) → Vec ε (arity f) → ε
 \end{code}
 
-\subsection{The Algebraic Equality Type}
-A value of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is \emph{algebraically} equal to \AgdaBound{y}, i.e., \AgdaBound{x} and \AgdaBound{y} represent the same numerical value.  This algebraic equality type should not be confused with the \emph{propositional} equality type, which, as intended, fails to recognize that \(x + y\) is in some way equal to \(y + x\).
-
-\begin{code}
-AlgebraicEquality : ε → ε → Set
-AlgebraicEquality x y = x ≡ y ⊎ AE x y
-  where
-  AE : ε → ε → Set
-  AE Infinity Infinity = ⊤
-  AE Infinity (Variable x) = ⊥
-  AE Infinity (NumberRat x) = ⊥
-  AE Infinity (Ap f x) = {!!}
-  AE (Variable x) (Variable y) = x ≡ y
-  AE (Variable x) Infinity = ⊥
-  AE (Variable x) (NumberRat y) = ⊥
-  AE (Variable x) (Ap f y) = {!!}
-  AE (NumberRat x) (NumberRat y) = x ≡ y
-  AE (NumberRat x) Infinity = ⊥
-  AE (NumberRat x) (Variable y) = ⊥
-  AE (NumberRat x) (Ap f y) = {!!}
-  AE (Ap f x) Infinity = {!!}
-  AE (Ap f x) (Variable y) = {!!}
-  AE (Ap f x) (NumberRat y) = {!!}
-  AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
-    (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
-  AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
-    (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
-  AE (Ap f x) (Ap g y) = {!!}
-\end{code}
-
 \section{Additional Functions}
 
 \subsection{The Natural-Number-to-Expression Function}
@@ -1287,12 +1277,61 @@ varSubstM (v List.∷ vs) (Variable sv) =
 varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 \end{code}
 
-\section{The Single-Step Evaluation Function}
+\section{The Types of the Algebraic Equality Type and the Single-Step Evaluation Function}
+
+\subsection{The Algebraic Equality Function}
+A value of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is \emph{algebraically} equal to \AgdaBound{y}, i.e., \AgdaBound{x} and \AgdaBound{y} represent the same numerical value.  This algebraic equality type should not be confused with the \emph{propositional} equality type, which, as intended, fails to recognize that \(x + y\) is in some way equal to \(y + x\).
+
+\begin{code}
+AlgebraicEquality : ε → ε → Set
+\end{code}
+
+\subsection{The Single-Step Evaluation Function}
 \AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
 
 \begin{code}
-{-# TERMINATING #-}
 exceptionallyEvaluate : ε → Exceptional ε
+\end{code}
+
+\section{Completing the Algebraic Equality Function}
+
+\begin{code}
+AlgebraicEquality x y =
+  x ≡ y ⊎
+  AE x y ⊎
+  Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n exceptionallyEvaluate x)
+                             (repeatExceptional m exceptionallyEvaluate y))
+  where
+  AE : ε → ε → Set
+  AE Infinity Infinity = ⊤
+  AE Infinity (Variable x) = ⊥
+  AE Infinity (NumberRat x) = ⊥
+  AE Infinity (Ap f x) = {!!}
+  AE (Variable x) (Variable y) = x ≡ y
+  AE (Variable x) Infinity = ⊥
+  AE (Variable x) (NumberRat y) = ⊥
+  AE (Variable x) (Ap f y) = {!!}
+  AE (NumberRat x) (NumberRat y) = x ≡ y
+  AE (NumberRat x) Infinity = ⊥
+  AE (NumberRat x) (Variable y) = ⊥
+  AE (NumberRat x) (Ap f y) = {!!}
+  AE (Ap f x) Infinity = {!!}
+  AE (Ap f x) (Variable y) = {!!}
+  AE (Ap f x) (NumberRat y) = {!!}
+  AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
+    (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
+  AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
+    (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
+  AE (Ap f x) (Ap g y) = {!!}
+  AE2 : Exceptional ε → Exceptional ε → Set
+  AE2 (inj₂ x) (inj₂ y) = AE x y
+  AE2 _ _ = ⊥
+\end{code}
+
+\section{Completing the Single-Step Evaluation Function}
+
+\begin{code}
+{-# TERMINATING #-}
 exceptionallyEvaluate = f
   where
   f : ε → Exceptional ε
