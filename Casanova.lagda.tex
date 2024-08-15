@@ -9,6 +9,7 @@
 \usepackage[bw]{agda}
 \usepackage{unicode-math}
 \usepackage{physics}
+\usepackage{fancyref}
 
 % What is a good place for this crap?
 \newunicodechar{⊤}{\ensuremath{\mathnormal{\top}}}
@@ -142,21 +143,72 @@ condenseExceptions _ (inj₁ e) = inj₁ e
 \section{The Exceptional Function Reapplication Function}
 Informally, one can say that \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} applies \AgdaBound{f} to \AgdaBound{x} \AgdaBound{n} times; \AgdaInductiveConstructor{inj₂} values are subject to reapplication, and \AgdaInductiveConstructor{inj₁} values are immediately returned.  Formally, one can say that the following statements apply:
 
-\begin{itemize}
-  \item \AgdaFunction{repeatExceptional} \AgdaNumber{0} \AgdaBound{f} \AgdaBound{x} is \AgdaBound{f} \AgdaBound{x}.
-  \item If \AgdaBound{f} \AgdaBound{x} is some \AgdaInductiveConstructor{inj₁} value, then then \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} is \AgdaBound{f} \AgdaBound{x}.
-  \item If \AgdaBound{f} \AgdaBound{x} is some value \AgdaInductiveConstructor{inj₂} \AgdaBound{x'}, then \AgdaFunction{repeatExceptional} \AgdaSymbol(\AgdaInductiveConstructor{ℕ.suc} \AgdaBound{n}\AgdaSymbol) \AgdaBound{f} \AgdaBound{x} is equivalent to \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x'}.
-\end{itemize}
+\begin{enumerate}
+  \item \AgdaFunction{repeatExceptional} \AgdaNumber{0} \AgdaBound{f} \AgdaBound{x} is \AgdaBound{f} \AgdaBound{x}.\label{enum:zeroIsBasicApplication}
+  \item If \AgdaBound{f} \AgdaBound{x} is some \AgdaInductiveConstructor{inj₁} value, then then \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} is \AgdaBound{f} \AgdaBound{x}.\label{enum:inj1GetsReturned}
+  \item If \AgdaBound{f} \AgdaBound{x} is some value \AgdaInductiveConstructor{inj₂} \AgdaBound{x'}, then \AgdaFunction{repeatExceptional} \AgdaSymbol(\AgdaInductiveConstructor{ℕ.suc} \AgdaBound{n}\AgdaSymbol) \AgdaBound{f} \AgdaBound{x} is equivalent to \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x'}.\label{enum:inj2GetsRepeat}
+\end{enumerate}
 
 \begin{code}
-repeatExceptional :
-  {a b : Level} →
-  {A : Set a} →
-  {B : Set b} →
-  ℕ → (f : A → B ⊎ A) → A → B ⊎ A
-repeatExceptional 0 f x = f x
-repeatExceptional (ℕ.suc n) f x =
-  [_,_] inj₁ (repeatExceptional n f) (f x)
+module repeatExceptional where
+  repeatExceptional :
+    {a b : Level} →
+    {A : Set a} →
+    {B : Set b} →
+    ℕ → (f : A → B ⊎ A) → A → B ⊎ A
+  repeatExceptional 0 f x = f x
+  repeatExceptional (ℕ.suc n) f x =
+    [_,_] inj₁ (repeatExceptional n f) (f x)
+\end{code}
+
+\subsection{The Properties of the Function}
+
+\begin{code}
+  module Properties
+    {a b : Level}
+    {A : Set a}
+    {B : Set b}
+    (f : A → B ⊎ A)
+    (x : A) where
+\end{code}
+
+\subsubsection{The Zero Proof}
+\AgdaFunction{zero-is-basic-application}, indicates that in accordance with \fref{enum:zeroIsBasicApplication}, \AgdaFunction{repeatExceptional} \AgdaNumber{0} \AgdaBound{f} \AgdaBound{x} is just \AgdaBound{f} \AgdaBound{x}.
+
+\begin{code}
+    zero-is-basic-application : repeatExceptional 0 f x ≡ f x
+    zero-is-basic-application = refl
+\end{code}
+
+\subsubsection{The \AgdaInductiveConstructor{inj₁} Proof}
+In accordance with \fref{enum:inj1GetsReturned}, \AgdaFunction{inj₁-immediate-return} indicates that if \AgdaBound{f} \AgdaBound{x} is some \AgdaInductiveConstructor{inj₁} value, then \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} is always \AgdaBound{f} \AgdaBound{x}.
+
+\begin{code}
+    inj1-immediate-return :
+      {x' : B} →
+      (n : ℕ) →
+      f x ≡ inj₁ x' →
+      repeatExceptional n f x ≡ f x
+    inj1-immediate-return = {!!}
+\end{code}
+
+\subsubsection{The \AgdaInductiveConstructor{inj₂} Proof}
+In accordance with \fref{enum:inj2GetsRepeat}, \AgdaFunction{inj2-repeat} indicates that if \AgdaBound{f} \AgdaBound{x} is some \AgdaInductiveConstructor{inj₂} \AgdaBound{x'}, then \AgdaFunction{repeatExceptional} \AgdaSymbol(\AgdaInductiveConstructor{ℕ.suc} \AgdaBound{n}\AgdaSymbol) \AgdaBound{f} \AgdaBound{x} is \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x'}..
+
+\begin{code}
+    inj2-repeat :
+      {x' : A} →
+      (n : ℕ) →
+      f x ≡ inj₂ x' →
+      repeatExceptional (ℕ.suc n) f x ≡ repeatExceptional n f x'
+    inj2-repeat = {!!}
+\end{code}
+
+\subsection{Exporting the Function}
+``\AgdaFunction{repeatExceptional.repeatExceptional}'' is a bit repetitive and long, so the author encourages and enables the use of ``\AgdaFunction{repeatExceptional}''.
+
+\begin{code}
+repeatExceptional = repeatExceptional.repeatExceptional
 \end{code}
 
 \section{The List Difference Function}
