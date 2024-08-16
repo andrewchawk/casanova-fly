@@ -1577,7 +1577,7 @@ CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
   { equality-is-equivalence = record
     { refl = inj₁ refl
-    ; sym = {!!}
+    ; sym = equality-is-symmetric
     ; trans = {!!}
     }
   ; sum-of-nats-is-nat-sum = sum-of-nats-is-nat-sum
@@ -1603,6 +1603,11 @@ CasanovaFly-Verified = record
   where
   open CAS CasanovaFly-Base
   open InternalEqualityFunctions
+
+  equality-is-symmetric : Symmetric _≈_
+  equality-is-symmetric (inj₁ refl) = inj₁ refl
+  equality-is-symmetric (inj₂ (inj₁ complexAlgebraic)) = {!!}
+  equality-is-symmetric (inj₂ (inj₂ evaluatedEquality)) = {!!}
 
   mapMaybe-justness-implies-output-justness :
     {a b : Level} →
