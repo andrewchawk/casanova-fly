@@ -211,7 +211,12 @@ In accordance with \fref{enum:inj2GetsRepeat}, \AgdaFunction{inj2-repeat} indica
       (n : ℕ) →
       f x ≡ inj₂ x' →
       repeatExceptional (ℕ.suc n) f x ≡ repeatExceptional n f x'
-    inj2-repeat = {!!}
+    inj2-repeat {x'} n equality = begin
+      repeatExceptional (ℕ.suc n) f x
+        ≡⟨⟩
+      [_,_]′ inj₁ (repeatExceptional n f) (f x)
+        ≡⟨ cong ([_,_]′ inj₁ (repeatExceptional n f)) equality ⟩
+      repeatExceptional n f x' ∎
 \end{code}
 
 \subsection{Exporting the Function}
