@@ -1338,6 +1338,20 @@ A value of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exi
 AlgebraicEquality : ε → ε → Set
 \end{code}
 
+\subsection{The Algebraic Equality Determination Function}
+Informally, one can say that \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n} is the \AgdaBound{n}-iteration equality check function. Formally, one can say that the following statements apply:
+
+\begin{enumerate}
+  \item If \AgdaBound{x} and \AgdaBound{y} are shown to be \AgdaInductiveConstructor{inj₂-equal} within \AgdaBound{n} iterations,\footnote{In this context, we say that two \AgdaFunction{Exceptional} expressions \AgdaBound{x} and \AgdaBound{y} are \AgdaInductiveConstructor{inj₂}-equal if and only if some value \AgdaBound{p} of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exists such that if \AgdaBound{p} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaSymbol(\AgdaBound{i1} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{i2}\AgdaSymbol) \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{equals}\AgdaSymbol)\AgdaSymbol), then \AgdaBound{i1} and \AgdaBound{i2} are less than or equal to \AgdaBound{n}.}  then \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n} \AgdaBound{x} \AgdaBound{y} is \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{p}\AgdaSymbol), where \AgdaBound{p} is a proof of the aforementined algebraic equality.
+  \item If \AgdaBound{x} and \AgdaBound{y} are non-bogus for all iteration counts which are less than or equal to \AgdaBound{n}, but no appropriate equality proof exists, then \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n} \AgdaBound{x} \AgdaBound{y} is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing}.
+  \item If \AgdaBound{x} or \AgdaBound{y} is bogusly evaluated at some iteration count which is less than or equal to \AgdaBound{n}, then \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n} \AgdaBound{x} \AgdaBound{y} is \AgdaInductiveConstructor{inj₁} \AgdaBound{s}, where \AgdaBound{s} is some description of the aforementioned bogosity.
+\end{enumerate}
+
+\begin{code}
+checkAlgebraicEquality :
+  ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
+\end{code}
+
 \subsection{The Single-Step Evaluation Function}
 \AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
 
@@ -1348,6 +1362,7 @@ exceptionallyEvaluate : ε → Exceptional ε
 \section{Completing the Algebraic Equality Function}
 
 \begin{code}
+module AlgebraicEquality where
 AlgebraicEquality x y =
   x ≡ y ⊎
   AE x y ⊎
@@ -1492,6 +1507,12 @@ commutativeEvaluate e@(Ap f x) =
 commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
+\section{Completing The Algebraic Equality Determination Function}
+
+\begin{code}
+checkAlgebraicEquality = {!!}
+\end{code}
+
 \section{The Variable Usedness Type}
 \AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
 
@@ -1522,7 +1543,7 @@ module CommutativeEvaluationProperties where
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { _≈_ = AlgebraicEquality
-  ; definitelyEquals = {!!}
+  ; definitelyEquals = checkAlgebraicEquality
   ; exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
   ; fromℕ = NumberNat
