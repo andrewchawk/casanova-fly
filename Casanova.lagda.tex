@@ -818,7 +818,6 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     boundedIntegral : String → ε → ε → ε → ε
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
-    IsImaginary : ε → Set
     lambda : String → ε → ε → ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} → n1 ≢ n2 → fromℕ n1 ≢ fromℕ n2
@@ -927,6 +926,9 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
 
   IsBogus : ε → Set a
   IsBogus e = Σ ℕ (λ n → Σ String (\ s → rEvaluate n e ≡ inj₁ s))
+
+  IsImaginary : ε → Set a
+  IsImaginary e = IsReal e × IsNotBogus e
 \end{code}
 
 \section{The Type of Verified Computer Algebra Systems}
@@ -1552,7 +1554,6 @@ CasanovaFly-Base = record
   ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
   ; IsReal = {!!}
-  ; IsImaginary = {!!}
   ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
