@@ -1523,18 +1523,6 @@ IsReferencedIn name (Variable name2) = name ≡ name2
 IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
 \end{code}
 
-\chapter{Proofs of Correctness}
-
-\begin{code}
-module CommutativeEvaluationProperties where
-  ce = commutativeEvaluate
-
-  0^0-is-nonsense :
-    Is-just (isInj₁ (exceptionallyEvaluate
-      (Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberRat ℚ.0ℚ ]))))
-  0^0-is-nonsense = {!!}
-\end{code}
-
 \chapter{Wrapping up Everything}
 
 \begin{code}
