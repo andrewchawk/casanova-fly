@@ -1202,6 +1202,21 @@ NumberNat n = NumberRat (ℚ.mkℚ (Data.Integer.+ n)
                                0
                                (Coprimality.sym (Coprimality.1-coprimeTo _)))
 \end{code}
+
+\subsection{The Quotient Pattern}
+\AgdaInductiveConstructor{NumberRat} \AgdaBound{x} \AgdaBound{y} \AgdaBound{coprimality} is Casanova Fly's representation of \(\frac{\AgdaBound{x}}{\AgdaBound{y}}\).
+
+\begin{code}
+pattern Quotient x y coprime =
+  Ap Product
+     ( x
+     ∷ (Ap Exponent
+           ( y
+           ∷ Ap Negate (NumberRat (ℚ.mkℚ (Data.Integer.+ 1) 0 coprime ) ∷ [])
+           ∷ [])
+     ∷ []))
+\end{code}
+
 \subsection{Decidable Structural Equality on \AgdaDatatype{F}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
