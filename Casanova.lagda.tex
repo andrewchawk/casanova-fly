@@ -1554,8 +1554,7 @@ CasanovaFly-Base = record
   ; _+_ = λ a b → Ap Sum (a ∷ b ∷ [])
   ; _-_ = λ x y → Ap Sum (x ∷ [ Ap Negate [ y ] ])
   ; _*_ = λ x y → Ap Product (x ∷ [ y ])
-  ; _/_ = λ x y →
-     Ap Product (x ∷ [ Ap Exponent (y ∷ [ Ap Negate [ NumberRat ℚ.1ℚ ] ]) ])
+  ; _/_ = λ x y → Quotient x y (Coprimality.sym (Coprimality.1-coprimeTo 1))
   ; _^_ = λ x y → Ap Exponent (x ∷ [ y ])
   ; sin = {!!}
   ; cos = {!!}
