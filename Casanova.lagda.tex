@@ -189,7 +189,17 @@ In accordance with \fref{enum:repeatExceptional-inj1GetsReturned}, \AgdaFunction
       (n : ℕ) →
       f x ≡ inj₁ x' →
       repeatExceptional n f x ≡ f x
-    inj1-immediate-return = {!!}
+    inj1-immediate-return 0 equality = refl
+    inj1-immediate-return {x'} (ℕ.suc n) equality = begin
+      repeatExceptional (ℕ.suc n) f x
+        ≡⟨⟩
+      [_,_]′ inj₁ (repeatExceptional n f) (f x)
+        ≡⟨ cong ([_,_] inj₁ (repeatExceptional n f)) equality ⟩
+      [_,_]′ inj₁ (repeatExceptional n f) (inj₁ x')
+        ≡⟨⟩
+      inj₁ x'
+        ≡⟨ sym equality ⟩
+      f x ∎
 \end{code}
 
 \subsubsection{The \AgdaInductiveConstructor{inj₂} Proof}
