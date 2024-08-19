@@ -1070,6 +1070,18 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Exponent} represents the exponentiation function.
   \item \AgdaInductiveConstructor{Limit} represents the limit function, i.e., \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Limit} \AgdaBound{name}\AgdaSymbol) \AgdaSymbol(\AgdaBound{bound} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{expression} \AgdaInductiveConstructor{List.[]}\AgdaSymbol) represents the limit of \AgdaBound{expression} as \AgdaBound{name} approaches \AgdaBound{bound}.
   \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash\ n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+  {
+    \newcommand{\boilerplateBogusTrigCrap}[2]{
+      \item \AgdaInductiveConstructor{#1} represents the trigonometric #2 function.
+    }
+
+    \boilerplateBogusTrigCrap{Sin}{sine}
+    \boilerplateBogusTrigCrap{Cos}{cosine}
+    \boilerplateBogusTrigCrap{Tan}{tangent}
+    \boilerplateBogusTrigCrap{Csc}{cosecant}
+    \boilerplateBogusTrigCrap{Sec}{secant}
+    \boilerplateBogusTrigCrap{Cot}{cotangent}
+  }
   \item \AgdaInductiveConstructor{Derivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \derivative{\AgdaBound{name}} e\right)\).
   \item \AgdaInductiveConstructor{Antiderivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \int_{\AgdaBound{name}} e\right)\).
   \item \AgdaInductiveConstructor{BoundedIntegral} \AgdaBound{name} represents \(\left(\lambda\ b_1\ b_2\ e \rightarrow \int_{\AgdaBound{name} = b_1}^{b_2} e\right)\).
@@ -1083,6 +1095,12 @@ data F where
    Product
    Exponent : F
   Lambda : List.List String → ε → F
+  Sin
+   Cos
+   Tan
+   Csc
+   Sec
+   Cot : F
   Limit
    Derivative
    Antiderivative
@@ -1099,6 +1117,12 @@ arity Negate = 1
 arity Sum = 2
 arity Product = 2
 arity Exponent = 2
+arity Sin = 1
+arity Cos = 1
+arity Tan = 1
+arity Csc = 1
+arity Sec = 1
+arity Cot = 1
 arity (Lambda names body) = List.length names
 arity (Limit name) = 2
 arity (Derivative name) = 1
@@ -1437,6 +1461,43 @@ module exceptionallyEvaluate where
            if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
              then bust "0^0 is undefined!"
              else valid (NumberNat (x Data.Nat.^ y))
+         ; _ → nothing})
+    ∷ (λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
+           if v1 Data.String.== v2
+             then valid (Ap Cos [ Variable v1 ])
+             else nothing
+         ; _ → nothing})
+    ∷ (λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
+           if v1 Data.String.== v2
+             then valid (Ap Negate [ Ap Cos [ Variable v1 ] ])
+             else nothing
+         ; _ → nothing})
+    ∷ (λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
+           if v1 Data.String.== v2
+             then valid (Ap Exponent ( Ap Sec [ Variable v1 ] ∷ [ NumberNat 2 ]))
+             else nothing
+         ; _ → nothing})
+    ∷ (λ { (Ap (Derivative v1) (Ap Csc (Variable v2 ∷ []) ∷ [])) →
+           if v1 Data.String.== v2
+             then valid (Ap Product
+                            ( Ap Csc [ Variable v1 ]
+                            ∷ [ Ap Negate [ Ap Cot [ Variable v1 ] ] ]))
+             else nothing
+         ; _ → nothing})
+    ∷ (λ { (Ap (Derivative v1) (Ap Sec (Variable v2 ∷ []) ∷ [])) →
+           if v1 Data.String.== v2
+             then valid (Ap Product
+                            ( Ap Sec [ Variable v1 ]
+                            ∷ [ Ap Tan [ Variable v1 ] ]))
+             else nothing
+         ; _ → nothing})
+    ∷ (λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
+           if v1 Data.String.== v2
+             then valid (Ap Negate
+                            [ Ap Exponent
+                                 ( Ap Csc [ Variable v1 ]
+                                 ∷ [ NumberNat 2 ]) ])
+             else nothing
          ; _ → nothing})
     ∷ (λ { (Ap (Lambda names body) expressions) →
            valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
