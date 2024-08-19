@@ -1416,39 +1416,40 @@ module exceptionallyEvaluate where
   main : ε → Exceptional ε
 
   firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
-              Vec (Exceptional A) (ℕ.suc n) → Exceptional A
-  firstInj2 (inj₁ x ∷ []) = inj₁ x
-  firstInj2 (inj₂ x ∷ xs) = inj₂ x
-  firstInj2 (inj₁ x ∷ xs@(xs1 ∷ xs2)) = firstInj2 xs
+              Vec (Maybe (Exceptional A)) (ℕ.suc n) → Exceptional A
+  firstInj2 = fromMaybe errorMsg ∘ List.head ∘ List.catMaybes
+            ∘ Data.Vec.toList
+    where errorMsg = inj₁ "The list of exceptionallyEvaluate results \
+                          \was just a bunch of nothingness!"
 
   functions =
-    ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → inj₂ x
-         ; _ → break "Double negation"})
-    ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → inj₂ (NumberRat (ℚ.0ℚ ℚ.- x))
-         ; _ → break "Rational negation"})
+    ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
+         ; _ → nothing})
+    ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
+         ; _ → nothing})
     ∷ (λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
-           inj₂ (NumberRat (x ℚ.+ y))
-         ; _ → break "Rational addition"})
+           valid (NumberRat (x ℚ.+ y))
+         ; _ → nothing})
     ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
-           inj₂ (NumberRat (x ℚ.* y))
-         ; _ → break "Rational multiplication"})
+           valid (NumberRat (x ℚ.* y))
+         ; _ → nothing})
     ∷ (λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
            if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
-             then inj₁ "0^0 is undefined!"
-             else inj₂ (NumberNat (x Data.Nat.^ y))
-         ; _ → break "Natural number exponentiation"})
+             then bust "0^0 is undefined!"
+             else valid (NumberNat (x Data.Nat.^ y))
+         ; _ → nothing})
     ∷ (λ { (Ap (Lambda names body) expressions) →
-           inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
-         ; _ → break "Lambda substitution"})
-    ∷ (λ { (Ap f x) → [_,_] inj₁
-                            (inj₂ ∘ Ap f)
+           valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
+         ; _ → nothing})
+    ∷ (λ { (Ap f x) → [_,_] (just ∘ inj₁)
+                            (just ∘ inj₂ ∘ Ap f)
                             (condense (Data.Vec.map main x))
-         ; _ → break "The function application fallback"})
-    ∷ [ inj₂ ]
+         ; _ → nothing})
+    ∷ [ just ∘ inj₂ ]
     )
     where
-    break : String → Exceptional ε
-    break s = inj₁ (s Data.String.++ " is not applicable here.")
+    bust = just ∘ inj₁
+    valid = just ∘ inj₂
     condense : {a : Level} →
                {A : Set a} →
                {n : ℕ} →
@@ -1560,7 +1561,7 @@ CasanovaFly-Verified = record
   ; product-is-commutative = {!!}
   ; sum-is-associative = {!!}
   ; product-of-quotient-is-same = {!!}
-  ; 0^0-is-bogus = {!!}
+  ; 0^0-is-bogus = 1 , _ , refl
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
