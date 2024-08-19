@@ -1408,33 +1408,50 @@ AlgebraicEquality x y =
 
 \begin{code}
 {-# TERMINATING #-}
-exceptionallyEvaluate = f
+exceptionallyEvaluate = λ e → firstInj2 $ Data.Vec.map (_$ e) functions
+  -- The preceding lambda expression prevents unnecessarily binding "e".
   where
-  f : ε → Exceptional ε
-  f o@Infinity = inj₂ o
-  f o@(Variable x) = inj₂ o
-  f o@(NumberRat r) = inj₂ o
-  f (Ap Negate (Ap Negate (x ∷ []) ∷ [])) = inj₂ x
-  f (Ap Negate (NumberRat x ∷ [])) = inj₂ (NumberRat (ℚ.0ℚ ℚ.- x))
-  f (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) =
-    inj₂ (NumberRat (x ℚ.+ y))
-  f (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) =
-    inj₂ (NumberRat (x ℚ.* y))
-  f e@(Ap Exponent (NumberRat x ∷ NumberRat y ∷ [])) =
-    if ((ℚ.denominatorℕ x Data.Nat.≡ᵇ 1) ∧
-        (ℚ.denominatorℕ y Data.Nat.≡ᵇ 1) ∧
-        (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator x) ∧
-        (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator y))
-       then if (numerator x Data.Nat.≡ᵇ 0) ∧
-               (numerator y Data.Nat.≡ᵇ 0)
-             then inj₁ "0^0 is undefined!"
-             else inj₂ (NumberNat (numerator x Data.Nat.^ numerator y))
-       else inj₂ e
-       where numerator = Data.Integer.∣_∣ ∘ ℚ.numerator
-  f (Ap (Lambda names body) expressions) =
-    inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
-  f (Ap f x) = [_,_] inj₁ (inj₂ ∘ Ap f) (condense (Data.Vec.map exceptionallyEvaluate x))
+  firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
+              Vec (Exceptional A) (ℕ.suc n) → Exceptional A
+  firstInj2 (inj₁ x ∷ []) = inj₁ x
+  firstInj2 (inj₂ x ∷ xs) = inj₂ x
+  firstInj2 (inj₁ x ∷ xs@(xs1 ∷ xs2)) = firstInj2 xs
+
+  functions =
+    ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → inj₂ x
+         ; _ → break "Double negation"})
+    ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → inj₂ (NumberRat (ℚ.0ℚ ℚ.- x))
+         ; _ → break "Rational negation"})
+    ∷ (λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
+           inj₂ (NumberRat (x ℚ.+ y))
+         ; _ → break "Rational addition"})
+    ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
+           inj₂ (NumberRat (x ℚ.* y))
+         ; _ → break "Rational multiplication"})
+    ∷ (λ { (Ap Exponent (NumberRat x ∷ NumberRat y ∷ [])) →
+           if ((ℚ.denominatorℕ x Data.Nat.≡ᵇ 1) ∧
+               (ℚ.denominatorℕ y Data.Nat.≡ᵇ 1) ∧
+               (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator x) ∧
+               (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator y))
+              then (let numerator = Data.Integer.∣_∣ ∘ ℚ.numerator in
+                    if (numerator x Data.Nat.≡ᵇ 0) ∧
+                       (numerator y Data.Nat.≡ᵇ 0)
+                     then inj₁ "0^0 is undefined!"
+                     else inj₂ (NumberNat (numerator x Data.Nat.^ numerator y)))
+              else break "Rational exponentiation"
+         ; _ → break "Rational exponentiation"})
+    ∷ (λ { (Ap (Lambda names body) expressions) →
+           inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
+         ; _ → break "Lambda substitution"})
+    ∷ (λ { (Ap f x) → [_,_] inj₁
+                            (inj₂ ∘ Ap f)
+                            (condense (Data.Vec.map exceptionallyEvaluate x))
+         ; _ → break "The function application fallback"})
+    ∷ [ inj₂ ]
+    )
     where
+    break : String → Exceptional ε
+    break s = inj₁ (s Data.String.++ " is not applicable here.")
     condense : {a : Level} →
                {A : Set a} →
                {n : ℕ} →
@@ -1540,7 +1557,7 @@ CasanovaFly-Verified = record
   ; product-is-commutative = {!!}
   ; sum-is-associative = {!!}
   ; product-of-quotient-is-same = {!!}
-  ; 0^0-is-bogus = 1 , _ , refl
+  ; 0^0-is-bogus = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
