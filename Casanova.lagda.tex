@@ -1138,14 +1138,19 @@ data ε where
 
 \section{Additional Functions}
 
+\subsection{The Natural Number Pattern}
+\AgdaInductiveConstructor{NumberNatP} \AgdaBound{n} \AgdaBound{c} is Casanova Fly's canonical representation of \AgdaBound{n}.  Despite generally being pretty powerful, the \AgdaKeyword{pattern} stuff can apparently \emph{not} do \AgdaFunction{Coprimality.1-coprimeTo} stuff.
+
+\begin{code}
+pattern NumberNatP n c = NumberRat (ℚ.mkℚ (Data.Integer.+ n) 0 c)
+\end{code}
+
 \subsection{The Natural-Number-to-Expression Function}
-\AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's representation of \AgdaBound{n}.
+\AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's more manageable representation of \AgdaBound{n}.
 
 \begin{code}
 NumberNat : ℕ → ε
-NumberNat n = NumberRat (ℚ.mkℚ (Data.Integer.+ n)
-                               0
-                               (Coprimality.sym (Coprimality.1-coprimeTo _)))
+NumberNat n = NumberNatP n (Coprimality.sym (Coprimality.1-coprimeTo _))
 \end{code}
 
 \subsection{The Quotient Pattern}
@@ -1157,7 +1162,7 @@ pattern Quotient x y coprime =
      ( x
      ∷ (Ap Exponent
            ( y
-           ∷ Ap Negate (NumberRat (ℚ.mkℚ (Data.Integer.+ 1) 0 coprime ) ∷ [])
+           ∷ Ap Negate (NumberNatP 1 coprime ∷ [])
            ∷ [])
      ∷ []))
 \end{code}
@@ -1428,18 +1433,11 @@ exceptionallyEvaluate = λ e → firstInj2 $ Data.Vec.map (_$ e) functions
     ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
            inj₂ (NumberRat (x ℚ.* y))
          ; _ → break "Rational multiplication"})
-    ∷ (λ { (Ap Exponent (NumberRat x ∷ NumberRat y ∷ [])) →
-           if ((ℚ.denominatorℕ x Data.Nat.≡ᵇ 1) ∧
-               (ℚ.denominatorℕ y Data.Nat.≡ᵇ 1) ∧
-               (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator x) ∧
-               (Data.Integer.0ℤ Data.Integer.≤ᵇ ℚ.numerator y))
-              then (let numerator = Data.Integer.∣_∣ ∘ ℚ.numerator in
-                    if (numerator x Data.Nat.≡ᵇ 0) ∧
-                       (numerator y Data.Nat.≡ᵇ 0)
-                     then inj₁ "0^0 is undefined!"
-                     else inj₂ (NumberNat (numerator x Data.Nat.^ numerator y)))
-              else break "Rational exponentiation"
-         ; _ → break "Rational exponentiation"})
+    ∷ (λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
+           if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
+             then inj₁ "0^0 is undefined!"
+             else inj₂ (NumberNat (x Data.Nat.^ y))
+         ; _ → break "Natural number exponentiation"})
     ∷ (λ { (Ap (Lambda names body) expressions) →
            inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
          ; _ → break "Lambda substitution"})
