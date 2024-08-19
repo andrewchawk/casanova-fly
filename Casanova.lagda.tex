@@ -1413,6 +1413,8 @@ AlgebraicEquality x y =
 
 \begin{code}
 module exceptionallyEvaluate where
+  main : ε → Exceptional ε
+
   firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
               Vec (Exceptional A) (ℕ.suc n) → Exceptional A
   firstInj2 (inj₁ x ∷ []) = inj₁ x
@@ -1440,7 +1442,7 @@ module exceptionallyEvaluate where
          ; _ → break "Lambda substitution"})
     ∷ (λ { (Ap f x) → [_,_] inj₁
                             (inj₂ ∘ Ap f)
-                            (condense (Data.Vec.map exceptionallyEvaluate x))
+                            (condense (Data.Vec.map main x))
          ; _ → break "The function application fallback"})
     ∷ [ inj₂ ]
     )
@@ -1457,7 +1459,6 @@ module exceptionallyEvaluate where
     condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
 
   {-# TERMINATING #-}
-  main : ε → Exceptional ε
   main e = firstInj2 $ Data.Vec.map (_$ e) functions
 
 {-# TERMINATING #-}
