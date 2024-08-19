@@ -1432,11 +1432,10 @@ module exceptionallyEvaluate where
     ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
            inj₂ (NumberRat (x ℚ.* y))
          ; _ → break "Rational multiplication"})
-    ∷ (λ { (Ap Exponent (NumberNatP 0 c1 ∷ NumberNatP 0 c2 ∷ [])) →
-           inj₁ "0^0 is undefined!"
-         ; _ → break "The 0^0 check"})
     ∷ (λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
-           inj₂ (NumberNat (x Data.Nat.^ y))
+           if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
+             then inj₁ "0^0 is undefined!"
+             else inj₂ (NumberNat (x Data.Nat.^ y))
          ; _ → break "Natural number exponentiation"})
     ∷ (λ { (Ap (Lambda names body) expressions) →
            inj₂ (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
