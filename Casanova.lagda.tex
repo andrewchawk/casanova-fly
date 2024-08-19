@@ -1721,6 +1721,13 @@ module exceptionallyEvaluate where
              then bust "0^0 is undefined!"
              else valid (NumberNat (x Data.Nat.^ y))
          ; _ → nothing})
+    -- The following "x^0" evaluation rule is a bit dubious; this rule
+    -- indicates that Variable x ^ fromℕ 0 is algebraically equal to
+    -- fromℕ 1.  However, Variable x *could* feasibly be defined as
+    -- being equal to fromℕ 0.
+    -- The current behavior parallels Maxima, though.
+    ∷ (λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
+         ; _ → nothing})
     ∷ (λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
            if v1 Data.String.== v2
              then valid (Ap Cos [ Variable v1 ])
