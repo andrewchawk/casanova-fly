@@ -1412,10 +1412,7 @@ AlgebraicEquality x y =
 \section{Completing the Single-Step Evaluation Function}
 
 \begin{code}
-{-# TERMINATING #-}
-exceptionallyEvaluate = λ e → firstInj2 $ Data.Vec.map (_$ e) functions
-  -- The preceding lambda expression prevents unnecessarily binding "e".
-  where
+module exceptionallyEvaluate where
   firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
               Vec (Exceptional A) (ℕ.suc n) → Exceptional A
   firstInj2 (inj₁ x ∷ []) = inj₁ x
@@ -1458,6 +1455,13 @@ exceptionallyEvaluate = λ e → firstInj2 $ Data.Vec.map (_$ e) functions
     condense [] = inj₂ []
     condense (inj₁ x ∷ xs) = inj₁ x
     condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
+
+  {-# TERMINATING #-}
+  main : ε → Exceptional ε
+  main e = firstInj2 $ Data.Vec.map (_$ e) functions
+
+{-# TERMINATING #-}
+exceptionallyEvaluate = exceptionallyEvaluate.main
 \end{code}
 
 \section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
