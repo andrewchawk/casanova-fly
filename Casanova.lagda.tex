@@ -1641,6 +1641,7 @@ AlgebraicEquality x y =
                              (repeatExceptional m exceptionallyEvaluate y))
   where
   AE : ε → ε → Set
+  AE1 = AlgebraicEquality
   AE2 : Exceptional ε → Exceptional ε → Set
   AE2 (inj₂ x) (inj₂ y) = AE x y
   AE2 _ _ = ⊥
@@ -1686,15 +1687,15 @@ AlgebraicEquality x y =
 \begin{code}
   AE (Ap Sum (x1 ∷ Ap Sum (x2 ∷ x3 ∷ []) ∷ []))
      (Ap Sum (Ap Sum (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
-     _×_ (AllList.All (λ x → AnyList.Any (AE x) ys) xs)
-         (AllList.All (λ y → AnyList.Any (AE y) xs) ys)
+     _×_ (AllList.All (λ x → AnyList.Any (AE1 x) ys) xs)
+         (AllList.All (λ y → AnyList.Any (AE1 y) xs) ys)
      where
      xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
      ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
   AE (Ap Product (x1 ∷ Ap Product (x2 ∷ x3 ∷ []) ∷ []))
      (Ap Product (Ap Product (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
-     _×_ (AllList.All (λ x → AnyList.Any (AE x) ys) xs)
-         (AllList.All (λ y → AnyList.Any (AE y) xs) ys)
+     _×_ (AllList.All (λ x → AnyList.Any (AE1 x) ys) xs)
+         (AllList.All (λ y → AnyList.Any (AE1 y) xs) ys)
      where
      xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
      ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
@@ -1704,9 +1705,10 @@ AlgebraicEquality x y =
 
 \begin{code}
   AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
-    (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
+    _⊎_ (AlgebraicEquality x1 x2 × AlgebraicEquality y1 y2)
+        (AlgebraicEquality x1 y2 × AlgebraicEquality y2 y1)
   AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
-    (AE x1 x2 × AE y1 y2) ⊎ (x1 ≡ y2 × y2 ≡ y1)
+    (AE1 x1 x2 × AE1 y1 y2) ⊎ (AE1 x1 y2 × AE1 y2 y1)
 \end{code}
 
 \subsection{\ldots{} and the Rest}
