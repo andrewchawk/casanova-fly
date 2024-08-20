@@ -283,7 +283,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
         (if isYes (any? (DEQ x1) List.[ x ])
             then just Fin.zero
             else mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
-        ≡⟨ cong (\ e → mapSuc (if isYes e
+        ≡⟨ cong (λ e → mapSuc (if isYes e
                                    then just Fin.zero
                                    else mapSuc (posh (x1 List.∷ List.[ x ]) xs1)))
                 x1-is-decidably-not-in-[x] ⟩
@@ -527,7 +527,7 @@ module nonRepeatingPortion-Properties
     (x : List.List A) →
     (i : Fin (List.length x)) →
     Fin.toℕ i ≡ 1 Data.Nat.+ List.length (nrp x) →
-    AnyList.Any (\ i2 → i2 ≡ List.lookup x i) (nrp x)
+    AnyList.Any (λ i2 → i2 ≡ List.lookup x i) (nrp x)
   is-really-the-longest = {!!}
 \end{code}
 
@@ -800,7 +800,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
 
       evp = evaluationPairs i e1 e2
 
-      length-of-pairlist-is-suc : Σ ℕ (\ n → ℕ.suc n ≡ List.length evp)
+      length-of-pairlist-is-suc : Σ ℕ (λ n → ℕ.suc n ≡ List.length evp)
       length-of-pairlist-is-suc = {!!}
 
       first-pair-index = Data.Fin.cast (proj₂ length-of-pairlist-is-suc) Fin.zero
@@ -830,10 +830,10 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   equal-at-iteration : ℕ → (e1 e2 : ε) → Set a
   equal-at-iteration iterations e1 e2 =
     Σ (e1 ≈ e2)
-      (\ i → inj₂ (just i) ≡ definitelyEquals iterations e1 e2)
+      (λ i → inj₂ (just i) ≡ definitelyEquals iterations e1 e2)
 
   equal-at-some-iteration : (e1 e2 : ε) → Set a
-  equal-at-some-iteration e1 e2 = Σ ℕ (\ n → equal-at-iteration n e1 e2)
+  equal-at-some-iteration e1 e2 = Σ ℕ (λ n → equal-at-iteration n e1 e2)
 
   equality-at-n-implies-equality-at-n+1 :
     (iterations : ℕ) →
@@ -843,7 +843,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   equality-at-n-implies-equality-at-n+1 = {!!}
 
   bogus-at-iteration : ℕ → ε → Set a
-  bogus-at-iteration n e = Σ String (\ ex → inj₁ ex ≡ rEvaluate n e)
+  bogus-at-iteration n e = Σ String (λ ex → inj₁ ex ≡ rEvaluate n e)
 
   bogus-at-some-iteration : ε → Set a
   bogus-at-some-iteration = Σ ℕ ∘ flip bogus-at-iteration
@@ -870,7 +870,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   IsNotBogus e = (n : ℕ) → Is-just (isInj₂ (rEvaluate n e))
 
   IsBogus : ε → Set a
-  IsBogus e = Σ ℕ (λ n → Σ String (\ s → rEvaluate n e ≡ inj₁ s))
+  IsBogus e = Σ ℕ (λ n → Σ String (λ s → rEvaluate n e ≡ inj₁ s))
 
   IsImaginary : ε → Set a
   IsImaginary e = IsReal e × IsNotBogus e
@@ -1550,9 +1550,9 @@ commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
     solo = List.[ combine f e lengthMatches ]
     list =
       f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
-      List.map (\ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
-      List.map (\ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
-      List.concat (List.map (\ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
+      List.map (λ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
+      List.map (λ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
+      List.concat (List.map (λ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
                                             List.[ f' (e2 ∷ [ e1 ]) ])
                             (List.zip (commutativePermutations e1)
                                       (commutativePermutations e2)))
@@ -1912,7 +1912,7 @@ CasanovaFly-Verified = record
     (e : A) →
     Is-just (f e) →
     e ∈ x →
-    Σ B (\ y → List.head (List.mapMaybe f x) ≡ just y)
+    Σ B (λ y → List.head (List.mapMaybe f x) ≡ just y)
   mapMaybe-justness-implies-output-justness = {!!}
 
   sum-of-nats-is-nat-sum :
