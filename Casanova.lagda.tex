@@ -74,14 +74,14 @@ open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 open import Data.Sum
 open import Level
-open import Data.String hiding (_≈_)
+open import Data.String hiding (_≈_; _<_)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
-open import Data.Bool
+open import Data.Bool hiding (_<_)
 open import Data.Rational
   as ℚ
   using (ℚ
@@ -582,6 +582,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 \begin{itemize}
   \item an algebraic equality type,
   \item an algebraic \emph{in}equality type,
+  \item a less-than type,
   \item a single-step evaluation function which is capable of describing failures,
   \item a proof of decidable structural equality of \(\epsilon\) values,
   \item a function which determines certain algebraic equality on non-bogus \(\epsilon\) values,
@@ -615,6 +616,9 @@ A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound
 
 \subsection{The Algebraic \emph{In}equality Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}, i.e., no \AgdaBound{i} exists such that \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y} within \AgdaBound{i} iterations.
+
+\subsection{The Less-Than Type}
+A value of type \AgdaField{CAS.\AgdaUnderscore{}<\AgdaUnderscore{}} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
 \subsection{The Single-Step Evaluation Function}
 If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
@@ -738,6 +742,7 @@ This type is not bogus but \emph{is} used to indicate that a given expression is
 record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   field
     _≈_ : ε → ε → Set a
+    _<_ : ε → ε → Set a
     definitelyEquals : (iterations : ℕ) →
                        (x y : ε) →
                        Exceptional (Maybe (x ≈ y))
@@ -1839,6 +1844,7 @@ IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { _≈_ = AlgebraicEquality
+  ; _<_ = {!!}
   ; definitelyEquals = checkAlgebraicEquality
   ; exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
