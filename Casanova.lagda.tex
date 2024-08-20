@@ -896,6 +896,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of associativity of addition,
  \item a proof of the inverse relationship between multiplication and division,
  \item a proof of the bogosity of \(0^0\),
+ \item a proof of the bogosity of \(0^e\), where \(e < 0\),
  \item a proof which indicates that \(\lim_{x \rightarrow n} e\) is algebraically equal to \(n\) if \(x\) is not referenced in \(e\),
  \item a proof of the algebraic equality between \(\left(\lambda\ x \rightarrow x\right)\ e\) and \(e\),
  \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\), and
@@ -941,6 +942,9 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \subsection{The Proof of the Bogosity of \(0^0\)}
 \AgdaField{VCAS.0\textasciicircum{}0-is-bogus} \AgdaBound{c} indicates that in the \AgdaBound{c} CAS, \(0^0\) is bogus at some iteration count.
+
+\subsection{The Proof of the Bogosity of \(0^e\), where \(e < 0\)}
+\AgdaField{VCAS.0\textasciicircum{}-n-is-bogus} \AgdaBound{v} indicates that for all relevant expressions \(e\), if \(e < 0\), then the CAS will eventually determine that \(0^e\) is bogus.
 
 \subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
 \AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
@@ -1022,6 +1026,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus (e2 / e1) →
       equal-at-some-iteration e2 (e1 * (e2 / e1))
     0^0-is-bogus : IsBogus (fromℕ 0 ^ fromℕ 0)
+    0^-n-is-bogus : (e : ε) → e < fromℕ 0 → IsBogus (fromℕ 0 ^ e)
     limit-of-unrelated-value-is-unrelated-value :
       (name : String) →
       (e bound : ε) →
@@ -1895,6 +1900,7 @@ CasanovaFly-Verified = record
   ; sum-is-associative = {!!}
   ; product-of-quotient-is-same = {!!}
   ; 0^0-is-bogus = 1 , _ , refl
+  ; 0^-n-is-bogus = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
