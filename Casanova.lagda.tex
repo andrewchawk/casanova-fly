@@ -904,8 +904,9 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the bogosity of \(0^e\), where \(e < 0\),
  \item a proof which indicates that \(\lim_{x \rightarrow n} e\) is algebraically equal to \(n\) if \(x\) is not referenced in \(e\),
  \item a proof of the algebraic equality between \(\left(\lambda\ x \rightarrow x\right)\ e\) and \(e\),
- \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\), and
- \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\).
+ \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\),
+ \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\), and
+ \item a proof of \(0\)'s equality with \(\tau \cdot n \cdot \frac12\).
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -962,6 +963,9 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \subsection{The Unrelated Derivative Proof}
 \AgdaField{VCAS.unrelated-derivative} \AgdaBound{v} indicates that for all appropriate \AgdaBound{v} CAS expressions \(E\) and all appropriate \(n\), if the variable whose name is \(n\) does not appear in \(E\), then the \AgdaBound{v} CAS can determine that \(E\) is algebraically equal to the derivative of \AgdaBound{E} with respect to the variable whose name is \(n\).
+
+\subsection{The Proof of the Equality of \(\operatorname{sin} \left(\tau \cdot n \cdot \frac12\right)\), where \(n\) is a Natural Number}
+\AgdaField{VCAS.sin-n*pi-is-zero} \AgdaBound{v} proves that the \AgdaBound{v} CAS can determine that for all natural numbers \(n\), the sine of \(\tau \cdot n \cdot \frac12\), i.e., \(\pi \cdot n\), is algebraically equal to \(0\).
 
 \subsection{The Definition Proper}
 
@@ -1050,6 +1054,10 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (name : String) →
       (e : ε) →
       equal-at-some-iteration e (derivative name e)
+    sin-n*pi-is-zero :
+      (n : ℕ) →
+      equal-at-some-iteration (fromℕ 0)
+                              (sin (τ * (fromℕ n * (fromℕ 1 / fromℕ 2))))
 \end{code}
 
 \part{The Rest is F-L-Y}
@@ -1911,6 +1919,7 @@ CasanovaFly-Verified = record
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
+  ; sin-n*pi-is-zero = {!!}
   }
   where
   open CAS CasanovaFly-Base
