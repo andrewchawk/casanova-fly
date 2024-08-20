@@ -1793,7 +1793,7 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
 
 \begin{code}
   AE2 : Exceptional ε → Exceptional ε → Set
-  AE2 (inj₂ x) (inj₂ y) = AE x y
+  AE2 (inj₂ x) (inj₂ y) = main x y
   AE2 _ _ = ⊥
 \end{code}
 
@@ -2055,14 +2055,14 @@ CasanovaFly-Verified = record
   sum-of-nats-is-nat-sum n1 n2 = 1 , {!!}
 
   invert-inverse : (e : ε) → equal-at-some-iteration e (Ap Negate [ Ap Negate [ e ] ])
-  invert-inverse e = 1 , {!!} , {!!}
+  invert-inverse e = 1 , inv-inv-propEq e , {!!}
     where
     inv = Ap Negate ∘ [_]
     inv-inv-propEq :
       (e : ε) →
-      inj₂ e ≡₂ CAS.exceptionallyEvaluate CasanovaFly-Base (inv (inv e))
+      e ≈ inv (inv e)
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
-    inv-inv-propEq e = {!!}
+    inv-inv-propEq e = inj₂ (inj₂ ((0 , 1) ,  inj₁ refl))
 
   division-by-zero-is-bogus :
     (e1 e2 : ε) →
