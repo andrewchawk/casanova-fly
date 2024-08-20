@@ -1850,8 +1850,8 @@ module exceptionallyEvaluate where
     -- The current behavior parallels Maxima, though.
     ∷ (λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
          ; _ → nothing})
-    -- The following "0^x" test case, like the "x^0" test case, is
-    -- kind of dubious.  This case, too, mirrors the behavior of
+    -- The following "0^x" evaluation rule, like the "x^0" rule, is
+    -- kind of dubious.  This rule, too, mirrors the behavior of
     -- Maxima, though.
     ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) → valid (NumberNat 0)
          ; _ → nothing})
