@@ -597,6 +597,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item an antiderivative function,
   \item a limit function,
   \item a bounded integral function,
+  \item a variable substitution function,
   \item a function which converts the input into the additive inverse of the input,
   \item a lambda expression function,
   \item a variable-is-used type,
@@ -681,6 +682,10 @@ As previously indicated, a CAS also supports certain trigonometric functions.  T
 
 \subsection{The Bounded Integral Function}
 \AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expansion of \AgdaBound{e}.
+
+\subsection{The Variable Substitution Function}
+\AgdaField{CAS.substituteVariable} \AgdaBound{c} is the variable substitution function for the \AgdaBound{c} CAS.\footnote{You don't say.}
+In short, \AgdaField{CAS.substituteVariable} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is a version of \AgdaBound{e} such that for all \AgdaSymbol(\AgdaBound{variableName} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{replacement}\AgdaSymbol) in \AgdaBound{list}, all of \AgdaBound{e}'s free instances of \AgdaField{CAS.variableNamed} \AgdaBound{variableName} have been replaced by \AgdaBound{replacement}.  \AgdaField{CAS.substituteVariable} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is otherwise equivalent to \AgdaBound{e}, though.
 
 \subsection{The Variable Containment Type}
 The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.IsNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
@@ -770,6 +775,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
      antiderivative : String → ε → ε
     limit : String → ε → ε → ε
     boundedIntegral : String → ε → ε → ε → ε
+    substituteVariables : List.List (String × ε) → ε → ε
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
     lambda : String → ε → ε → ε
@@ -1918,6 +1924,7 @@ CasanovaFly-Base = record
   ; antiderivative = λ name e → Ap (Antiderivative name) [ e ]
   ; limit = λ n b e → Ap (Limit n) (b ∷ [ e ])
   ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
+  ; substituteVariables = varSubstM
   ; IsNameOfVariableIn = IsReferencedIn
   ; IsReal = {!!}
   ; τ = {!!}
