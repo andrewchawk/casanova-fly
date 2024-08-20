@@ -911,8 +911,10 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that \(\lim_{x \rightarrow n} e\) is algebraically equal to \(n\) if \(x\) is not referenced in \(e\),
  \item a proof of the algebraic equality between \(\left(\lambda\ x \rightarrow x\right)\ e\) and \(e\),
  \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\),
- \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\), and
- \item a proof of \(0\)'s equality with \(\tau \cdot n \cdot \frac12\).
+ \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\),
+ \item a proof of \(0\)'s equality with \(\tau \cdot n \cdot \frac12\), and
+ \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.}.
+
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -972,6 +974,10 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \subsection{The Proof of the Equality of \(\operatorname{sin} \left(\tau \cdot n \cdot \frac12\right)\), where \(n\) is a Natural Number}
 \AgdaField{VCAS.sin-n*pi-is-zero} \AgdaBound{v} proves that the \AgdaBound{v} CAS can determine that for all natural numbers \(n\), the sine of \(\tau \cdot n \cdot \frac12\), i.e., \(\pi \cdot n\), is algebraically equal to \(0\).
+
+\subsection{The Proof of the Failure of Garbage Variable Substitution\footnote{``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots\label{fn:garbageVariable}}}
+\AgdaField{VCAS.garbage-variable-substitution-fails} \AgdaBound{v} proves that the \AgdaBound{v} CAS's variable substitution effectively returns the input expression if no variables of the substitution list are free in the input expression.
+
 
 \subsection{The Definition Proper}
 
@@ -1064,6 +1070,12 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (n : ℕ) →
       equal-at-some-iteration (fromℕ 0)
                               (sin (τ * (fromℕ n * (fromℕ 1 / fromℕ 2))))
+    garbage-variable-substitution-fails :
+      (e : ε)
+      (list : List.List (String × ε)) →
+      AllList.All (λ (var , rep) → ¬ IsNameOfVariableIn var e)
+                  list →
+      equal-at-some-iteration e (substituteVariables list e)
 \end{code}
 
 \part{The Rest is F-L-Y}
@@ -1962,6 +1974,7 @@ CasanovaFly-Verified = record
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
   ; sin-n*pi-is-zero = {!!}
+  ; garbage-variable-substitution-fails = {!!}
   }
   where
   open CAS CasanovaFly-Base
