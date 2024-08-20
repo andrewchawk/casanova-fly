@@ -19,6 +19,7 @@
 \newunicodechar{₂}{\ensuremath{\mathnormal{_2}}}
 \newunicodechar{≅}{\ensuremath{\mathnormal{\cong}}}
 \newunicodechar{ε}{\ensuremath{\mathnormal{\epsilon}}}
+\newunicodechar{τ}{\ensuremath{\mathnormal{\tau}}}
 \newunicodechar{λ}{\ensuremath{\mathnormal{\lambda}}}
 \newunicodechar{ℚ}{\ensuremath{\mathnormal{\mathbb{Q}}}}
 \newunicodechar{ℤ}{\ensuremath{\mathnormal{\mathbb{Z}}}}
@@ -696,6 +697,9 @@ The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard
 \subsection{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
 
+\subsection{The \(\tau\) Value}
+\AgdaField{CAS.τ} \AgdaBound{c} is the \AgdaBound{c} CAS's representation of \(\tau\), i.e., the angular measure of a circle.
+
 \subsection{The Natural Number Proofs}
 In addition to the basic mapping, proofs of the following attributes should exist:
 
@@ -769,6 +773,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
     lambda : String → ε → ε → ε
+    τ : ε
     different-if-nats-are-different :
       {n1 n2 : ℕ} → n1 ≢ n2 → fromℕ n1 ≢ fromℕ n2
     differently-named-variables-are-different :
@@ -1872,6 +1877,7 @@ CasanovaFly-Base = record
   ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
   ; IsNameOfVariableIn = IsReferencedIn
   ; IsReal = {!!}
+  ; τ = {!!}
   ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
