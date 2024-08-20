@@ -1427,7 +1427,14 @@ structuralEqualityOnF = s
   s (Limit n1) Csc = no λ ()
   s (Limit n1) Sec = no λ ()
   s (Limit n1) Cot = no λ ()
-  s (Limit n1) (Limit n2) = {!!}
+  s (Limit n1) (Limit n2) with n1 Data.String.≟ n2
+  ... | yes eq = yes (cong Limit eq)
+  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+    where
+    equality-implies-variable-equality : (n1 n2 : String) →
+           Limit n1 ≡ Limit n2 →
+           n1 ≡ n2
+    equality-implies-variable-equality n1 n2 refl = refl
   s (Limit n1) (Derivative name) = no λ ()
   s (Limit n1) (Antiderivative name) = no λ ()
   s (Limit n1) (BoundedIntegral name) = no λ ()
@@ -1444,7 +1451,14 @@ structuralEqualityOnF = s
   s (Derivative n1) Sec = no λ ()
   s (Derivative n1) Cot = no λ ()
   s (Derivative n1) (Limit name) = no λ ()
-  s (Derivative n1) (Derivative n2) = {!!}
+  s (Derivative n1) (Derivative n2) with n1 Data.String.≟ n2
+  ... | yes eq = yes (cong Derivative eq)
+  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+    where
+    equality-implies-variable-equality : (n1 n2 : String) →
+           Derivative n1 ≡ Derivative n2 →
+           n1 ≡ n2
+    equality-implies-variable-equality n1 n2 refl = refl
   s (Derivative n1) (Antiderivative name) = no λ ()
   s (Derivative n1) (BoundedIntegral name) = no λ ()
   s (Antiderivative n1) Abs = no λ ()
@@ -1461,7 +1475,14 @@ structuralEqualityOnF = s
   s (Antiderivative n1) Cot = no λ ()
   s (Antiderivative n1) (Limit name) = no λ ()
   s (Antiderivative n1) (Derivative name) = no λ ()
-  s (Antiderivative n1) (Antiderivative n2) = {!!}
+  s (Antiderivative n1) (Antiderivative n2) with n1 Data.String.≟ n2
+  ... | yes eq = yes (cong Antiderivative eq)
+  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+    where
+    equality-implies-variable-equality : (n1 n2 : String) →
+           Antiderivative n1 ≡ Antiderivative n2 →
+           n1 ≡ n2
+    equality-implies-variable-equality n1 n2 refl = refl
   s (Antiderivative n1) (BoundedIntegral name) = no λ ()
   s (BoundedIntegral n1) Abs = no λ ()
   s (BoundedIntegral n1) Negate = no λ ()
@@ -1478,7 +1499,14 @@ structuralEqualityOnF = s
   s (BoundedIntegral n1) (Limit name) = no λ ()
   s (BoundedIntegral n1) (Derivative name) = no λ ()
   s (BoundedIntegral n1) (Antiderivative name) = no λ ()
-  s (BoundedIntegral n1) (BoundedIntegral n2) = {!!}
+  s (BoundedIntegral n1) (BoundedIntegral n2) with n1 Data.String.≟ n2
+  ... | yes eq = yes (cong BoundedIntegral eq)
+  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+    where
+    equality-implies-variable-equality : (n1 n2 : String) →
+           BoundedIntegral n1 ≡ BoundedIntegral n2 →
+           n1 ≡ n2
+    equality-implies-variable-equality n1 n2 refl = refl
 \end{code}
 
 \subsection{Decidable Structural Equality on \AgdaDatatype{ε}}
