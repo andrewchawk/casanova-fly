@@ -1691,23 +1691,29 @@ exceptionallyEvaluate : ε → Exceptional ε
 \end{code}
 
 \section{Completing the Algebraic Equality Function}
+Regardless of the indentation in the compiled PDF document, this entire section, save for the final definition, constitutes a single module\ldots{} and facilitates defining \AgdaFunction{AlgebraicEquality}.
 
 \begin{code}
 module AlgebraicEquality where
-AlgebraicEquality x y =
-  x ≡ y ⊎
-  AE x y ⊎
-  Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n exceptionallyEvaluate x)
-                             (repeatExceptional m exceptionallyEvaluate y))
-  where
-  AE : ε → ε → Set
-  AE1 = AlgebraicEquality
-  AE2 : Exceptional ε → Exceptional ε → Set
-  AE2 (inj₂ x) (inj₂ y) = AE x y
-  AE2 _ _ = ⊥
 \end{code}
 
-\subsection{\AgdaInductiveConstructor{Infinity}-Related Types}
+\subsection{The Type of the Main Function}
+A value of type \AgdaFunction{main} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The reader may be right to think that this explanation is uncannily similar to another explanation\ldots{}
+
+\begin{code}
+  main : ε → ε → Set
+\end{code}
+
+\subsection{The Basic Equality Type}
+Basically, a proof of type \AgdaFunction{AE} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} is ``directly equal'' to \AgdaBound{y}.
+
+This notion of being ``directly equal'' is best understood by reading the Agda-based definition, but the author's Englishy explanation is as follows: When possible, \AgdaFunction{AE} uses natural number equality proofs, quotient type equality proofs, and other such structural equality proofs which cannot be achieved through the use of \AgdaDatatype{\AgdaUnderscore{}≡\AgdaUnderscore{}} alone.  Where applicable, commutativity and associativity are also considered.
+
+\begin{code}
+  AE : ε → ε → Set
+\end{code}
+
+\subsubsection{\AgdaInductiveConstructor{Infinity}-Related Types}
 
 \begin{code}
   AE Infinity Infinity = ⊤
@@ -1716,7 +1722,7 @@ AlgebraicEquality x y =
   AE Infinity (Ap f x) = {!!}
 \end{code}
 
-\subsection{\AgdaInductiveConstructor{Variable}-Related Types}
+\subsubsection{\AgdaInductiveConstructor{Variable}-Related Types}
 
 \begin{code}
   AE (Variable x) (Variable y) = x ≡ y
@@ -1725,7 +1731,7 @@ AlgebraicEquality x y =
   AE (Variable x) (Ap f y) = {!!}
 \end{code}
 
-\subsection{\AgdaInductiveConstructor{NumberRat}-Related Types}
+\subsubsection{\AgdaInductiveConstructor{NumberRat}-Related Types}
 
 \begin{code}
   AE (NumberRat x) (NumberRat y) = x ≡ y
@@ -1734,7 +1740,7 @@ AlgebraicEquality x y =
   AE (NumberRat x) (Ap f y) = {!!}
 \end{code}
 
-\subsection{\AgdaInductiveConstructor{Ap}-Related Types}
+\subsubsection{\AgdaInductiveConstructor{Ap}-Related Types}
 
 \begin{code}
   AE (Ap f x) Infinity = {!!}
@@ -1742,39 +1748,65 @@ AlgebraicEquality x y =
   AE (Ap f x) (NumberRat y) = {!!}
 \end{code}
 
-\subsection{Associativity-Related Types}
+\subsubsection{Associativity-Related Types}
 
 \begin{code}
   AE (Ap Sum (x1 ∷ Ap Sum (x2 ∷ x3 ∷ []) ∷ []))
      (Ap Sum (Ap Sum (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
-     _×_ (AllList.All (λ x → AnyList.Any (AE1 x) ys) xs)
-         (AllList.All (λ y → AnyList.Any (AE1 y) xs) ys)
+     _×_ (AllList.All (λ x → AnyList.Any (main x) ys) xs)
+         (AllList.All (λ y → AnyList.Any (main y) xs) ys)
      where
      xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
      ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
   AE (Ap Product (x1 ∷ Ap Product (x2 ∷ x3 ∷ []) ∷ []))
      (Ap Product (Ap Product (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
-     _×_ (AllList.All (λ x → AnyList.Any (AE1 x) ys) xs)
-         (AllList.All (λ y → AnyList.Any (AE1 y) xs) ys)
+     _×_ (AllList.All (λ x → AnyList.Any (main x) ys) xs)
+         (AllList.All (λ y → AnyList.Any (main y) xs) ys)
      where
      xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
      ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
 \end{code}
 
-\subsection{Commutativity-Related Types}
+\subsubsection{Commutativity-Related Types}
 
 \begin{code}
   AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
     _⊎_ (AlgebraicEquality x1 x2 × AlgebraicEquality y1 y2)
         (AlgebraicEquality x1 y2 × AlgebraicEquality y2 y1)
   AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
-    (AE1 x1 x2 × AE1 y1 y2) ⊎ (AE1 x1 y2 × AE1 y2 y1)
+    (main x1 x2 × main y1 y2) ⊎ (main x1 y2 × main y2 y1)
 \end{code}
 
-\subsection{\ldots{} and the Rest}
+\subsubsection{\ldots{} and the Rest}
 
 \begin{code}
   AE (Ap f x) (Ap g y) = {!!}
+\end{code}
+
+\subsection{The Exceptional Equality Type}
+A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \AgdaInductiveConstructor{inj₂}-contain equal values.
+
+\begin{code}
+  AE2 : Exceptional ε → Exceptional ε → Set
+  AE2 (inj₂ x) (inj₂ y) = AE x y
+  AE2 _ _ = ⊥
+\end{code}
+
+\subsection{Completing the Algebraic Equality Function}
+
+\begin{code}
+  main x y =
+    x ≡ y ⊎
+    AE x y ⊎
+    Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n exceptionallyEvaluate x)
+                               (repeatExceptional m exceptionallyEvaluate y))
+\end{code}
+
+\subsection{Exporting and Defining the Global Algebraic Equality Function}
+\AgdaFunction{AlgebraicEquality} is really just \AgdaFunction{AlgebraicEquality.main}.
+
+\begin{code}
+AlgebraicEquality = AlgebraicEquality.main
 \end{code}
 
 \section{Completing the Single-Step Evaluation Function}
