@@ -1768,6 +1768,28 @@ checkAlgebraicEquality :
 exceptionallyEvaluate : ε → Exceptional ε
 \end{code}
 
+\section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
+\AgdaFunction{commutativeEvaluate} \AgdaBound{e} performs a single evaluation step on the input expression but can also do some fancy stuff when applicable, e.g., switching the arguments of commutative functions.
+
+\begin{code}
+commutativeEvaluate : ε → Exceptional ε
+commutativeEvaluate e@(Ap f x) =
+  if (e evaluates) then evaluate e else tryFlip (arity f Data.Nat.≟ 2)
+  where
+  -- evaluate is just an abbreviation.  "exceptionallyEvaluate" is a bit long.
+  evaluate = exceptionallyEvaluate
+  structuralEquality =
+    Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
+  _evaluates : ε → Bool
+  _evaluates e = isNo (structuralEquality (inj₂ e) (evaluate e))
+  tryFlip : Dec (arity f ≡ 2) → Exceptional ε
+  tryFlip (no arityDiffers) = evaluate e
+  tryFlip (yes arityMatches) =
+    if isCommutative f arityMatches ∧ (e2 evaluates) then inj₂ e2 else evaluate e
+    where e2 = Ap f (reverse x)
+commutativeEvaluate e = exceptionallyEvaluate e
+\end{code}
+
 \section{Completing the Algebraic Equality Function}
 Regardless of the indentation in the compiled PDF document, this entire section, save for the final definition, constitutes a single module\ldots{} and facilitates defining \AgdaFunction{AlgebraicEquality}.
 
@@ -1876,8 +1898,8 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
   main x y =
     x ≡ y ⊎
     AE x y ⊎
-    Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n exceptionallyEvaluate x)
-                               (repeatExceptional m exceptionallyEvaluate y))
+    Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n commutativeEvaluate x)
+                               (repeatExceptional m commutativeEvaluate y))
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
@@ -2016,28 +2038,6 @@ module exceptionallyEvaluate where
 
 {-# TERMINATING #-}
 exceptionallyEvaluate = exceptionallyEvaluate.main
-\end{code}
-
-\section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
-\AgdaFunction{commutativeEvaluate} \AgdaBound{e} performs a single evaluation step on the input expression but can also do some fancy stuff when applicable, e.g., switching the arguments of commutative functions.
-
-\begin{code}
-commutativeEvaluate : ε → Exceptional ε
-commutativeEvaluate e@(Ap f x) =
-  if (e evaluates) then evaluate e else tryFlip (arity f Data.Nat.≟ 2)
-  where
-  -- evaluate is just an abbreviation.  "exceptionallyEvaluate" is a bit long.
-  evaluate = exceptionallyEvaluate
-  structuralEquality =
-    Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
-  _evaluates : ε → Bool
-  _evaluates e = isNo (structuralEquality (inj₂ e) (evaluate e))
-  tryFlip : Dec (arity f ≡ 2) → Exceptional ε
-  tryFlip (no arityDiffers) = evaluate e
-  tryFlip (yes arityMatches) =
-    if isCommutative f arityMatches ∧ (e2 evaluates) then inj₂ e2 else evaluate e
-    where e2 = Ap f (reverse x)
-commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
 \section{Completing The Algebraic Equality Determination Function}
@@ -2234,7 +2234,7 @@ CasanovaFly-Verified = record
       (e : ε) →
       e ≈ inv (inv e)
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
-    inv-inv-propEq e = inj₂ (inj₂ ((0 , 1) ,  inj₁ refl))
+    inv-inv-propEq e = inj₂ (inj₂ ((0 , 1) ,  {!!}))
 
   division-by-zero-is-bogus :
     (e1 e2 : ε) →
