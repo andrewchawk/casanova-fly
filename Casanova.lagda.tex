@@ -1982,7 +1982,7 @@ module exceptionallyEvaluate where
          ; _ → nothing})
     ∷ (λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
            if v1 Data.String.== v2
-             then valid (Ap Negate [ Ap Cos [ Variable v1 ] ])
+             then valid (Ap Negate [ Ap Sin [ Variable v1 ] ])
              else nothing
          ; _ → nothing})
     ∷ (λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
