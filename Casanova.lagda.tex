@@ -1932,10 +1932,12 @@ module exceptionallyEvaluate where
          ; _ → nothing})
     ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
          ; _ → nothing})
+    -- The following evaluation rule is *also* kind of dubious, but,
+    -- again, the behavior is like the behavior of Maxima.
     ∷ (λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
            if v1 Data.String.== v2
              then valid (NumberNat 1)
-             else nothing
+             else valid (NumberNat 0)
          ; _ → nothing})
     ∷ (λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
            valid (NumberNat 0)
