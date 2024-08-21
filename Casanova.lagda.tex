@@ -1957,6 +1957,29 @@ commutativeEvaluate e = exceptionallyEvaluate e
 checkAlgebraicEquality = {!!}
 \end{code}
 
+\section{The Less-Than Type}
+A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
+
+\subsection{Using \AgdaDatatype{⊥} for \AgdaInductiveConstructor{Infinity}-Related Types}
+As far as Casanova Fly is concerned, no value is greater than infinity; accordingly, \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{Infinity} is \AgdaDatatype{⊥} for all \AgdaBound{x}.
+
+\begin{code}
+LessThan : ε → ε → Set
+LessThan _ Infinity = ⊥
+LessThan Infinity (Variable x) = ⊥
+LessThan Infinity (NumberRat x) = ⊥
+LessThan Infinity (Ap f x) = ⊥
+LessThan (Variable x) (Variable y) = ⊥
+LessThan (Variable x) (NumberRat y) = ⊥
+LessThan (Variable x) (Ap f y) = ⊥
+LessThan (NumberRat x) (Variable y) = ⊥
+LessThan (NumberRat x) (NumberRat y) = x ℚ.< y
+LessThan (NumberRat x) (Ap f y) = {!!}
+LessThan (Ap f x) (Variable y) = ⊥
+LessThan (Ap f x) (NumberRat y) = {!!}
+LessThan (Ap f x) (Ap g y) = {!!}
+\end{code}
+
 \section{The Variable Usedness Type}
 \AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
 
@@ -1975,7 +1998,7 @@ IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { _≈_ = AlgebraicEquality
-  ; _<_ = {!!}
+  ; _<_ = LessThan
   ; definitelyEquals = checkAlgebraicEquality
   ; isDefinitelyLessThan = {!!}
   ; exceptionallyEvaluate = commutativeEvaluate
