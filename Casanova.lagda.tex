@@ -1930,6 +1930,8 @@ module exceptionallyEvaluate where
     -- Maxima, though.
     ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) → valid (NumberNat 0)
          ; _ → nothing})
+    ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
+         ; _ → nothing})
     ∷ (λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
            if v1 Data.String.== v2
              then valid (NumberNat 1)
