@@ -595,6 +595,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 \begin{itemize}
   \item an algebraic equality type,
   \item an algebraic less-than type,
+  \item an algebraic less-than-or-equal-to type,
   \item a single-step evaluation function which is capable of describing failures,
   \item a proof of decidable structural equality of \(\epsilon\) values,
   \item a function which determines certain algebraic equality on non-bogus \(\epsilon\) values,
@@ -633,6 +634,9 @@ A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound
 
 \subsection{The Less-Than Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}<\AgdaUnderscore{}} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
+
+\subsection{The Less-Than-or-Equal-to Type}
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≤\AgdaUnderscore{}} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than or equal to \AgdaBound{y}.
 
 \subsection{The Single-Step Evaluation Function}
 If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
@@ -860,6 +864,9 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
 
   _≉_ : ε → ε → Set a
   x ≉ y = (iterations : ℕ) → ¬ x ≈ y
+
+  _≤_ : ε → ε → Set a
+  x ≤ y = (x < y) ⊎ (x ≈ y)
 
   equal-at-iteration : ℕ → (e1 e2 : ε) → Set a
   equal-at-iteration iterations e1 e2 =
