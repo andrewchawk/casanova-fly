@@ -1960,24 +1960,57 @@ checkAlgebraicEquality = {!!}
 \section{The Less-Than Type}
 A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
-\subsection{Using \AgdaDatatype{⊥} for \AgdaInductiveConstructor{Infinity}-Related Types}
+\begin{code}
+module LessThan where
+\end{code}
+
+\subsection{The Basic Less-Than Type}
+Basically, some value of type \AgdaFunction{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
+
 As far as Casanova Fly is concerned, no value is greater than infinity; accordingly, \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{Infinity} is \AgdaDatatype{⊥} for all \AgdaBound{x}.
 
 \begin{code}
-LessThan : ε → ε → Set
-LessThan _ Infinity = ⊥
-LessThan Infinity (Variable x) = ⊥
-LessThan Infinity (NumberRat x) = ⊥
-LessThan Infinity (Ap f x) = ⊥
-LessThan (Variable x) (Variable y) = ⊥
-LessThan (Variable x) (NumberRat y) = ⊥
-LessThan (Variable x) (Ap f y) = ⊥
-LessThan (NumberRat x) (Variable y) = ⊥
-LessThan (NumberRat x) (NumberRat y) = x ℚ.< y
-LessThan (NumberRat x) (Ap f y) = {!!}
-LessThan (Ap f x) (Variable y) = ⊥
-LessThan (Ap f x) (NumberRat y) = {!!}
-LessThan (Ap f x) (Ap g y) = {!!}
+  LT : ε → ε → Set
+  LT _ Infinity = ⊥
+  LT Infinity (Variable x) = ⊥
+  LT Infinity (NumberRat x) = ⊥
+  LT Infinity (Ap f x) = ⊥
+  LT (Variable x) (Variable y) = ⊥
+  LT (Variable x) (NumberRat y) = ⊥
+  LT (Variable x) (Ap f y) = ⊥
+  LT (NumberRat x) (Variable y) = ⊥
+  LT (NumberRat x) (NumberRat y) = x ℚ.< y
+  LT (NumberRat x) (Ap f y) = {!!}
+  LT (Ap f x) (Variable y) = ⊥
+  LT (Ap f x) (NumberRat y) = {!!}
+  LT (Ap f x) (Ap g y) = {!!}
+\end{code}
+
+\subsection{The \AgdaFunction{Exceptional} Less-Than Type}
+Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} and \AgdaBound{y} are \AgdaInductiveConstructor{inj₂}-containers for values \AgdaBound{x'} and \AgdaBound{y'}, respectively, and \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
+
+\begin{code}
+  LT2 : Exceptional ε → Exceptional ε → Set
+  LT2 (inj₂ x) (inj₂ y) = LT x y
+  LT2 _ _ = ⊥
+\end{code}
+
+\subsection{The Complex Less-Than Type}
+In this case, ``complex'' is justified by \AgdaDatatype{\AgdaUnderscore{}⊎\AgdaUnderscore{}}'s relevance to the type, not complex numbers or something, although complex numbers are supported!  Anyway, according to \AgdaFunction{LessThan}, \AgdaBound{x} is less than \AgdaBound{y} if and only if \AgdaBound{x} can be trivially shown to be less than \AgdaBound{y}, or commutative evaluation reduces \AgdaBound{x} and \AgdaBound{y} to \AgdaBound{x'} and \AgdaBound{y'} such that \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
+
+\begin{code}
+  LessThan : ε → ε → Set
+  LessThan x y =
+    _⊎_ (LT x y)
+        (let rEvaluate = flip repeatExceptional commutativeEvaluate in
+         (Σ (ℕ × ℕ) (λ (m , n) → LT2 (rEvaluate m x) (rEvaluate n y))))
+\end{code}
+
+\subsection{Exporting the Function}
+\AgdaFunction{LessThan.LessThan} has all necessary properties for the \AgdaFunction{LessThan} function; accordion, \AgdaFunction{LessThan} is really just \AgdaFunction{LessThan.LessThan}.
+
+\begin{code}
+LessThan = LessThan.LessThan
 \end{code}
 
 \section{The Variable Usedness Type}
