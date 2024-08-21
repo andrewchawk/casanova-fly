@@ -932,8 +932,9 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\),
  \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\),
  \item a proof of \(0\)'s equality with \(\tau \cdot n \cdot \frac12\),
- \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.}, and
- \item a proof of the irrelevance of substitution list order.
+ \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
+ \item a proof of the irrelevance of substitution list order, and
+ \item basic trigonometric derivative correctness proofs.
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -999,6 +1000,27 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \subsection{The Proof of the Irrelevance of the Order of Substitution Lists}
 \AgdaField{VCAS.substitution-order-is-irrelevant} \AgdaBound{v} proves that for the \AgdaBound{v} CAS, if some substitution list \(l_1\) is a permutation of some substitution list \(l_2\) and contains no repeated variable names, then the application of \(l_1\) to some expression \(e\) is algebraically equal to the application of \(l_2\) to \(e\).
+
+\subsection{Basic Trigonometric Derivative Correctness Proofs}
+We ain't done yet, folks!  Additional fields include the basic trigonometric derivative correctness proof fields, which are fields for proofs of the correctness of the evaluation of derivatives of basic trigonometric functions.
+
+\subsubsection{The Sine Derivative Proof}
+\AgdaField{VCAS.derivative-of-sine} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\sin x\) with respect to \(x\) is \(\cos x\).
+
+\subsubsection{The Cosine Derivative Proof}
+\AgdaField{VCAS.derivative-of-cosine} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\cos x\) with respect to \(x\) is \(- \sin x\).
+
+\subsubsection{The Tangent Derivative Proof}
+\AgdaField{VCAS.derivative-of-tangent} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\tan x\) with respect to \(x\) is \(\left(\sec x\right)^2\).
+
+\subsubsection{The Cosecant Derivative Proof}
+\AgdaField{VCAS.derivative-of-cosecant} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\csc x\) with respect to \(x\) is \(- \cot x \cdot \csc x\).
+
+\subsubsection{The Secant Derivative Proof}
+\AgdaField{VCAS.derivative-of-secant} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\sec x\) with respect to \(x\) is \(\sec x \cdot \tan x\).
+
+\subsubsection{The Cotangent Derivative Proof}
+\AgdaField{VCAS.derivative-of-cotangent} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\cot x\) with respect to \(x\) is \(- \left(\csc x\right)^2\).
 
 \subsection{The Definition Proper}
 
@@ -1104,6 +1126,33 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       UniqueList list1 →
       equal-at-some-iteration (substituteVariables list1 e)
                               (substituteVariables list2 e)
+    derivative-of-sine :
+      (name : String) →
+      equal-at-some-iteration (derivative name (sin (variableNamed name)))
+                              (cos (variableNamed name))
+    derivative-of-cosine :
+      (name : String) →
+      equal-at-some-iteration (derivative name (cos (variableNamed name)))
+                              (negation (sin (variableNamed name)))
+    derivative-of-tangent :
+      (name : String) →
+      equal-at-some-iteration (derivative name (tan (variableNamed name)))
+                              (sec (variableNamed name) ^ fromℕ 2)
+    derivative-of-cosecant :
+      (name : String) →
+      equal-at-some-iteration (derivative name (csc (variableNamed name)))
+                              (_*_ (negation (cot (variableNamed name)))
+                                   (csc (variableNamed name)))
+    derivative-of-secant :
+      (name : String) →
+      equal-at-some-iteration (derivative name (sec (variableNamed name)))
+                              (_*_ (sec (variableNamed name))
+                                   (tan (variableNamed name)))
+    derivative-of-cotangent :
+      (name : String) →
+      equal-at-some-iteration (derivative name (tan (variableNamed name)))
+                              (_^_ (negation (csc (variableNamed name)))
+                                   (fromℕ 2))
 \end{code}
 
 \part{The Rest is F-L-Y}
@@ -2093,6 +2142,12 @@ CasanovaFly-Verified = record
   ; sin-n*pi-is-zero = {!!}
   ; garbage-variable-substitution-fails = {!!}
   ; substitution-order-is-irrelevant = {!!}
+  ; derivative-of-sine = {!!}
+  ; derivative-of-cosine = {!!}
+  ; derivative-of-tangent = {!!}
+  ; derivative-of-cosecant = {!!}
+  ; derivative-of-secant = {!!}
+  ; derivative-of-cotangent = {!!}
   }
   where
   open CAS CasanovaFly-Base
