@@ -78,14 +78,14 @@ open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 open import Data.Sum
 open import Level
-open import Data.String hiding (_≈_; _<_)
+open import Data.String hiding (_≈_; _<_; _≤_)
 open import Relation.Binary.PropositionalEquality hiding ([_])
 open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
 open import Relation.Nullary
 open import Relation.Binary
-open import Data.Bool hiding (_<_)
+open import Data.Bool hiding (_<_; _≤_)
 open import Data.Rational
   as ℚ
   using (ℚ
@@ -599,6 +599,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a single-step evaluation function which is capable of describing failures,
   \item a proof of decidable structural equality of \(\epsilon\) values,
   \item a function which determines certain algebraic equality on non-bogus \(\epsilon\) values,
+  \item a function which determines certain inequality on non-bogus \(\epsilon\) values,
   \item a function which converts natural number values into \(\epsilon\) values,
   \item a function which converts the name of a variable into an \(\epsilon\) variable value,
   \item a function which converts the two input expressions into a representation of the sum of the input expressions,
@@ -644,6 +645,9 @@ This one, which is represented via the \AgdaField{structuralEquality} field, sho
 
 \subsection{The Semi-Decidable Algebraic Equality Function}
 \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{equality}\AgdaSymbol) if and only if the \AgdaField{CAS.definitelyEquals} function finds an appropriate value.  The \AgdaField{CAS.definitelyEquals} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate proof of equality.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.definitelyEquals} is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
+
+\subsection{The Semi-Decidable Less-Than Function}
+Assuming that the relevant function actually \emph{considers} iteration counts, \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{i} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{lessThan}\AgdaSymbol) if and only if the \AgdaField{CAS.isDefinitelyLessThan} function finds an appropriate value.  The \AgdaField{CAS.isDefinitelyLessThan} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate inequality proof.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.isDefinitelyLessThan} is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
 
 \subsection{The Natural-to-ε Function}
 The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
@@ -767,6 +771,9 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     definitelyEquals : (iterations : ℕ) →
                        (x y : ε) →
                        Exceptional (Maybe (x ≈ y))
+    isDefinitelyLessThan : (iterations : ℕ) →
+                           (x y : ε) →
+                           Exceptional (Maybe (x < y))
     exceptionallyEvaluate : ε → Exceptional ε
     structuralEquality : DecidableEquality ε
     fromℕ : ℕ → ε
@@ -1970,6 +1977,7 @@ CasanovaFly-Base = record
   { _≈_ = AlgebraicEquality
   ; _<_ = {!!}
   ; definitelyEquals = checkAlgebraicEquality
+  ; isDefinitelyLessThan = {!!}
   ; exceptionallyEvaluate = commutativeEvaluate
   ; structuralEquality = structuralEqualityOnε
   ; fromℕ = NumberNat
