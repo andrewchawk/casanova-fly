@@ -939,7 +939,8 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\),
  \item a proof of \(0\)'s equality with \(\tau \cdot n \cdot \frac12\),
  \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
- \item a proof of the irrelevance of substitution list order, and
+ \item a proof of the irrelevance of substitution list order,
+ \item a proof which indicates that the derivative of a constant is \(0\), and
  \item basic trigonometric derivative correctness proofs.
 \end{itemize}
 
@@ -1006,6 +1007,9 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \subsection{The Proof of the Irrelevance of the Order of Substitution Lists}
 \AgdaField{VCAS.substitution-order-is-irrelevant} \AgdaBound{v} proves that for the \AgdaBound{v} CAS, if some substitution list \(l_1\) is a permutation of some substitution list \(l_2\) and contains no repeated variable names, then the application of \(l_1\) to some expression \(e\) is algebraically equal to the application of \(l_2\) to \(e\).
+
+\subsection{The Constant Derivative Proof}
+\AgdaField{VCAS.derivative-of-constant} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that the derivative of any constant with regard to any variable is \(0\).
 
 \subsection{Basic Trigonometric Derivative Correctness Proofs}
 We ain't done yet, folks!  Additional fields include the basic trigonometric derivative correctness proof fields, which are fields for proofs of the correctness of the evaluation of derivatives of basic trigonometric functions.
@@ -1132,6 +1136,11 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       UniqueList list1 →
       equal-at-some-iteration (substituteVariables list1 e)
                               (substituteVariables list2 e)
+    derivative-of-constant :
+      (e : ε) →
+      IsConstant e →
+      (name : String) →
+      equal-at-some-iteration (derivative "name" e) (fromℕ 0)
     derivative-of-sine :
       (name : String) →
       equal-at-some-iteration (derivative name (sin (variableNamed name)))
@@ -2148,6 +2157,7 @@ CasanovaFly-Verified = record
   ; sin-n*pi-is-zero = {!!}
   ; garbage-variable-substitution-fails = {!!}
   ; substitution-order-is-irrelevant = {!!}
+  ; derivative-of-constant = {!!}
   ; derivative-of-sine = {!!}
   ; derivative-of-cosine = {!!}
   ; derivative-of-tangent = {!!}
