@@ -2039,7 +2039,13 @@ commutativeEvaluate e = exceptionallyEvaluate e
 \section{Completing The Algebraic Equality Determination Function}
 
 \begin{code}
-checkAlgebraicEquality = {!!}
+checkAlgebraicEquality iterations = with-dec ∘₂ structuralEqualityOnε
+  where
+  with-dec : {x y : ε} →
+             Dec (x ≡ y) →
+             Exceptional (Maybe (AlgebraicEquality x y))
+  with-dec (yes eq) = inj₂ (just (inj₁ eq))
+  with-dec (no neq) = {!!}
 \end{code}
 
 \section{The Less-Than Type}
