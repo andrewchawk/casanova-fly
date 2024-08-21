@@ -1905,6 +1905,8 @@ module exceptionallyEvaluate where
          ; _ → nothing})
     ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
          ; _ → nothing})
+    ∷ (λ { (Ap Sum (NumberNatP 0 c ∷ x ∷ [])) → valid x
+         ; _ → nothing})
     ∷ (λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
            valid (NumberRat (x ℚ.+ y))
          ; _ → nothing})
