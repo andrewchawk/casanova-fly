@@ -1183,6 +1183,13 @@ Values of type \AgdaDatatype{F} represent functions.
 data F : Set
 \end{code}
 
+\subsection{The Type and Summary of the Arity Function}
+\AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
+
+\begin{code}
+arity : F → ℕ
+\end{code}
+
 \subsection{\AgdaDatatype{ε}'s Type and Summary}
 Values of \AgdaDatatype{ε} represent expressions.
 
@@ -1241,14 +1248,12 @@ data F where
    Antiderivative
    BoundedIntegral : String → F
   Diff : F → F
-  Compose : F → F → F
+  Compose : (g f : F) → arity g ≡ 1 → F
 \end{code}
 
-\subsection{The Arity-Determining Function}
-\AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
+\subsection{Completing the Arity Function}
 
 \begin{code}
-arity : F → ℕ
 arity Abs = 1
 arity Negate = 1
 arity Sum = 2
@@ -1266,7 +1271,7 @@ arity (Derivative name) = 1
 arity (Antiderivative name) = 1
 arity (BoundedIntegral name) = 3
 arity (Diff f) = arity f
-arity (Compose g f) = {!!}
+arity (Compose g f eq) = arity f
 \end{code}
 
 \subsection{The Commutativity-Determining Function}
@@ -1280,7 +1285,7 @@ isCommutative Exponent refl = false
 isCommutative (Lambda names body) equality = false
 isCommutative (Limit name) equality = false
 isCommutative (Diff f) equality = false
-isCommutative (Compose g f) equality = false
+isCommutative (Compose g f eq) equality = false
 \end{code}
 
 \subsection{Completing \AgdaDatatype{ε}'s Definition}
@@ -1357,7 +1362,7 @@ structuralEqualityOnF = s
   s Abs (Antiderivative name) = no λ ()
   s Abs (BoundedIntegral name) = no λ ()
   s Abs (Diff f) = no λ ()
-  s Abs (Compose g f) = no λ ()
+  s Abs (Compose g f eq) = no λ ()
   s Negate Abs = no λ ()
   s Negate Negate = yes refl
   s Negate Sum = no λ ()
@@ -1375,7 +1380,7 @@ structuralEqualityOnF = s
   s Negate (Antiderivative name) = no λ ()
   s Negate (BoundedIntegral name) = no λ ()
   s Negate (Diff f) = no λ ()
-  s Negate (Compose g f) = no λ ()
+  s Negate (Compose g f eq) = no λ ()
   s Sum Abs = no λ ()
   s Sum Negate = no λ ()
   s Sum Sum = yes refl
@@ -1393,7 +1398,7 @@ structuralEqualityOnF = s
   s Sum (Antiderivative name) = no λ ()
   s Sum (BoundedIntegral name) = no λ ()
   s Sum (Diff f) = no λ ()
-  s Sum (Compose g f) = no λ ()
+  s Sum (Compose g f eq) = no λ ()
   s Product Abs = no λ ()
   s Product Negate = no λ ()
   s Product Sum = no λ ()
@@ -1411,7 +1416,7 @@ structuralEqualityOnF = s
   s Product (Antiderivative name) = no λ ()
   s Product (BoundedIntegral name) = no λ ()
   s Product (Diff f) = no λ ()
-  s Product (Compose g f) = no λ ()
+  s Product (Compose g f eq) = no λ ()
   s Exponent Abs = no λ ()
   s Exponent Negate = no λ ()
   s Exponent Sum = no λ ()
@@ -1429,7 +1434,7 @@ structuralEqualityOnF = s
   s Exponent (Antiderivative name) = no λ ()
   s Exponent (BoundedIntegral name) = no λ ()
   s Exponent (Diff f) = no λ ()
-  s Exponent (Compose g f) = no λ ()
+  s Exponent (Compose g f eq) = no λ ()
   s (Lambda n1 e1) Abs = no λ ()
   s (Lambda n1 e1) Negate = no λ ()
   s (Lambda n1 e1) Sum = no λ ()
@@ -1447,7 +1452,7 @@ structuralEqualityOnF = s
   s (Lambda n1 e1) (Antiderivative name) = no λ ()
   s (Lambda n1 e1) (BoundedIntegral name) = no λ ()
   s (Lambda n1 e1) (Diff f) = no λ ()
-  s (Lambda n1 e1) (Compose g f) = no λ ()
+  s (Lambda n1 e1) (Compose g f eq) = no λ ()
   -- Help!  I'm trapped in a boring nonsense factory!
   s Sin Abs = no λ ()
   s Sin Negate = no λ ()
@@ -1466,7 +1471,7 @@ structuralEqualityOnF = s
   s Sin (Antiderivative name) = no λ ()
   s Sin (BoundedIntegral name) = no λ ()
   s Sin (Diff f) = no λ ()
-  s Sin (Compose g f) = no λ ()
+  s Sin (Compose g f eq) = no λ ()
   s Cos Abs = no λ ()
   s Cos Negate = no λ ()
   s Cos Sum = no λ ()
@@ -1484,7 +1489,7 @@ structuralEqualityOnF = s
   s Cos (Antiderivative name) = no λ ()
   s Cos (BoundedIntegral name) = no λ ()
   s Cos (Diff f) = no λ ()
-  s Cos (Compose g f) = no λ ()
+  s Cos (Compose g f eq) = no λ ()
   s Tan Abs = no λ ()
   s Tan Negate = no λ ()
   s Tan Sum = no λ ()
@@ -1502,7 +1507,7 @@ structuralEqualityOnF = s
   s Tan (Antiderivative name) = no λ ()
   s Tan (BoundedIntegral name) = no λ ()
   s Tan (Diff f) = no λ ()
-  s Tan (Compose g f) = no λ ()
+  s Tan (Compose g f eq) = no λ ()
   s Csc Abs = no λ ()
   s Csc Negate = no λ ()
   s Csc Sum = no λ ()
@@ -1520,7 +1525,7 @@ structuralEqualityOnF = s
   s Csc (Antiderivative name) = no λ ()
   s Csc (BoundedIntegral name) = no λ ()
   s Csc (Diff f) = no λ ()
-  s Csc (Compose g f) = no λ ()
+  s Csc (Compose g f eq) = no λ ()
   s Sec Abs = no λ ()
   s Sec Negate = no λ ()
   s Sec Sum = no λ ()
@@ -1538,7 +1543,7 @@ structuralEqualityOnF = s
   s Sec (Antiderivative name) = no λ ()
   s Sec (BoundedIntegral name) = no λ ()
   s Sec (Diff f) = no λ ()
-  s Sec (Compose g f) = no λ ()
+  s Sec (Compose g f eq) = no λ ()
   s Cot Abs = no λ ()
   s Cot Negate = no λ ()
   s Cot Sum = no λ ()
@@ -1556,7 +1561,7 @@ structuralEqualityOnF = s
   s Cot (Antiderivative name) = no λ ()
   s Cot (BoundedIntegral name) = no λ ()
   s Cot (Diff f) = no λ ()
-  s Cot (Compose g f) = no λ ()
+  s Cot (Compose g f eq) = no λ ()
   s (Limit n1) Abs = no λ ()
   s (Limit n1) Negate = no λ ()
   s (Limit n1) Sum = no λ ()
@@ -1581,7 +1586,7 @@ structuralEqualityOnF = s
   s (Limit n1) (Antiderivative name) = no λ ()
   s (Limit n1) (BoundedIntegral name) = no λ ()
   s (Limit n1) (Diff f) = no λ ()
-  s (Limit n1) (Compose g f) = no λ ()
+  s (Limit n1) (Compose g f eq) = no λ ()
   s (Derivative n1) Abs = no λ ()
   s (Derivative n1) Negate = no λ ()
   s (Derivative n1) Sum = no λ ()
@@ -1606,7 +1611,7 @@ structuralEqualityOnF = s
   s (Derivative n1) (Antiderivative name) = no λ ()
   s (Derivative n1) (BoundedIntegral name) = no λ ()
   s (Derivative n1) (Diff f) = no λ ()
-  s (Derivative n1) (Compose g f) = no λ ()
+  s (Derivative n1) (Compose g f eq) = no λ ()
   s (Antiderivative n1) Abs = no λ ()
   s (Antiderivative n1) Negate = no λ ()
   s (Antiderivative n1) Sum = no λ ()
@@ -1631,7 +1636,7 @@ structuralEqualityOnF = s
     equality-implies-variable-equality n1 n2 refl = refl
   s (Antiderivative n1) (BoundedIntegral name) = no λ ()
   s (Antiderivative n1) (Diff f) = no λ ()
-  s (Antiderivative n1) (Compose g f) = no λ ()
+  s (Antiderivative n1) (Compose g f eq) = no λ ()
   s (BoundedIntegral n1) Abs = no λ ()
   s (BoundedIntegral n1) Negate = no λ ()
   s (BoundedIntegral n1) Sum = no λ ()
@@ -1656,7 +1661,7 @@ structuralEqualityOnF = s
            n1 ≡ n2
     equality-implies-variable-equality n1 n2 refl = refl
   s (BoundedIntegral n1) (Diff f) = no λ ()
-  s (BoundedIntegral n1) (Compose g f) = no λ ()
+  s (BoundedIntegral n1) (Compose g f eq) = no λ ()
   s (Diff f) Abs = no λ ()
   s (Diff f) Negate = no λ ()
   s (Diff f) Sum = no λ ()
@@ -1679,35 +1684,50 @@ structuralEqualityOnF = s
     where
     equality-implies-fun-equality : {f g : F} → Diff f ≡ Diff g → f ≡ g
     equality-implies-fun-equality refl = refl
-  s (Diff f) (Compose y x) = no λ ()
-  s (Compose g f) Abs = no λ ()
-  s (Compose g f) Negate = no λ ()
-  s (Compose g f) Sum = no λ ()
-  s (Compose g f) Product = no λ ()
-  s (Compose g f) Exponent = no λ ()
-  s (Compose g f) (Lambda name exp) = no λ ()
-  s (Compose g f) Sin = no λ ()
-  s (Compose g f) Cos = no λ ()
-  s (Compose g f) Tan = no λ ()
-  s (Compose g f) Csc = no λ ()
-  s (Compose g f) Sec = no λ ()
-  s (Compose g f) Cot = no λ ()
-  s (Compose g f) (Limit name) = no λ ()
-  s (Compose g f) (Derivative name) = no λ ()
-  s (Compose g f) (Antiderivative name) = no λ ()
-  s (Compose g f) (BoundedIntegral name) = no λ ()
-  s (Compose g f) (Diff x) = no λ ()
-  s (Compose g f) (Compose y x) with s g y | s f x
-  ... | yes gIsy | yes fIsx = yes (cong₂ Compose gIsy fIsx)
+  s (Diff f) (Compose y x eq) = no λ ()
+  s (Compose g f eq1) Abs = no λ ()
+  s (Compose g f eq1) Negate = no λ ()
+  s (Compose g f eq1) Sum = no λ ()
+  s (Compose g f eq1) Product = no λ ()
+  s (Compose g f eq1) Exponent = no λ ()
+  s (Compose g f eq1) (Lambda name exp) = no λ ()
+  s (Compose g f eq1) Sin = no λ ()
+  s (Compose g f eq1) Cos = no λ ()
+  s (Compose g f eq1) Tan = no λ ()
+  s (Compose g f eq1) Csc = no λ ()
+  s (Compose g f eq1) Sec = no λ ()
+  s (Compose g f eq1) Cot = no λ ()
+  s (Compose g f eq1) (Limit name) = no λ ()
+  s (Compose g f eq1) (Derivative name) = no λ ()
+  s (Compose g f eq1) (Antiderivative name) = no λ ()
+  s (Compose g f eq1) (BoundedIntegral name) = no λ ()
+  s (Compose g f eq1) (Diff x) = no λ ()
+  s (Compose g f eq1) (Compose y x eq2) with s g y | s f x
+  ... | yes gIsy | yes fIsx = yes (compeq gIsy fIsx)
+    where
+    compeq : {g f y x : F} →
+             {eq1 : _} →
+             {eq2 : _} →
+             g ≡ y →
+             f ≡ x →
+             Compose g f eq1 ≡ Compose y x eq2
+    compeq refl refl = {!!}
   ... | no gIsNoty | _ = no (gIsNoty ∘ eq-implies-first-eq)
     where
-      eq-implies-first-eq :
-        {f g x y : F} → Compose g f ≡ Compose y x → g ≡ y
-      eq-implies-first-eq refl = refl
+    eq-implies-first-eq :
+      {f g x y : F} →
+      {eq1 : _} →
+      {eq2 : _} →
+      Compose g f eq1 ≡ Compose y x eq2 → g ≡ y
+    eq-implies-first-eq refl = refl
   ... | _ | no fIsNotx = no (fIsNotx ∘ eq-implies-second-eq)
     where
     eq-implies-second-eq :
-      {f g x y : F} → Compose g f ≡ Compose y x → f ≡ x
+      {f g x y : F} →
+      {eq1 : _} →
+      {eq2 : _} →
+      Compose g f eq1 ≡ Compose y x eq2 →
+      f ≡ x
     eq-implies-second-eq refl = refl
 \end{code}
 
