@@ -1902,6 +1902,22 @@ commutativeEvaluate e@(Ap f x) =
 commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
+\section{The Point-Free Rewrite Function}
+If the result is not \AgdaInductiveConstructor{nothing}, then \AgdaFunction{pfRewrite} \AgdaBound{e} contains values \AgdaBound{g} and \AgdaSymbol(\AgdaBound{len} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{x}\AgdaSymbol) such that the following statements hold:
+
+\begin{enumerate}
+  \item \AgdaBound{g} constitutes a nontrivial use of \AgdaInductiveConstructor{Compose}.\label{enum:pfRewriteCompose}
+  \item \AgdaBound{e} is algebraically equal to \AgdaInductiveConstructor{Ap} \AgdaBound{g} \AgdaBound{x}.\label{enum:pfRewriteEquality}
+\end{enumerate}
+
+\begin{code}
+pfRewrite : ε → Maybe (Σ F (Vec ε ∘ arity))
+pfRewrite (Ap g x) with arity g | x | inspect arity g
+... | 1 | Ap f y ∷ [] | ⟦ arityIs1 ⟧ = just (Compose g f arityIs1 , y)
+... | _ | _ | _ = nothing
+pfRewrite _ = nothing
+\end{code}
+
 \section{Completing the Algebraic Equality Function}
 Regardless of the indentation in the compiled PDF document, this entire section, save for the final definition, constitutes a single module\ldots{} and facilitates defining \AgdaFunction{AlgebraicEquality}.
 
@@ -2130,6 +2146,7 @@ module exceptionallyEvaluate where
                                              [ e2 ])))
                   (main (Ap (Derivative n2) e1))
          ; _ → nothing})
+    ∷ freeDerivativesFromPoints
     ∷ basicDerivativeChainRuleFunction
     ∷ (λ { (Ap (Lambda names body) expressions) →
            valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
@@ -2151,25 +2168,25 @@ module exceptionallyEvaluate where
     condense [] = inj₂ []
     condense (inj₁ x ∷ xs) = inj₁ x
     condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
+    freeDerivativesFromPoints : ε → Maybe (Exceptional ε)
+    freeDerivativesFromPoints =
+      λ { (Ap (Derivative n) (x ∷ [])) →
+          Data.Maybe.map (inj₂ ∘ Ap (Derivative n) ∘ [_] ∘ uncurry Ap)
+                         (pfRewrite x)
+        ; _ → nothing}
     basicDerivativeChainRuleFunction : ε → Maybe (Exceptional ε)
     basicDerivativeChainRuleFunction = b
       where
       b : ε → Maybe (Exceptional ε)
-      b (Ap (Derivative n1) (Ap f x ∷ [])) with arity f | x | inspect arity f
-      ... | 1 | (Ap g y ∷ []) | ⟦ arityOfFIs1 ⟧ = with-arity (arity g Data.Nat.≟ 1)
-        where
-        with-arity : Dec (arity g ≡ 1) → Maybe (Exceptional ε)
-        with-arity (no nonApplicable) = nothing
-        with-arity (yes eq) =
-          valid (Ap Product
-                    ( Ap (Derivative n1) [ Ap g y ]
-                    ∷ [ Ap fDiff [ Ap g y ] ]))
+      b (Ap (Derivative n1) (Ap (Compose g f eq) x ∷ [])) with arity f Data.Nat.≟ 1
+      ... | no not-applicable = nothing
+      ... | yes fArity1 =
+        valid (Ap Product
+                  ( Ap (Derivative n1) [ Ap g x2 ]
+                  ∷ [ Ap fDiff [ Ap g x2 ] ]))
           where
-          g-f-arity-equality = trans eq (sym arityOfFIs1)
-          fDiff = Lambda List.[ n1 ]
-                         (Ap (Derivative n1)
-                             [ Ap f (Data.Vec.cast g-f-arity-equality y) ])
-      ... | _ | _ | _ = nothing
+          fDiff = Lambda List.[ n1 ] (Ap (Derivative n1) [ Ap f x ])
+          x2 = Data.Vec.cast (trans fArity1 (sym eq)) x
       b _ = nothing
 
   {-# TERMINATING #-}
