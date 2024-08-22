@@ -79,7 +79,7 @@ open import Data.Nat using (ℕ)
 open import Data.Sum
 open import Level
 open import Data.String hiding (_≈_; _<_; _≤_)
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality renaming ([_] to ⟦_⟧)
 open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
@@ -2012,6 +2012,13 @@ module exceptionallyEvaluate where
                                  ∷ [ NumberNat 2 ]) ])
              else nothing
          ; _ → nothing})
+    ∷ (λ { (Ap (Lambda (n1 List.∷ List.[]) (Ap (Derivative n2) e1)) (e2 ∷ [])) →
+           [_,_]′ (just ∘ inj₁)
+                  (λ derivative → valid ((Ap (Lambda List.[ n1 ] derivative)
+                                             [ e2 ])))
+                  (main (Ap (Derivative n2) e1))
+         ; _ → nothing})
+    ∷ basicDerivativeChainRuleFunction
     ∷ (λ { (Ap (Lambda names body) expressions) →
            valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
          ; _ → nothing})
@@ -2032,6 +2039,29 @@ module exceptionallyEvaluate where
     condense [] = inj₂ []
     condense (inj₁ x ∷ xs) = inj₁ x
     condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
+    basicDerivativeChainRuleFunction : ε → Maybe (Exceptional ε)
+    basicDerivativeChainRuleFunction = b
+      where
+      b : ε → Maybe (Exceptional ε)
+      b (Ap (Derivative n1) (Ap f x ∷ [])) with arity f | x | inspect arity f
+      ... | 1 | (Ap g y ∷ []) | ⟦ arityOfFIs1 ⟧ = with-arity (arity g Data.Nat.≟ 1)
+        where
+        with-arity : Dec (arity g ≡ 1) → Maybe (Exceptional ε)
+        with-arity (no nonApplicable) = nothing
+        with-arity (yes eq) =
+          [_,_]′ (just ∘ inj₁)
+                 (λ x →
+                   valid (Ap Product
+                                  ( Ap (Derivative n1) [ Ap g y ]
+                                  ∷ [ Ap (Lambda List.[ n1 ] x)
+                                         [ Ap g y ] ])))
+                 (inj₂ (Ap (Derivative n1)
+                           [ Ap f (Data.Vec.cast g-f-arity-equality y) ]))
+                 -- The preceding application of @main@ prevents
+                 -- a would-be-infinite loop of derivation.
+          where g-f-arity-equality = trans eq (sym arityOfFIs1)
+      ... | _ | _ | _ = nothing
+      b _ = nothing
 
   {-# TERMINATING #-}
   main e = firstInj2 $ Data.Vec.map (_$ e) functions
