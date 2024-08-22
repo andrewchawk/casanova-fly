@@ -2051,11 +2051,12 @@ module exceptionallyEvaluate where
         with-arity (yes eq) =
           valid (Ap Product
                     ( Ap (Derivative n1) [ Ap g y ]
-                    ∷ [ Ap (Lambda List.[ n1 ]
-                                   (Ap (Derivative n1)
-                                       [ Ap f (Data.Vec.cast g-f-arity-equality y) ]))
-                           [ Ap g y ] ]))
-          where g-f-arity-equality = trans eq (sym arityOfFIs1)
+                    ∷ [ Ap fDiff [ Ap g y ] ]))
+          where
+          g-f-arity-equality = trans eq (sym arityOfFIs1)
+          fDiff = Lambda List.[ n1 ]
+                         (Ap (Derivative n1)
+                             [ Ap f (Data.Vec.cast g-f-arity-equality y) ])
       ... | _ | _ | _ = nothing
       b _ = nothing
 
