@@ -1182,7 +1182,11 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
                               (derivative name e1 + derivative name e2)
 \end{code}
 
-\part{The Rest is F-L-Y}
+\part{The Core Components of Casanova Fly}
+
+\begin{code}
+module CasanovaFlyCore where
+\end{code}
 
 \chapter{The Core Datatypes and Associated Functions}
 
@@ -1192,14 +1196,14 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
 Values of type \AgdaDatatype{F} represent functions.
 
 \begin{code}
-data F : Set
+  data F : Set
 \end{code}
 
 \subsection{\AgdaDatatype{ε}'s Type and Summary}
 Values of \AgdaDatatype{ε} represent expressions.
 
 \begin{code}
-data ε : Set
+  data ε : Set
 \end{code}
 
 \section{The Actual Definitions\ldots and Supporting Functions}
@@ -1233,58 +1237,58 @@ The following statements hold:
 \end{itemize}
 
 \begin{code}
-data F where
-  Abs
-   Negate
-   Sum
-   Product
-   Exponent : F
-  Lambda : List.List String → ε → F
-  Sin
-   Cos
-   Tan
-   Csc
-   Sec
-   Cot : F
-  Limit
-   Derivative
-   Antiderivative
-   BoundedIntegral : String → F
+  data F where
+    Abs
+     Negate
+     Sum
+     Product
+     Exponent : F
+    Lambda : List.List String → ε → F
+    Sin
+     Cos
+     Tan
+     Csc
+     Sec
+     Cot : F
+    Limit
+     Derivative
+     Antiderivative
+     BoundedIntegral : String → F
 \end{code}
 
 \subsection{The Arity-Determining Function}
 \AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
 
 \begin{code}
-arity : F → ℕ
-arity Abs = 1
-arity Negate = 1
-arity Sum = 2
-arity Product = 2
-arity Exponent = 2
-arity Sin = 1
-arity Cos = 1
-arity Tan = 1
-arity Csc = 1
-arity Sec = 1
-arity Cot = 1
-arity (Lambda names body) = List.length names
-arity (Limit name) = 2
-arity (Derivative name) = 1
-arity (Antiderivative name) = 1
-arity (BoundedIntegral name) = 3
+  arity : F → ℕ
+  arity Abs = 1
+  arity Negate = 1
+  arity Sum = 2
+  arity Product = 2
+  arity Exponent = 2
+  arity Sin = 1
+  arity Cos = 1
+  arity Tan = 1
+  arity Csc = 1
+  arity Sec = 1
+  arity Cot = 1
+  arity (Lambda names body) = List.length names
+  arity (Limit name) = 2
+  arity (Derivative name) = 1
+  arity (Antiderivative name) = 1
+  arity (BoundedIntegral name) = 3
 \end{code}
 
 \subsection{The Commutativity-Determining Function}
 \AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
 
 \begin{code}
-isCommutative : (f : F) → arity f ≡ 2 → Bool
-isCommutative Sum refl = true
-isCommutative Product refl = true
-isCommutative Exponent refl = false
-isCommutative (Lambda names body) equality = false
-isCommutative (Limit name) equality = false
+  isCommutative : (f : F) → arity f ≡ 2 → Bool
+  isCommutative Sum refl = true
+  isCommutative Product refl = true
+  isCommutative Exponent refl = false
+  isCommutative (Lambda names body) equality = false
+  isCommutative (Limit name) equality = false
 \end{code}
 
 \subsection{Completing \AgdaDatatype{ε}'s Definition}
@@ -1298,11 +1302,11 @@ The following statements hold:
 \end{itemize}
 
 \begin{code}
-data ε where
-  Infinity : ε
-  Variable : String → ε
-  NumberRat : ℚ → ε
-  Ap : (f : F) → Vec ε (arity f) → ε
+  data ε where
+    Infinity : ε
+    Variable : String → ε
+    NumberRat : ℚ → ε
+    Ap : (f : F) → Vec ε (arity f) → ε
 \end{code}
 
 \section{Additional Functions}
@@ -1311,443 +1315,443 @@ data ε where
 \AgdaInductiveConstructor{NumberNatP} \AgdaBound{n} \AgdaBound{c} is Casanova Fly's canonical representation of \AgdaBound{n}.  Despite generally being pretty powerful, the \AgdaKeyword{pattern} stuff can apparently \emph{not} do \AgdaFunction{Coprimality.1-coprimeTo} stuff.
 
 \begin{code}
-pattern NumberNatP n c = NumberRat (ℚ.mkℚ (Data.Integer.+ n) 0 c)
+  pattern NumberNatP n c = NumberRat (ℚ.mkℚ (Data.Integer.+ n) 0 c)
 \end{code}
 
 \subsection{The Natural-Number-to-Expression Function}
 \AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's more manageable representation of \AgdaBound{n}.
 
 \begin{code}
-NumberNat : ℕ → ε
-NumberNat n = NumberNatP n (Coprimality.sym (Coprimality.1-coprimeTo _))
+  NumberNat : ℕ → ε
+  NumberNat n = NumberNatP n (Coprimality.sym (Coprimality.1-coprimeTo _))
 \end{code}
 
 \subsection{The Quotient Pattern}
 \AgdaInductiveConstructor{NumberRat} \AgdaBound{x} \AgdaBound{y} \AgdaBound{coprimality} is Casanova Fly's representation of \(\frac{\AgdaBound{x}}{\AgdaBound{y}}\).
 
 \begin{code}
-pattern Quotient x y coprime =
-  Ap Product
-     ( x
-     ∷ (Ap Exponent
-           ( y
-           ∷ Ap Negate (NumberNatP 1 coprime ∷ [])
-           ∷ [])
-     ∷ []))
+  pattern Quotient x y coprime =
+    Ap Product
+       ( x
+       ∷ (Ap Exponent
+             ( y
+             ∷ Ap Negate (NumberNatP 1 coprime ∷ [])
+             ∷ [])
+       ∷ []))
 \end{code}
 
 \subsection{Decidable Structural Equality on \AgdaDatatype{F}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
 \begin{code}
-structuralEqualityOnF : DecidableEquality F
-structuralEqualityOnF = s
-  where
-  s : DecidableEquality F
-  s Abs Abs = yes refl
-  s Abs Negate = no λ ()
-  s Abs Sum = no λ ()
-  s Abs Product = no λ ()
-  s Abs Exponent = no λ ()
-  s Abs (Lambda name exp) = no λ ()
-  s Abs Sin = no λ ()
-  s Abs Cos = no λ ()
-  s Abs Tan = no λ ()
-  s Abs Csc = no λ ()
-  s Abs Sec = no λ ()
-  s Abs Cot = no λ ()
-  s Abs (Limit name) = no λ ()
-  s Abs (Derivative name) = no λ ()
-  s Abs (Antiderivative name) = no λ ()
-  s Abs (BoundedIntegral name) = no λ ()
-  s Negate Abs = no λ ()
-  s Negate Negate = yes refl
-  s Negate Sum = no λ ()
-  s Negate Product = no λ ()
-  s Negate Exponent = no λ ()
-  s Negate (Lambda name exp) = no λ ()
-  s Negate Sin = no λ ()
-  s Negate Cos = no λ ()
-  s Negate Tan = no λ ()
-  s Negate Csc = no λ ()
-  s Negate Sec = no λ ()
-  s Negate Cot = no λ ()
-  s Negate (Limit name) = no λ ()
-  s Negate (Derivative name) = no λ ()
-  s Negate (Antiderivative name) = no λ ()
-  s Negate (BoundedIntegral name) = no λ ()
-  s Sum Abs = no λ ()
-  s Sum Negate = no λ ()
-  s Sum Sum = yes refl
-  s Sum Product = no λ ()
-  s Sum Exponent = no λ ()
-  s Sum (Lambda name exp) = no λ ()
-  s Sum Sin = no λ ()
-  s Sum Cos = no λ ()
-  s Sum Tan = no λ ()
-  s Sum Csc = no λ ()
-  s Sum Sec = no λ ()
-  s Sum Cot = no λ ()
-  s Sum (Limit name) = no λ ()
-  s Sum (Derivative name) = no λ ()
-  s Sum (Antiderivative name) = no λ ()
-  s Sum (BoundedIntegral name) = no λ ()
-  s Product Abs = no λ ()
-  s Product Negate = no λ ()
-  s Product Sum = no λ ()
-  s Product Product = yes refl
-  s Product Exponent = no λ ()
-  s Product (Lambda name exp) = no λ ()
-  s Product Sin = no λ ()
-  s Product Cos = no λ ()
-  s Product Tan = no λ ()
-  s Product Csc = no λ ()
-  s Product Sec = no λ ()
-  s Product Cot = no λ ()
-  s Product (Limit name) = no λ ()
-  s Product (Derivative name) = no λ ()
-  s Product (Antiderivative name) = no λ ()
-  s Product (BoundedIntegral name) = no λ ()
-  s Exponent Abs = no λ ()
-  s Exponent Negate = no λ ()
-  s Exponent Sum = no λ ()
-  s Exponent Product = no λ ()
-  s Exponent Exponent = yes refl
-  s Exponent (Lambda name exp) = no λ ()
-  s Exponent Sin = no λ ()
-  s Exponent Cos = no λ ()
-  s Exponent Tan = no λ ()
-  s Exponent Csc = no λ ()
-  s Exponent Sec = no λ ()
-  s Exponent Cot = no λ ()
-  s Exponent (Limit name) = no λ ()
-  s Exponent (Derivative name) = no λ ()
-  s Exponent (Antiderivative name) = no λ ()
-  s Exponent (BoundedIntegral name) = no λ ()
-  s (Lambda n1 e1) Abs = no λ ()
-  s (Lambda n1 e1) Negate = no λ ()
-  s (Lambda n1 e1) Sum = no λ ()
-  s (Lambda n1 e1) Product = no λ ()
-  s (Lambda n1 e1) Exponent = no λ ()
-  s (Lambda n1 e1) (Lambda n2 e2) = {!!}
-  s (Lambda n1 e1) Sin = no λ ()
-  s (Lambda n1 e1) Cos = no λ ()
-  s (Lambda n1 e1) Tan = no λ ()
-  s (Lambda n1 e1) Csc = no λ ()
-  s (Lambda n1 e1) Sec = no λ ()
-  s (Lambda n1 e1) Cot = no λ ()
-  s (Lambda n1 e1) (Limit name) = no λ ()
-  s (Lambda n1 e1) (Derivative name) = no λ ()
-  s (Lambda n1 e1) (Antiderivative name) = no λ ()
-  s (Lambda n1 e1) (BoundedIntegral name) = no λ ()
-  -- Help!  I'm trapped in a boring nonsense factory!
-  s Sin Abs = no λ ()
-  s Sin Negate = no λ ()
-  s Sin Sum = no λ ()
-  s Sin Product = no λ ()
-  s Sin Exponent = no λ ()
-  s Sin (Lambda name exp) = no λ ()
-  s Sin Sin = yes refl
-  s Sin Cos = no λ ()
-  s Sin Tan = no λ ()
-  s Sin Csc = no λ ()
-  s Sin Sec = no λ ()
-  s Sin Cot = no λ ()
-  s Sin (Limit name) = no λ ()
-  s Sin (Derivative name) = no λ ()
-  s Sin (Antiderivative name) = no λ ()
-  s Sin (BoundedIntegral name) = no λ ()
-  s Cos Abs = no λ ()
-  s Cos Negate = no λ ()
-  s Cos Sum = no λ ()
-  s Cos Product = no λ ()
-  s Cos Exponent = no λ ()
-  s Cos (Lambda name exp) = no λ ()
-  s Cos Sin = no λ ()
-  s Cos Cos = yes refl
-  s Cos Tan = no λ ()
-  s Cos Csc = no λ ()
-  s Cos Sec = no λ ()
-  s Cos Cot = no λ ()
-  s Cos (Limit name) = no λ ()
-  s Cos (Derivative name) = no λ ()
-  s Cos (Antiderivative name) = no λ ()
-  s Cos (BoundedIntegral name) = no λ ()
-  s Tan Abs = no λ ()
-  s Tan Negate = no λ ()
-  s Tan Sum = no λ ()
-  s Tan Product = no λ ()
-  s Tan Exponent = no λ ()
-  s Tan (Lambda name exp) = no λ ()
-  s Tan Sin = no λ ()
-  s Tan Cos = no λ ()
-  s Tan Tan = yes refl
-  s Tan Csc = no λ ()
-  s Tan Sec = no λ ()
-  s Tan Cot = no λ ()
-  s Tan (Limit name) = no λ ()
-  s Tan (Derivative name) = no λ ()
-  s Tan (Antiderivative name) = no λ ()
-  s Tan (BoundedIntegral name) = no λ ()
-  s Csc Abs = no λ ()
-  s Csc Negate = no λ ()
-  s Csc Sum = no λ ()
-  s Csc Product = no λ ()
-  s Csc Exponent = no λ ()
-  s Csc (Lambda name exp) = no λ ()
-  s Csc Sin = no λ ()
-  s Csc Cos = no λ ()
-  s Csc Tan = no λ ()
-  s Csc Csc = yes refl
-  s Csc Sec = no λ ()
-  s Csc Cot = no λ ()
-  s Csc (Limit name) = no λ ()
-  s Csc (Derivative name) = no λ ()
-  s Csc (Antiderivative name) = no λ ()
-  s Csc (BoundedIntegral name) = no λ ()
-  s Sec Abs = no λ ()
-  s Sec Negate = no λ ()
-  s Sec Sum = no λ ()
-  s Sec Product = no λ ()
-  s Sec Exponent = no λ ()
-  s Sec (Lambda name exp) = no λ ()
-  s Sec Sin = no λ ()
-  s Sec Cos = no λ ()
-  s Sec Tan = no λ ()
-  s Sec Csc = no λ ()
-  s Sec Sec = yes refl
-  s Sec Cot = no λ ()
-  s Sec (Limit name) = no λ ()
-  s Sec (Derivative name) = no λ ()
-  s Sec (Antiderivative name) = no λ ()
-  s Sec (BoundedIntegral name) = no λ ()
-  s Cot Abs = no λ ()
-  s Cot Negate = no λ ()
-  s Cot Sum = no λ ()
-  s Cot Product = no λ ()
-  s Cot Exponent = no λ ()
-  s Cot (Lambda name exp) = no λ ()
-  s Cot Sin = no λ ()
-  s Cot Cos = no λ ()
-  s Cot Tan = no λ ()
-  s Cot Csc = no λ ()
-  s Cot Sec = no λ ()
-  s Cot Cot = yes refl
-  s Cot (Limit name) = no λ ()
-  s Cot (Derivative name) = no λ ()
-  s Cot (Antiderivative name) = no λ ()
-  s Cot (BoundedIntegral name) = no λ ()
-  s (Limit n1) Abs = no λ ()
-  s (Limit n1) Negate = no λ ()
-  s (Limit n1) Sum = no λ ()
-  s (Limit n1) Product = no λ ()
-  s (Limit n1) Exponent = no λ ()
-  s (Limit n1) (Lambda name exp) = no λ ()
-  s (Limit n1) Sin = no λ ()
-  s (Limit n1) Cos = no λ ()
-  s (Limit n1) Tan = no λ ()
-  s (Limit n1) Csc = no λ ()
-  s (Limit n1) Sec = no λ ()
-  s (Limit n1) Cot = no λ ()
-  s (Limit n1) (Limit n2) with n1 Data.String.≟ n2
-  ... | yes eq = yes (cong Limit eq)
-  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+  structuralEqualityOnF : DecidableEquality F
+  structuralEqualityOnF = s
     where
-    equality-implies-variable-equality : (n1 n2 : String) →
-           Limit n1 ≡ Limit n2 →
-           n1 ≡ n2
-    equality-implies-variable-equality n1 n2 refl = refl
-  s (Limit n1) (Derivative name) = no λ ()
-  s (Limit n1) (Antiderivative name) = no λ ()
-  s (Limit n1) (BoundedIntegral name) = no λ ()
-  s (Derivative n1) Abs = no λ ()
-  s (Derivative n1) Negate = no λ ()
-  s (Derivative n1) Sum = no λ ()
-  s (Derivative n1) Product = no λ ()
-  s (Derivative n1) Exponent = no λ ()
-  s (Derivative n1) (Lambda name exp) = no λ ()
-  s (Derivative n1) Sin = no λ ()
-  s (Derivative n1) Cos = no λ ()
-  s (Derivative n1) Tan = no λ ()
-  s (Derivative n1) Csc = no λ ()
-  s (Derivative n1) Sec = no λ ()
-  s (Derivative n1) Cot = no λ ()
-  s (Derivative n1) (Limit name) = no λ ()
-  s (Derivative n1) (Derivative n2) with n1 Data.String.≟ n2
-  ... | yes eq = yes (cong Derivative eq)
-  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-    where
-    equality-implies-variable-equality : (n1 n2 : String) →
-           Derivative n1 ≡ Derivative n2 →
-           n1 ≡ n2
-    equality-implies-variable-equality n1 n2 refl = refl
-  s (Derivative n1) (Antiderivative name) = no λ ()
-  s (Derivative n1) (BoundedIntegral name) = no λ ()
-  s (Antiderivative n1) Abs = no λ ()
-  s (Antiderivative n1) Negate = no λ ()
-  s (Antiderivative n1) Sum = no λ ()
-  s (Antiderivative n1) Product = no λ ()
-  s (Antiderivative n1) Exponent = no λ ()
-  s (Antiderivative n1) (Lambda name exp) = no λ ()
-  s (Antiderivative n1) Sin = no λ ()
-  s (Antiderivative n1) Cos = no λ ()
-  s (Antiderivative n1) Tan = no λ ()
-  s (Antiderivative n1) Csc = no λ ()
-  s (Antiderivative n1) Sec = no λ ()
-  s (Antiderivative n1) Cot = no λ ()
-  s (Antiderivative n1) (Limit name) = no λ ()
-  s (Antiderivative n1) (Derivative name) = no λ ()
-  s (Antiderivative n1) (Antiderivative n2) with n1 Data.String.≟ n2
-  ... | yes eq = yes (cong Antiderivative eq)
-  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-    where
-    equality-implies-variable-equality : (n1 n2 : String) →
-           Antiderivative n1 ≡ Antiderivative n2 →
-           n1 ≡ n2
-    equality-implies-variable-equality n1 n2 refl = refl
-  s (Antiderivative n1) (BoundedIntegral name) = no λ ()
-  s (BoundedIntegral n1) Abs = no λ ()
-  s (BoundedIntegral n1) Negate = no λ ()
-  s (BoundedIntegral n1) Sum = no λ ()
-  s (BoundedIntegral n1) Product = no λ ()
-  s (BoundedIntegral n1) Exponent = no λ ()
-  s (BoundedIntegral n1) (Lambda name exp) = no λ ()
-  s (BoundedIntegral n1) Sin = no λ ()
-  s (BoundedIntegral n1) Cos = no λ ()
-  s (BoundedIntegral n1) Tan = no λ ()
-  s (BoundedIntegral n1) Csc = no λ ()
-  s (BoundedIntegral n1) Sec = no λ ()
-  s (BoundedIntegral n1) Cot = no λ ()
-  s (BoundedIntegral n1) (Limit name) = no λ ()
-  s (BoundedIntegral n1) (Derivative name) = no λ ()
-  s (BoundedIntegral n1) (Antiderivative name) = no λ ()
-  s (BoundedIntegral n1) (BoundedIntegral n2) with n1 Data.String.≟ n2
-  ... | yes eq = yes (cong BoundedIntegral eq)
-  ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-    where
-    equality-implies-variable-equality : (n1 n2 : String) →
-           BoundedIntegral n1 ≡ BoundedIntegral n2 →
-           n1 ≡ n2
-    equality-implies-variable-equality n1 n2 refl = refl
+    s : DecidableEquality F
+    s Abs Abs = yes refl
+    s Abs Negate = no λ ()
+    s Abs Sum = no λ ()
+    s Abs Product = no λ ()
+    s Abs Exponent = no λ ()
+    s Abs (Lambda name exp) = no λ ()
+    s Abs Sin = no λ ()
+    s Abs Cos = no λ ()
+    s Abs Tan = no λ ()
+    s Abs Csc = no λ ()
+    s Abs Sec = no λ ()
+    s Abs Cot = no λ ()
+    s Abs (Limit name) = no λ ()
+    s Abs (Derivative name) = no λ ()
+    s Abs (Antiderivative name) = no λ ()
+    s Abs (BoundedIntegral name) = no λ ()
+    s Negate Abs = no λ ()
+    s Negate Negate = yes refl
+    s Negate Sum = no λ ()
+    s Negate Product = no λ ()
+    s Negate Exponent = no λ ()
+    s Negate (Lambda name exp) = no λ ()
+    s Negate Sin = no λ ()
+    s Negate Cos = no λ ()
+    s Negate Tan = no λ ()
+    s Negate Csc = no λ ()
+    s Negate Sec = no λ ()
+    s Negate Cot = no λ ()
+    s Negate (Limit name) = no λ ()
+    s Negate (Derivative name) = no λ ()
+    s Negate (Antiderivative name) = no λ ()
+    s Negate (BoundedIntegral name) = no λ ()
+    s Sum Abs = no λ ()
+    s Sum Negate = no λ ()
+    s Sum Sum = yes refl
+    s Sum Product = no λ ()
+    s Sum Exponent = no λ ()
+    s Sum (Lambda name exp) = no λ ()
+    s Sum Sin = no λ ()
+    s Sum Cos = no λ ()
+    s Sum Tan = no λ ()
+    s Sum Csc = no λ ()
+    s Sum Sec = no λ ()
+    s Sum Cot = no λ ()
+    s Sum (Limit name) = no λ ()
+    s Sum (Derivative name) = no λ ()
+    s Sum (Antiderivative name) = no λ ()
+    s Sum (BoundedIntegral name) = no λ ()
+    s Product Abs = no λ ()
+    s Product Negate = no λ ()
+    s Product Sum = no λ ()
+    s Product Product = yes refl
+    s Product Exponent = no λ ()
+    s Product (Lambda name exp) = no λ ()
+    s Product Sin = no λ ()
+    s Product Cos = no λ ()
+    s Product Tan = no λ ()
+    s Product Csc = no λ ()
+    s Product Sec = no λ ()
+    s Product Cot = no λ ()
+    s Product (Limit name) = no λ ()
+    s Product (Derivative name) = no λ ()
+    s Product (Antiderivative name) = no λ ()
+    s Product (BoundedIntegral name) = no λ ()
+    s Exponent Abs = no λ ()
+    s Exponent Negate = no λ ()
+    s Exponent Sum = no λ ()
+    s Exponent Product = no λ ()
+    s Exponent Exponent = yes refl
+    s Exponent (Lambda name exp) = no λ ()
+    s Exponent Sin = no λ ()
+    s Exponent Cos = no λ ()
+    s Exponent Tan = no λ ()
+    s Exponent Csc = no λ ()
+    s Exponent Sec = no λ ()
+    s Exponent Cot = no λ ()
+    s Exponent (Limit name) = no λ ()
+    s Exponent (Derivative name) = no λ ()
+    s Exponent (Antiderivative name) = no λ ()
+    s Exponent (BoundedIntegral name) = no λ ()
+    s (Lambda n1 e1) Abs = no λ ()
+    s (Lambda n1 e1) Negate = no λ ()
+    s (Lambda n1 e1) Sum = no λ ()
+    s (Lambda n1 e1) Product = no λ ()
+    s (Lambda n1 e1) Exponent = no λ ()
+    s (Lambda n1 e1) (Lambda n2 e2) = {!!}
+    s (Lambda n1 e1) Sin = no λ ()
+    s (Lambda n1 e1) Cos = no λ ()
+    s (Lambda n1 e1) Tan = no λ ()
+    s (Lambda n1 e1) Csc = no λ ()
+    s (Lambda n1 e1) Sec = no λ ()
+    s (Lambda n1 e1) Cot = no λ ()
+    s (Lambda n1 e1) (Limit name) = no λ ()
+    s (Lambda n1 e1) (Derivative name) = no λ ()
+    s (Lambda n1 e1) (Antiderivative name) = no λ ()
+    s (Lambda n1 e1) (BoundedIntegral name) = no λ ()
+    -- Help!  I'm trapped in a boring nonsense factory!
+    s Sin Abs = no λ ()
+    s Sin Negate = no λ ()
+    s Sin Sum = no λ ()
+    s Sin Product = no λ ()
+    s Sin Exponent = no λ ()
+    s Sin (Lambda name exp) = no λ ()
+    s Sin Sin = yes refl
+    s Sin Cos = no λ ()
+    s Sin Tan = no λ ()
+    s Sin Csc = no λ ()
+    s Sin Sec = no λ ()
+    s Sin Cot = no λ ()
+    s Sin (Limit name) = no λ ()
+    s Sin (Derivative name) = no λ ()
+    s Sin (Antiderivative name) = no λ ()
+    s Sin (BoundedIntegral name) = no λ ()
+    s Cos Abs = no λ ()
+    s Cos Negate = no λ ()
+    s Cos Sum = no λ ()
+    s Cos Product = no λ ()
+    s Cos Exponent = no λ ()
+    s Cos (Lambda name exp) = no λ ()
+    s Cos Sin = no λ ()
+    s Cos Cos = yes refl
+    s Cos Tan = no λ ()
+    s Cos Csc = no λ ()
+    s Cos Sec = no λ ()
+    s Cos Cot = no λ ()
+    s Cos (Limit name) = no λ ()
+    s Cos (Derivative name) = no λ ()
+    s Cos (Antiderivative name) = no λ ()
+    s Cos (BoundedIntegral name) = no λ ()
+    s Tan Abs = no λ ()
+    s Tan Negate = no λ ()
+    s Tan Sum = no λ ()
+    s Tan Product = no λ ()
+    s Tan Exponent = no λ ()
+    s Tan (Lambda name exp) = no λ ()
+    s Tan Sin = no λ ()
+    s Tan Cos = no λ ()
+    s Tan Tan = yes refl
+    s Tan Csc = no λ ()
+    s Tan Sec = no λ ()
+    s Tan Cot = no λ ()
+    s Tan (Limit name) = no λ ()
+    s Tan (Derivative name) = no λ ()
+    s Tan (Antiderivative name) = no λ ()
+    s Tan (BoundedIntegral name) = no λ ()
+    s Csc Abs = no λ ()
+    s Csc Negate = no λ ()
+    s Csc Sum = no λ ()
+    s Csc Product = no λ ()
+    s Csc Exponent = no λ ()
+    s Csc (Lambda name exp) = no λ ()
+    s Csc Sin = no λ ()
+    s Csc Cos = no λ ()
+    s Csc Tan = no λ ()
+    s Csc Csc = yes refl
+    s Csc Sec = no λ ()
+    s Csc Cot = no λ ()
+    s Csc (Limit name) = no λ ()
+    s Csc (Derivative name) = no λ ()
+    s Csc (Antiderivative name) = no λ ()
+    s Csc (BoundedIntegral name) = no λ ()
+    s Sec Abs = no λ ()
+    s Sec Negate = no λ ()
+    s Sec Sum = no λ ()
+    s Sec Product = no λ ()
+    s Sec Exponent = no λ ()
+    s Sec (Lambda name exp) = no λ ()
+    s Sec Sin = no λ ()
+    s Sec Cos = no λ ()
+    s Sec Tan = no λ ()
+    s Sec Csc = no λ ()
+    s Sec Sec = yes refl
+    s Sec Cot = no λ ()
+    s Sec (Limit name) = no λ ()
+    s Sec (Derivative name) = no λ ()
+    s Sec (Antiderivative name) = no λ ()
+    s Sec (BoundedIntegral name) = no λ ()
+    s Cot Abs = no λ ()
+    s Cot Negate = no λ ()
+    s Cot Sum = no λ ()
+    s Cot Product = no λ ()
+    s Cot Exponent = no λ ()
+    s Cot (Lambda name exp) = no λ ()
+    s Cot Sin = no λ ()
+    s Cot Cos = no λ ()
+    s Cot Tan = no λ ()
+    s Cot Csc = no λ ()
+    s Cot Sec = no λ ()
+    s Cot Cot = yes refl
+    s Cot (Limit name) = no λ ()
+    s Cot (Derivative name) = no λ ()
+    s Cot (Antiderivative name) = no λ ()
+    s Cot (BoundedIntegral name) = no λ ()
+    s (Limit n1) Abs = no λ ()
+    s (Limit n1) Negate = no λ ()
+    s (Limit n1) Sum = no λ ()
+    s (Limit n1) Product = no λ ()
+    s (Limit n1) Exponent = no λ ()
+    s (Limit n1) (Lambda name exp) = no λ ()
+    s (Limit n1) Sin = no λ ()
+    s (Limit n1) Cos = no λ ()
+    s (Limit n1) Tan = no λ ()
+    s (Limit n1) Csc = no λ ()
+    s (Limit n1) Sec = no λ ()
+    s (Limit n1) Cot = no λ ()
+    s (Limit n1) (Limit n2) with n1 Data.String.≟ n2
+    ... | yes eq = yes (cong Limit eq)
+    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+      where
+      equality-implies-variable-equality : (n1 n2 : String) →
+             Limit n1 ≡ Limit n2 →
+             n1 ≡ n2
+      equality-implies-variable-equality n1 n2 refl = refl
+    s (Limit n1) (Derivative name) = no λ ()
+    s (Limit n1) (Antiderivative name) = no λ ()
+    s (Limit n1) (BoundedIntegral name) = no λ ()
+    s (Derivative n1) Abs = no λ ()
+    s (Derivative n1) Negate = no λ ()
+    s (Derivative n1) Sum = no λ ()
+    s (Derivative n1) Product = no λ ()
+    s (Derivative n1) Exponent = no λ ()
+    s (Derivative n1) (Lambda name exp) = no λ ()
+    s (Derivative n1) Sin = no λ ()
+    s (Derivative n1) Cos = no λ ()
+    s (Derivative n1) Tan = no λ ()
+    s (Derivative n1) Csc = no λ ()
+    s (Derivative n1) Sec = no λ ()
+    s (Derivative n1) Cot = no λ ()
+    s (Derivative n1) (Limit name) = no λ ()
+    s (Derivative n1) (Derivative n2) with n1 Data.String.≟ n2
+    ... | yes eq = yes (cong Derivative eq)
+    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+      where
+      equality-implies-variable-equality : (n1 n2 : String) →
+             Derivative n1 ≡ Derivative n2 →
+             n1 ≡ n2
+      equality-implies-variable-equality n1 n2 refl = refl
+    s (Derivative n1) (Antiderivative name) = no λ ()
+    s (Derivative n1) (BoundedIntegral name) = no λ ()
+    s (Antiderivative n1) Abs = no λ ()
+    s (Antiderivative n1) Negate = no λ ()
+    s (Antiderivative n1) Sum = no λ ()
+    s (Antiderivative n1) Product = no λ ()
+    s (Antiderivative n1) Exponent = no λ ()
+    s (Antiderivative n1) (Lambda name exp) = no λ ()
+    s (Antiderivative n1) Sin = no λ ()
+    s (Antiderivative n1) Cos = no λ ()
+    s (Antiderivative n1) Tan = no λ ()
+    s (Antiderivative n1) Csc = no λ ()
+    s (Antiderivative n1) Sec = no λ ()
+    s (Antiderivative n1) Cot = no λ ()
+    s (Antiderivative n1) (Limit name) = no λ ()
+    s (Antiderivative n1) (Derivative name) = no λ ()
+    s (Antiderivative n1) (Antiderivative n2) with n1 Data.String.≟ n2
+    ... | yes eq = yes (cong Antiderivative eq)
+    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+      where
+      equality-implies-variable-equality : (n1 n2 : String) →
+             Antiderivative n1 ≡ Antiderivative n2 →
+             n1 ≡ n2
+      equality-implies-variable-equality n1 n2 refl = refl
+    s (Antiderivative n1) (BoundedIntegral name) = no λ ()
+    s (BoundedIntegral n1) Abs = no λ ()
+    s (BoundedIntegral n1) Negate = no λ ()
+    s (BoundedIntegral n1) Sum = no λ ()
+    s (BoundedIntegral n1) Product = no λ ()
+    s (BoundedIntegral n1) Exponent = no λ ()
+    s (BoundedIntegral n1) (Lambda name exp) = no λ ()
+    s (BoundedIntegral n1) Sin = no λ ()
+    s (BoundedIntegral n1) Cos = no λ ()
+    s (BoundedIntegral n1) Tan = no λ ()
+    s (BoundedIntegral n1) Csc = no λ ()
+    s (BoundedIntegral n1) Sec = no λ ()
+    s (BoundedIntegral n1) Cot = no λ ()
+    s (BoundedIntegral n1) (Limit name) = no λ ()
+    s (BoundedIntegral n1) (Derivative name) = no λ ()
+    s (BoundedIntegral n1) (Antiderivative name) = no λ ()
+    s (BoundedIntegral n1) (BoundedIntegral n2) with n1 Data.String.≟ n2
+    ... | yes eq = yes (cong BoundedIntegral eq)
+    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
+      where
+      equality-implies-variable-equality : (n1 n2 : String) →
+             BoundedIntegral n1 ≡ BoundedIntegral n2 →
+             n1 ≡ n2
+      equality-implies-variable-equality n1 n2 refl = refl
 \end{code}
 
 \subsection{Decidable Structural Equality on \AgdaDatatype{ε}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
 \begin{code}
-{-# TERMINATING #-}
-structuralEqualityOnε : DecidableEquality ε
-structuralEqualityOnε = s
-  where
-  s : DecidableEquality ε
-  s Infinity Infinity = yes refl
-  s Infinity (Variable v) = no λ ()
-  s Infinity (NumberRat r) = no λ ()
-  s Infinity (Ap f x) = no λ ()
-  s (Variable v) Infinity = no λ ()
-  s (Variable v1) (Variable v2) with v1 Data.String.≟ v2
-  ... | yes namesAreEqual = yes (cong Variable namesAreEqual)
-  ... | no differentNames = no (differentNames ∘ same-variable-implies-same-name)
+  {-# TERMINATING #-}
+  structuralEqualityOnε : DecidableEquality ε
+  structuralEqualityOnε = s
     where
-    same-variable-implies-same-name :
-      {n1 n2 : String} →
-      Variable n1 ≡ Variable n2 →
-      n1 ≡ n2
-    same-variable-implies-same-name refl = refl
-  s (Variable v) (NumberRat r) = no λ ()
-  s (Variable v) (Ap f x) = no λ ()
-  s (NumberRat r) Infinity = no λ ()
-  s (NumberRat r) (Variable v) = no λ ()
-  s (NumberRat r1) (NumberRat r2) with r1 ℚ.≟ r2
-  ... | yes ratsAreEqual = yes (cong NumberRat ratsAreEqual)
-  ... | no ratsAreDifferent = no (ratsAreDifferent ∘ same-numberRat-implies-same-rat)
-    where
-    same-numberRat-implies-same-rat :
-      {q1 q2 : ℚ} →
-      NumberRat q1 ≡ NumberRat q2 →
-      q1 ≡ q2
-    same-numberRat-implies-same-rat refl = refl
-  s (NumberRat r) (Ap f x) = no λ ()
-  s (Ap f x) Infinity = no λ ()
-  s (Ap f x) (Variable v) = no λ ()
-  s (Ap f x) (NumberRat r) = no λ ()
-  s (Ap f1 x1) (Ap f2 x2) with structuralEqualityOnF f2 f1
-  ... | no differentF = no (differentF ∘ sym ∘ same-only-with-same-function)
-    where
-    same-only-with-same-function :
-      {f1 f2 : F} →
-      {x1 : Vec ε (arity f1)} →
-      {x2 : Vec ε (arity f2)} →
-      Ap f1 x1 ≡ Ap f2 x2 →
-      f1 ≡ f2
-    same-only-with-same-function refl = refl
-  ... | yes sameF with VecProp.≡-dec structuralEqualityOnε
-                                     x1 (Data.Vec.cast (cong arity sameF) x2)
-  ... | yes sameX = yes (combine sameF sameX)
-    where
-    combine :
-      {f1 f2 : F} →
-      {x1 : Vec ε (arity f1)} →
-      {x2 : Vec ε (arity f2)} →
-      (sameF : f2 ≡ f1) →
-      x1 ≡ Data.Vec.cast (cong arity sameF) x2 →
-      Ap f1 x1 ≡ Ap f2 x2
-    combine = {!!}
-  ... | no differentX = no (differentX ∘ same-only-with-same-x sameF)
-    where
-    same-only-with-same-x :
-      {f1 f2 : F} →
-      {x1 : Vec ε (arity f1)} →
-      {x2 : Vec ε (arity f2)} →
-      (sameF : f2 ≡ f1) →
-      Ap f1 x1 ≡ Ap f2 x2 →
-      x1 ≡ Data.Vec.cast (cong arity sameF) x2
-    same-only-with-same-x = {!!}
+    s : DecidableEquality ε
+    s Infinity Infinity = yes refl
+    s Infinity (Variable v) = no λ ()
+    s Infinity (NumberRat r) = no λ ()
+    s Infinity (Ap f x) = no λ ()
+    s (Variable v) Infinity = no λ ()
+    s (Variable v1) (Variable v2) with v1 Data.String.≟ v2
+    ... | yes namesAreEqual = yes (cong Variable namesAreEqual)
+    ... | no differentNames = no (differentNames ∘ same-variable-implies-same-name)
+      where
+      same-variable-implies-same-name :
+        {n1 n2 : String} →
+        Variable n1 ≡ Variable n2 →
+        n1 ≡ n2
+      same-variable-implies-same-name refl = refl
+    s (Variable v) (NumberRat r) = no λ ()
+    s (Variable v) (Ap f x) = no λ ()
+    s (NumberRat r) Infinity = no λ ()
+    s (NumberRat r) (Variable v) = no λ ()
+    s (NumberRat r1) (NumberRat r2) with r1 ℚ.≟ r2
+    ... | yes ratsAreEqual = yes (cong NumberRat ratsAreEqual)
+    ... | no ratsAreDifferent = no (ratsAreDifferent ∘ same-numberRat-implies-same-rat)
+      where
+      same-numberRat-implies-same-rat :
+        {q1 q2 : ℚ} →
+        NumberRat q1 ≡ NumberRat q2 →
+        q1 ≡ q2
+      same-numberRat-implies-same-rat refl = refl
+    s (NumberRat r) (Ap f x) = no λ ()
+    s (Ap f x) Infinity = no λ ()
+    s (Ap f x) (Variable v) = no λ ()
+    s (Ap f x) (NumberRat r) = no λ ()
+    s (Ap f1 x1) (Ap f2 x2) with structuralEqualityOnF f2 f1
+    ... | no differentF = no (differentF ∘ sym ∘ same-only-with-same-function)
+      where
+      same-only-with-same-function :
+        {f1 f2 : F} →
+        {x1 : Vec ε (arity f1)} →
+        {x2 : Vec ε (arity f2)} →
+        Ap f1 x1 ≡ Ap f2 x2 →
+        f1 ≡ f2
+      same-only-with-same-function refl = refl
+    ... | yes sameF with VecProp.≡-dec structuralEqualityOnε
+                                       x1 (Data.Vec.cast (cong arity sameF) x2)
+    ... | yes sameX = yes (combine sameF sameX)
+      where
+      combine :
+        {f1 f2 : F} →
+        {x1 : Vec ε (arity f1)} →
+        {x2 : Vec ε (arity f2)} →
+        (sameF : f2 ≡ f1) →
+        x1 ≡ Data.Vec.cast (cong arity sameF) x2 →
+        Ap f1 x1 ≡ Ap f2 x2
+      combine = {!!}
+    ... | no differentX = no (differentX ∘ same-only-with-same-x sameF)
+      where
+      same-only-with-same-x :
+        {f1 f2 : F} →
+        {x1 : Vec ε (arity f1)} →
+        {x2 : Vec ε (arity f2)} →
+        (sameF : f2 ≡ f1) →
+        Ap f1 x1 ≡ Ap f2 x2 →
+        x1 ≡ Data.Vec.cast (cong arity sameF) x2
+      same-only-with-same-x = {!!}
 \end{code}
 
 \subsection{The Function for Commutativity Permutations}
 \AgdaFunction{commutativePermutations} \AgdaBound{x} is a list of all expressions which are equivalent to \AgdaBound{x} and are derived from \AgdaBound{x} by commutativity.
 
 \begin{code}
-{-# TERMINATING #-}
-commutativePermutations : ε → List.List ε
-commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
-  where
-  combine : (f : F) → (e : List.List ε) → arity f ≡ List.length e → ε
-  combine f e lengthMatch = Ap f (Data.Vec.cast (sym lengthMatch)
-                                                (Data.Vec.fromList e))
-  perms' : (f : F) → (e : List.List ε) → arity f ≡ List.length e → List.List ε
-  perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
-    if isCommutative f lengthMatches then solo else list
+  {-# TERMINATING #-}
+  commutativePermutations : ε → List.List ε
+  commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
     where
-    solo = List.[ combine f e lengthMatches ]
-    list =
-      f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
-      List.map (λ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
-      List.map (λ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
-      List.concat (List.map (λ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
-                                            List.[ f' (e2 ∷ [ e1 ]) ])
-                            (List.zip (commutativePermutations e1)
-                                      (commutativePermutations e2)))
-      where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
-  perms' f e lengthMatches = List.[ combine f e lengthMatches ]
-commutativePermutations o = List.[ o ]
+    combine : (f : F) → (e : List.List ε) → arity f ≡ List.length e → ε
+    combine f e lengthMatch = Ap f (Data.Vec.cast (sym lengthMatch)
+                                                  (Data.Vec.fromList e))
+    perms' : (f : F) → (e : List.List ε) → arity f ≡ List.length e → List.List ε
+    perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
+      if isCommutative f lengthMatches then solo else list
+      where
+      solo = List.[ combine f e lengthMatches ]
+      list =
+        f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
+        List.map (λ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
+        List.map (λ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
+        List.concat (List.map (λ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
+                                              List.[ f' (e2 ∷ [ e1 ]) ])
+                              (List.zip (commutativePermutations e1)
+                                        (commutativePermutations e2)))
+        where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
+    perms' f e lengthMatches = List.[ combine f e lengthMatches ]
+  commutativePermutations o = List.[ o ]
 \end{code}
 
 \section{The Variable Substitution Function}
 \AgdaFunction{varSubstM} is the multi-variable substitution function.  In \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e}, any variable in \AgdaBound{e} which also has an entry in \AgdaBound{l} will be replaced by the corresponding \AgdaDatatype{ε} entry in \AgdaBound{l}.  More formally, one can say that \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e} is a derivative of \AgdaBound{e} such that for any given variable \AgdaBound{x} in \AgdaBound{e}, if a value \AgdaBound{i} exists such that \AgdaField{proj₁} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol) is \AgdaBound{x}, then \AgdaBound{x} is replaced by \AgdaField{proj₂} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol).
 
 \begin{code}
-{-# TERMINATING #-}
-varSubstM : List.List (String × ε) → ε → ε
-varSubstM List.[] x = x
-varSubstM vars o@(NumberRat r) = o
-varSubstM vars o@Infinity = o
-varSubstM (v List.∷ vs) (Variable sv) =
-  if proj₁ v Data.String.== sv
-     then proj₂ v
-     else varSubstM vs (Variable sv)
-varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
+  {-# TERMINATING #-}
+  varSubstM : List.List (String × ε) → ε → ε
+  varSubstM List.[] x = x
+  varSubstM vars o@(NumberRat r) = o
+  varSubstM vars o@Infinity = o
+  varSubstM (v List.∷ vs) (Variable sv) =
+    if proj₁ v Data.String.== sv
+       then proj₂ v
+       else varSubstM vs (Variable sv)
+  varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 \end{code}
 
 \section{The Types of the Algebraic Equality Type and the Single-Step Evaluation Function}
@@ -1756,7 +1760,7 @@ varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 A value of type \AgdaFunction{AlgebraicEquality} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is \emph{algebraically} equal to \AgdaBound{y}, i.e., \AgdaBound{x} and \AgdaBound{y} represent the same numerical value.  This algebraic equality type should not be confused with the \emph{propositional} equality type, which, as intended, fails to recognize that \(x + y\) is in some way equal to \(y + x\).
 
 \begin{code}
-AlgebraicEquality : ε → ε → Set
+  AlgebraicEquality : ε → ε → Set
 \end{code}
 
 \subsection{The Algebraic Equality Determination Function}
@@ -1769,51 +1773,51 @@ Informally, one can say that \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n}
 \end{enumerate}
 
 \begin{code}
-checkAlgebraicEquality :
-  ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
+  checkAlgebraicEquality :
+    ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
 \end{code}
 
 \subsection{The Single-Step Evaluation Function}
 \AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
 
 \begin{code}
-exceptionallyEvaluate : ε → Exceptional ε
+  exceptionallyEvaluate : ε → Exceptional ε
 \end{code}
 
 \section{The Single-Step Evaluation Function which \emph{also} Supports Commutativity}
 \AgdaFunction{commutativeEvaluate} \AgdaBound{e} performs a single evaluation step on the input expression but can also do some fancy stuff when applicable, e.g., switching the arguments of commutative functions.
 
 \begin{code}
-commutativeEvaluate : ε → Exceptional ε
-commutativeEvaluate e@(Ap f x) =
-  if (e evaluates) then evaluate e else tryFlip (arity f Data.Nat.≟ 2)
-  where
-  -- evaluate is just an abbreviation.  "exceptionallyEvaluate" is a bit long.
-  evaluate = exceptionallyEvaluate
-  structuralEquality =
-    Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
-  _evaluates : ε → Bool
-  _evaluates e = isNo (structuralEquality (inj₂ e) (evaluate e))
-  tryFlip : Dec (arity f ≡ 2) → Exceptional ε
-  tryFlip (no arityDiffers) = evaluate e
-  tryFlip (yes arityMatches) =
-    if isCommutative f arityMatches ∧ (e2 evaluates) then inj₂ e2 else evaluate e
-    where e2 = Ap f (reverse x)
-commutativeEvaluate e = exceptionallyEvaluate e
+  commutativeEvaluate : ε → Exceptional ε
+  commutativeEvaluate e@(Ap f x) =
+    if (e evaluates) then evaluate e else tryFlip (arity f Data.Nat.≟ 2)
+    where
+    -- evaluate is just an abbreviation.  "exceptionallyEvaluate" is a bit long.
+    evaluate = exceptionallyEvaluate
+    structuralEquality =
+      Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
+    _evaluates : ε → Bool
+    _evaluates e = isNo (structuralEquality (inj₂ e) (evaluate e))
+    tryFlip : Dec (arity f ≡ 2) → Exceptional ε
+    tryFlip (no arityDiffers) = evaluate e
+    tryFlip (yes arityMatches) =
+      if isCommutative f arityMatches ∧ (e2 evaluates) then inj₂ e2 else evaluate e
+      where e2 = Ap f (reverse x)
+  commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
 \section{Completing the Algebraic Equality Function}
 Regardless of the indentation in the compiled PDF document, this entire section, save for the final definition, constitutes a single module\ldots{} and facilitates defining \AgdaFunction{AlgebraicEquality}.
 
 \begin{code}
-module AlgebraicEquality where
+  module AlgebraicEquality where
 \end{code}
 
 \subsection{The Type of the Main Function}
 A value of type \AgdaFunction{main} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The reader may be right to think that this explanation is uncannily similar to another explanation\ldots{}
 
 \begin{code}
-  main : ε → ε → Set
+    main : ε → ε → Set
 \end{code}
 
 \subsection{The Basic Equality Type}
@@ -1822,257 +1826,257 @@ Basically, a proof of type \AgdaFunction{AE} \AgdaBound{x} \AgdaBound{y} if and 
 This notion of being ``directly equal'' is best understood by reading the Agda-based definition, but the author's Englishy explanation is as follows: When possible, \AgdaFunction{AE} uses natural number equality proofs, quotient type equality proofs, and other such structural equality proofs which cannot be achieved through the use of \AgdaDatatype{\AgdaUnderscore{}≡\AgdaUnderscore{}} alone.  Where applicable, commutativity and associativity are also considered.
 
 \begin{code}
-  AE : ε → ε → Set
+    AE : ε → ε → Set
 \end{code}
 
 \subsubsection{\AgdaInductiveConstructor{Infinity}-Related Types}
 
 \begin{code}
-  AE Infinity Infinity = ⊤
-  AE Infinity (Variable x) = ⊥
-  AE Infinity (NumberRat x) = ⊥
-  AE Infinity (Ap f x) = {!!}
+    AE Infinity Infinity = ⊤
+    AE Infinity (Variable x) = ⊥
+    AE Infinity (NumberRat x) = ⊥
+    AE Infinity (Ap f x) = {!!}
 \end{code}
 
 \subsubsection{\AgdaInductiveConstructor{Variable}-Related Types}
 
 \begin{code}
-  AE (Variable x) (Variable y) = x ≡ y
-  AE (Variable x) Infinity = ⊥
-  AE (Variable x) (NumberRat y) = ⊥
-  AE (Variable x) (Ap f y) = {!!}
+    AE (Variable x) (Variable y) = x ≡ y
+    AE (Variable x) Infinity = ⊥
+    AE (Variable x) (NumberRat y) = ⊥
+    AE (Variable x) (Ap f y) = {!!}
 \end{code}
 
 \subsubsection{\AgdaInductiveConstructor{NumberRat}-Related Types}
 
 \begin{code}
-  AE (NumberRat x) (NumberRat y) = x ≡ y
-  AE (NumberRat x) Infinity = ⊥
-  AE (NumberRat x) (Variable y) = ⊥
-  AE (NumberRat x) (Ap f y) = {!!}
+    AE (NumberRat x) (NumberRat y) = x ≡ y
+    AE (NumberRat x) Infinity = ⊥
+    AE (NumberRat x) (Variable y) = ⊥
+    AE (NumberRat x) (Ap f y) = {!!}
 \end{code}
 
 \subsubsection{\AgdaInductiveConstructor{Ap}-Related Types}
 
 \begin{code}
-  AE (Ap f x) Infinity = {!!}
-  AE (Ap f x) (Variable y) = {!!}
-  AE (Ap f x) (NumberRat y) = {!!}
+    AE (Ap f x) Infinity = {!!}
+    AE (Ap f x) (Variable y) = {!!}
+    AE (Ap f x) (NumberRat y) = {!!}
 \end{code}
 
 \subsubsection{Associativity-Related Types}
 
 \begin{code}
-  AE (Ap Sum (x1 ∷ Ap Sum (x2 ∷ x3 ∷ []) ∷ []))
-     (Ap Sum (Ap Sum (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
-     _×_ (AllList.All (λ x → AnyList.Any (main x) ys) xs)
-         (AllList.All (λ y → AnyList.Any (main y) xs) ys)
-     where
-     xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
-     ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
-  AE (Ap Product (x1 ∷ Ap Product (x2 ∷ x3 ∷ []) ∷ []))
-     (Ap Product (Ap Product (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
-     _×_ (AllList.All (λ x → AnyList.Any (main x) ys) xs)
-         (AllList.All (λ y → AnyList.Any (main y) xs) ys)
-     where
-     xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
-     ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
+    AE (Ap Sum (x1 ∷ Ap Sum (x2 ∷ x3 ∷ []) ∷ []))
+       (Ap Sum (Ap Sum (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
+       _×_ (AllList.All (λ x → AnyList.Any (main x) ys) xs)
+           (AllList.All (λ y → AnyList.Any (main y) xs) ys)
+       where
+       xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
+       ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
+    AE (Ap Product (x1 ∷ Ap Product (x2 ∷ x3 ∷ []) ∷ []))
+       (Ap Product (Ap Product (y1 ∷ y2 ∷ []) ∷ y3 ∷ [])) =
+       _×_ (AllList.All (λ x → AnyList.Any (main x) ys) xs)
+           (AllList.All (λ y → AnyList.Any (main y) xs) ys)
+       where
+       xs = Data.Vec.toList (x1 ∷ x2 ∷ [ x3 ])
+       ys = Data.Vec.toList (y1 ∷ y2 ∷ [ y3 ])
 \end{code}
 
 \subsubsection{Commutativity-Related Types}
 
 \begin{code}
-  AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
-    _⊎_ (AlgebraicEquality x1 x2 × AlgebraicEquality y1 y2)
-        (AlgebraicEquality x1 y2 × AlgebraicEquality y2 y1)
-  AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
-    (main x1 x2 × main y1 y2) ⊎ (main x1 y2 × main y2 y1)
+    AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
+      _⊎_ (AlgebraicEquality x1 x2 × AlgebraicEquality y1 y2)
+          (AlgebraicEquality x1 y2 × AlgebraicEquality y2 y1)
+    AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
+      (main x1 x2 × main y1 y2) ⊎ (main x1 y2 × main y2 y1)
 \end{code}
 
 \subsubsection{\ldots{} and the Rest}
 
 \begin{code}
-  AE (Ap f x) (Ap g y) = {!!}
+    AE (Ap f x) (Ap g y) = {!!}
 \end{code}
 
 \subsection{The Exceptional Equality Type}
 A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \AgdaInductiveConstructor{inj₂}-contain equal values.
 
 \begin{code}
-  AE2 : Exceptional ε → Exceptional ε → Set
-  AE2 (inj₂ x) (inj₂ y) = main x y
-  AE2 _ _ = ⊥
+    AE2 : Exceptional ε → Exceptional ε → Set
+    AE2 (inj₂ x) (inj₂ y) = main x y
+    AE2 _ _ = ⊥
 \end{code}
 
 \subsection{Completing the Algebraic Equality Function}
 
 \begin{code}
-  main x y =
-    x ≡ y ⊎
-    AE x y ⊎
-    Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n commutativeEvaluate x)
-                               (repeatExceptional m commutativeEvaluate y))
+    main x y =
+      x ≡ y ⊎
+      AE x y ⊎
+      Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n commutativeEvaluate x)
+                                 (repeatExceptional m commutativeEvaluate y))
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
 \AgdaFunction{AlgebraicEquality} is really just \AgdaFunction{AlgebraicEquality.main}.
 
 \begin{code}
-AlgebraicEquality = AlgebraicEquality.main
+  AlgebraicEquality = AlgebraicEquality.main
 \end{code}
 
 \section{Completing the Single-Step Evaluation Function}
 
 \begin{code}
-module exceptionallyEvaluate where
-  main : ε → Exceptional ε
-
-  firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
-              Vec (Maybe (Exceptional A)) (ℕ.suc n) → Exceptional A
-  firstInj2 = fromMaybe errorMsg ∘ List.head ∘ List.catMaybes
-            ∘ Data.Vec.toList
-    where errorMsg = inj₁ "The list of exceptionallyEvaluate results \
-                          \was just a bunch of nothingness!"
-
-  functions =
-    ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
-         ; _ → nothing})
-    ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
-         ; _ → nothing})
-    ∷ (λ { (Ap Sum (NumberNatP 0 c ∷ x ∷ [])) → valid x
-         ; _ → nothing})
-    ∷ (λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
-           valid (NumberRat (x ℚ.+ y))
-         ; _ → nothing})
-    ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
-           valid (NumberRat (x ℚ.* y))
-         ; _ → nothing})
-    ∷ (λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
-           if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
-             then bust "0^0 is undefined!"
-             else valid (NumberNat (x Data.Nat.^ y))
-         ; _ → nothing})
-    -- The following "x^0" evaluation rule is a bit dubious; this rule
-    -- indicates that Variable x ^ fromℕ 0 is algebraically equal to
-    -- fromℕ 1.  However, Variable x *could* feasibly be defined as
-    -- being equal to fromℕ 0.
-    -- The current behavior parallels Maxima, though.
-    ∷ (λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
-         ; _ → nothing})
-    -- The following "0^x" evaluation rule, like the "x^0" rule, is
-    -- kind of dubious.  This rule, too, mirrors the behavior of
-    -- Maxima, though.
-    ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) → valid (NumberNat 0)
-         ; _ → nothing})
-    ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
-         ; _ → nothing})
-    -- The following evaluation rule is *also* kind of dubious, but,
-    -- again, the behavior is like the behavior of Maxima.
-    ∷ (λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (NumberNat 1)
-             else valid (NumberNat 0)
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
-           valid (NumberNat 0)
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
-           valid (Ap Negate [ Ap (Derivative v1) x ])
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Sum (x ∷ y ∷ []) ∷ [])) →
-           valid (Ap Sum ( Ap (Derivative v1) [ x ]
-                         ∷ [ Ap (Derivative v1) [ y ] ]))
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
-           valid (Ap Product ( Ap (Derivative v1) [ x ]
-                             ∷ [ Ap (Derivative v1) [ y ] ]))
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (Ap Cos [ Variable v1 ])
-             else nothing
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (Ap Negate [ Ap Sin [ Variable v1 ] ])
-             else nothing
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (Ap Exponent ( Ap Sec [ Variable v1 ] ∷ [ NumberNat 2 ]))
-             else nothing
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Csc (Variable v2 ∷ []) ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (Ap Product
-                            ( Ap Csc [ Variable v1 ]
-                            ∷ [ Ap Negate [ Ap Cot [ Variable v1 ] ] ]))
-             else nothing
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Sec (Variable v2 ∷ []) ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (Ap Product
-                            ( Ap Sec [ Variable v1 ]
-                            ∷ [ Ap Tan [ Variable v1 ] ]))
-             else nothing
-         ; _ → nothing})
-    ∷ (λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
-           if v1 Data.String.== v2
-             then valid (Ap Negate
-                            [ Ap Exponent
-                                 ( Ap Csc [ Variable v1 ]
-                                 ∷ [ NumberNat 2 ]) ])
-             else nothing
-         ; _ → nothing})
-    ∷ (λ { (Ap (Lambda names body) expressions) →
-           valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
-         ; _ → nothing})
-    ∷ (λ { (Ap f x) → [_,_] (just ∘ inj₁)
-                            (just ∘ inj₂ ∘ Ap f)
-                            (condense (Data.Vec.map main x))
-         ; _ → nothing})
-    ∷ [ just ∘ inj₂ ]
-    )
-    where
-    bust = just ∘ inj₁
-    valid = just ∘ inj₂
-    condense : {a : Level} →
-               {A : Set a} →
-               {n : ℕ} →
-               Vec (Exceptional A) n →
-               Exceptional (Vec A n)
-    condense [] = inj₂ []
-    condense (inj₁ x ∷ xs) = inj₁ x
-    condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
-
+  module exceptionallyEvaluate where
+    main : ε → Exceptional ε
+  
+    firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
+                Vec (Maybe (Exceptional A)) (ℕ.suc n) → Exceptional A
+    firstInj2 = fromMaybe errorMsg ∘ List.head ∘ List.catMaybes
+              ∘ Data.Vec.toList
+      where errorMsg = inj₁ "The list of exceptionallyEvaluate results \
+                            \was just a bunch of nothingness!"
+  
+    functions =
+      ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
+           ; _ → nothing})
+      ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
+           ; _ → nothing})
+      ∷ (λ { (Ap Sum (NumberNatP 0 c ∷ x ∷ [])) → valid x
+           ; _ → nothing})
+      ∷ (λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
+             valid (NumberRat (x ℚ.+ y))
+           ; _ → nothing})
+      ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
+             valid (NumberRat (x ℚ.* y))
+           ; _ → nothing})
+      ∷ (λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
+             if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
+               then bust "0^0 is undefined!"
+               else valid (NumberNat (x Data.Nat.^ y))
+           ; _ → nothing})
+      -- The following "x^0" evaluation rule is a bit dubious; this rule
+      -- indicates that Variable x ^ fromℕ 0 is algebraically equal to
+      -- fromℕ 1.  However, Variable x *could* feasibly be defined as
+      -- being equal to fromℕ 0.
+      -- The current behavior parallels Maxima, though.
+      ∷ (λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
+           ; _ → nothing})
+      -- The following "0^x" evaluation rule, like the "x^0" rule, is
+      -- kind of dubious.  This rule, too, mirrors the behavior of
+      -- Maxima, though.
+      ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) → valid (NumberNat 0)
+           ; _ → nothing})
+      ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
+           ; _ → nothing})
+      -- The following evaluation rule is *also* kind of dubious, but,
+      -- again, the behavior is like the behavior of Maxima.
+      ∷ (λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (NumberNat 1)
+               else valid (NumberNat 0)
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
+             valid (NumberNat 0)
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
+             valid (Ap Negate [ Ap (Derivative v1) x ])
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Sum (x ∷ y ∷ []) ∷ [])) →
+             valid (Ap Sum ( Ap (Derivative v1) [ x ]
+                           ∷ [ Ap (Derivative v1) [ y ] ]))
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
+             valid (Ap Product ( Ap (Derivative v1) [ x ]
+                               ∷ [ Ap (Derivative v1) [ y ] ]))
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (Ap Cos [ Variable v1 ])
+               else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (Ap Negate [ Ap Sin [ Variable v1 ] ])
+               else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (Ap Exponent ( Ap Sec [ Variable v1 ] ∷ [ NumberNat 2 ]))
+               else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Csc (Variable v2 ∷ []) ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (Ap Product
+                              ( Ap Csc [ Variable v1 ]
+                              ∷ [ Ap Negate [ Ap Cot [ Variable v1 ] ] ]))
+               else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Sec (Variable v2 ∷ []) ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (Ap Product
+                              ( Ap Sec [ Variable v1 ]
+                              ∷ [ Ap Tan [ Variable v1 ] ]))
+               else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
+             if v1 Data.String.== v2
+               then valid (Ap Negate
+                              [ Ap Exponent
+                                   ( Ap Csc [ Variable v1 ]
+                                   ∷ [ NumberNat 2 ]) ])
+               else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Lambda names body) expressions) →
+             valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
+           ; _ → nothing})
+      ∷ (λ { (Ap f x) → [_,_] (just ∘ inj₁)
+                              (just ∘ inj₂ ∘ Ap f)
+                              (condense (Data.Vec.map main x))
+           ; _ → nothing})
+      ∷ [ just ∘ inj₂ ]
+      )
+      where
+      bust = just ∘ inj₁
+      valid = just ∘ inj₂
+      condense : {a : Level} →
+                 {A : Set a} →
+                 {n : ℕ} →
+                 Vec (Exceptional A) n →
+                 Exceptional (Vec A n)
+      condense [] = inj₂ []
+      condense (inj₁ x ∷ xs) = inj₁ x
+      condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
+  
+    {-# TERMINATING #-}
+    main e = firstInj2 $ Data.Vec.map (_$ e) functions
+  
   {-# TERMINATING #-}
-  main e = firstInj2 $ Data.Vec.map (_$ e) functions
-
-{-# TERMINATING #-}
-exceptionallyEvaluate = exceptionallyEvaluate.main
+  exceptionallyEvaluate = exceptionallyEvaluate.main
 \end{code}
 
 \section{Completing The Algebraic Equality Determination Function}
 
 \begin{code}
-module checkAlgebraicEquality where
-  with-dec : {x y : ε} →
-             ℕ →
-             Dec (x ≡ y) →
-             Exceptional (Maybe (AlgebraicEquality x y))
-  with-dec iters (yes eq) = inj₂ (just (inj₁ eq))
-  with-dec iters (no neq) = {!!}
-
-  main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
-  main iterations = with-dec iterations ∘₂ structuralEqualityOnε
-checkAlgebraicEquality = checkAlgebraicEquality.main
+  module checkAlgebraicEquality where
+    with-dec : {x y : ε} →
+               ℕ →
+               Dec (x ≡ y) →
+               Exceptional (Maybe (AlgebraicEquality x y))
+    with-dec iters (yes eq) = inj₂ (just (inj₁ eq))
+    with-dec iters (no neq) = {!!}
+  
+    main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
+    main iterations = with-dec iterations ∘₂ structuralEqualityOnε
+  checkAlgebraicEquality = checkAlgebraicEquality.main
 \end{code}
 
 \section{The Less-Than Type}
 A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
 \begin{code}
-module LessThan where
+  module LessThan where
 \end{code}
 
 \subsection{The Basic Less-Than Type}
@@ -2081,64 +2085,68 @@ Basically, some value of type \AgdaFunction{LT} \AgdaBound{x} \AgdaBound{y} exis
 As far as Casanova Fly is concerned, no value is greater than infinity; accordingly, \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{Infinity} is \AgdaDatatype{⊥} for all \AgdaBound{x}.
 
 \begin{code}
-  LT : ε → ε → Set
-  LT _ Infinity = ⊥
-  LT Infinity (Variable x) = ⊥
-  LT Infinity (NumberRat x) = ⊥
-  LT Infinity (Ap f x) = ⊥
-  LT (Variable x) (Variable y) = ⊥
-  LT (Variable x) (NumberRat y) = ⊥
-  LT (Variable x) (Ap f y) = ⊥
-  LT (NumberRat x) (Variable y) = ⊥
-  LT (NumberRat x) (NumberRat y) = x ℚ.< y
-  LT (NumberRat x) (Ap f y) = {!!}
-  LT (Ap f x) (Variable y) = ⊥
-  LT (Ap f x) (NumberRat y) = {!!}
-  LT (Ap f x) (Ap g y) = {!!}
+    LT : ε → ε → Set
+    LT _ Infinity = ⊥
+    LT Infinity (Variable x) = ⊥
+    LT Infinity (NumberRat x) = ⊥
+    LT Infinity (Ap f x) = ⊥
+    LT (Variable x) (Variable y) = ⊥
+    LT (Variable x) (NumberRat y) = ⊥
+    LT (Variable x) (Ap f y) = ⊥
+    LT (NumberRat x) (Variable y) = ⊥
+    LT (NumberRat x) (NumberRat y) = x ℚ.< y
+    LT (NumberRat x) (Ap f y) = {!!}
+    LT (Ap f x) (Variable y) = ⊥
+    LT (Ap f x) (NumberRat y) = {!!}
+    LT (Ap f x) (Ap g y) = {!!}
 \end{code}
 
 \subsection{The \AgdaFunction{Exceptional} Less-Than Type}
 Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} and \AgdaBound{y} are \AgdaInductiveConstructor{inj₂}-containers for values \AgdaBound{x'} and \AgdaBound{y'}, respectively, and \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
 
 \begin{code}
-  LT2 : Exceptional ε → Exceptional ε → Set
-  LT2 (inj₂ x) (inj₂ y) = LT x y
-  LT2 _ _ = ⊥
+    LT2 : Exceptional ε → Exceptional ε → Set
+    LT2 (inj₂ x) (inj₂ y) = LT x y
+    LT2 _ _ = ⊥
 \end{code}
 
 \subsection{The Complex Less-Than Type}
 In this case, ``complex'' is justified by \AgdaDatatype{\AgdaUnderscore{}⊎\AgdaUnderscore{}}'s relevance to the type, not complex numbers or something, although complex numbers are supported!  Anyway, according to \AgdaFunction{LessThan}, \AgdaBound{x} is less than \AgdaBound{y} if and only if \AgdaBound{x} can be trivially shown to be less than \AgdaBound{y}, or commutative evaluation reduces \AgdaBound{x} and \AgdaBound{y} to \AgdaBound{x'} and \AgdaBound{y'} such that \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
 
 \begin{code}
-  LessThan : ε → ε → Set
-  LessThan x y =
-    _⊎_ (LT x y)
-        (let rEvaluate = flip repeatExceptional commutativeEvaluate in
-         (Σ (ℕ × ℕ) (λ (m , n) → LT2 (rEvaluate m x) (rEvaluate n y))))
+    LessThan : ε → ε → Set
+    LessThan x y =
+      _⊎_ (LT x y)
+          (let rEvaluate = flip repeatExceptional commutativeEvaluate in
+           (Σ (ℕ × ℕ) (λ (m , n) → LT2 (rEvaluate m x) (rEvaluate n y))))
 \end{code}
 
 \subsection{Exporting the Function}
 \AgdaFunction{LessThan.LessThan} has all necessary properties for the \AgdaFunction{LessThan} function; accordion, \AgdaFunction{LessThan} is really just \AgdaFunction{LessThan.LessThan}.
 
 \begin{code}
-LessThan = LessThan.LessThan
+  LessThan = LessThan.LessThan
 \end{code}
 
 \section{The Variable Usedness Type}
 \AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
 
 \begin{code}
-{-# TERMINATING #-}
-IsReferencedIn : String → ε → Set
-IsReferencedIn name Infinity = ⊥
-IsReferencedIn name (NumberRat r) = ⊥
-IsReferencedIn name (Variable name2) = name ≡ name2
-IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
+  {-# TERMINATING #-}
+  IsReferencedIn : String → ε → Set
+  IsReferencedIn name Infinity = ⊥
+  IsReferencedIn name (NumberRat r) = ⊥
+  IsReferencedIn name (Variable name2) = name ≡ name2
+  IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
 \end{code}
+
+\part{The Rest is F-L-Y}
 
 \chapter{Wrapping up Everything}
 
 \begin{code}
+open CasanovaFlyCore
+
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { _≈_ = AlgebraicEquality
