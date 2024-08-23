@@ -940,8 +940,9 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of \(0\)'s equality with \(\tau \cdot n \cdot \frac12\),
  \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
  \item a proof of the irrelevance of substitution list order,
- \item a proof which indicates that the derivative of a constant is \(0\), and
- \item basic trigonometric derivative correctness proofs.
+ \item a proof which indicates that the derivative of a constant is \(0\),
+ \item basic trigonometric derivative correctness proofs, and
+ \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\).
 \end{itemize}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
@@ -1031,6 +1032,9 @@ We ain't done yet, folks!  Additional fields include the basic trigonometric der
 
 \subsubsection{The Cotangent Derivative Proof}
 \AgdaField{VCAS.derivative-of-cotangent} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\cot x\) with respect to \(x\) is \(- \left(\csc x\right)^2\).
+
+\subsubsection{The Derivative Sum Proof}
+\AgdaField{VCAS.derivative-of-sum-is-sum-of-derivatives} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that for all relevant \(x\), \(e_1\), and \(e_2\), \(\derivative{x} \left(e_1 + e_2\right)\) is algebraically equal to \(\derivative{x} e_1 + \derivative{x} e_2\).
 
 \subsection{The Definition Proper}
 
@@ -1168,6 +1172,11 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       equal-at-some-iteration (derivative name (tan (variableNamed name)))
                               (_^_ (negation (csc (variableNamed name)))
                                    (fromℕ 2))
+    derivative-of-sum-is-sum-of-derivatives :
+      (name : String) →
+      (e1 e2 : ε) →
+      equal-at-some-iteration (derivative name (e1 + e2))
+                              (derivative name e1 + derivative name e2)
 \end{code}
 
 \part{The Rest is F-L-Y}
@@ -2199,6 +2208,7 @@ CasanovaFly-Verified = record
   ; derivative-of-cosecant = {!!}
   ; derivative-of-secant = {!!}
   ; derivative-of-cotangent = {!!}
+  ; derivative-of-sum-is-sum-of-derivatives = {!!}
   }
   where
   open CAS CasanovaFly-Base
