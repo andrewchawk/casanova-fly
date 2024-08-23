@@ -2150,11 +2150,19 @@ In this case, ``complex'' is justified by \AgdaDatatype{\AgdaUnderscore{}⊎\Agd
 
 \part{The Rest is F-L-Y}
 
-\chapter{Wrapping up Everything}
+\chapter{Overview and Intent}
+This part contains \AgdaRecord{CAS} and \AgdaRecord{VCAS} values which indicate that Casanova Fly really \emph{is} a formally-verified computer algebra system, after all.
+
+\section{Opening the Main Casanova Fly Module}
+To reduce unnecessary repetition and other unreadable nonsense, the author has elected to \AgdaKeyword{open} \AdgaModule{CasanovaFlyCore}.
 
 \begin{code}
 open CasanovaFlyCore
+\end{code}
 
+\chapter{Proving that Casanova Fly is Really a Computer Algebra System}
+
+\begin{code}
 CasanovaFly-Base : CAS ε
 CasanovaFly-Base = record
   { _≈_ = AlgebraicEquality
@@ -2190,7 +2198,11 @@ CasanovaFly-Base = record
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
   }
+\end{code}
 
+\chapter{Proving that Casanova Fly has the Attributes of a Good Computer Algebra System}
+
+\begin{code}
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
   { equality-is-equivalence = record
