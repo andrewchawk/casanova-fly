@@ -617,6 +617,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item an expression-is-real type,
   \item an expression-is-imaginary type,
   \item an expression-is-valid-constant type,
+  \item an expression-is-infinite type,
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that variables of different names are not equivalent,
   \item a function which performs the maximum number of evaluation steps on the input,
@@ -718,6 +719,9 @@ The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard
 \subsection{The Constant Type}
 \AgdaBound{e} represents a constant with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsConstant} \AgdaBound{c} \AgdaBound{e}.
 
+\subsection{The Infinite Type}
+\AgdaBound{e} represents an infinite thing with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsInfinite} \AgdaBound{c} \AgdaBound{e}.
+
 \subsection{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
 
@@ -800,6 +804,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     substituteVariables : List.List (String × ε) → ε → ε
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
+    IsInfinite : ε → Set a
     lambda : String → ε → ε → ε
     τ : ε
     different-if-nats-are-different :
@@ -2162,6 +2167,7 @@ CasanovaFly-Base = record
   ; substituteVariables = varSubstM
   ; IsNameOfVariableIn = IsReferencedIn
   ; IsReal = {!!}
+  ; IsInfinite = {!!}
   ; τ = {!!}
   ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
   ; negation = Ap Negate ∘ [_]
