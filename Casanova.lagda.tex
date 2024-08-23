@@ -1938,14 +1938,14 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
 \begin{code}
   module exceptionallyEvaluate where
     main : ε → Exceptional ε
-  
+
     firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
                 Vec (Maybe (Exceptional A)) (ℕ.suc n) → Exceptional A
     firstInj2 = fromMaybe errorMsg ∘ List.head ∘ List.catMaybes
               ∘ Data.Vec.toList
       where errorMsg = inj₁ "The list of exceptionallyEvaluate results \
                             \was just a bunch of nothingness!"
-  
+
     functions =
       ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
            ; _ → nothing})
@@ -2056,10 +2056,10 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
       condense [] = inj₂ []
       condense (inj₁ x ∷ xs) = inj₁ x
       condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
-  
+
     {-# TERMINATING #-}
     main e = firstInj2 $ Data.Vec.map (_$ e) functions
-  
+
   {-# TERMINATING #-}
   exceptionallyEvaluate = exceptionallyEvaluate.main
 \end{code}
@@ -2074,7 +2074,7 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                Exceptional (Maybe (AlgebraicEquality x y))
     with-dec iters (yes eq) = inj₂ (just (inj₁ eq))
     with-dec iters (no neq) = {!!}
-  
+
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
   checkAlgebraicEquality = checkAlgebraicEquality.main
