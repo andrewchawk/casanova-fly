@@ -828,9 +828,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     inj2s List.[] = List.[]
 
     evaluationPairs : ℕ → ε → ε → List.List (ε × ε)
-    evaluationPairs i x y = (List.cartesianProduct on inj2s) (trace x) (trace y)
-      where
-      trace = traceEvaluate i
+    evaluationPairs i = List.cartesianProduct on inj2s ∘ traceEvaluate i
 
     module ProofsOfCorrectness
       (i : ℕ)
