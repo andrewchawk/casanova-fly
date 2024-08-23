@@ -2030,6 +2030,25 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                                (repeatExceptional m commutativeEvaluate y))
 \end{code}
 
+\subsection{Various Properties of the Algebraic Equality Type Function}
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\subsubsection{Basic Composition Equality}
+A bit informally, one can say that \AgdaFunction{composition-equality} proves that relevant composition is algebraically equivalent to relevant repeated application.
+
+\end{code}
+    composition-equality :
+      (g f : F) →
+      (x : Vec ε (arity f)) →
+      (eq : arity g ≡ 1) →
+      main (Ap (Compose g f eq) x)
+           (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
+    composition-equality = {!!}
+\end{code}
+
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
 \AgdaFunction{AlgebraicEquality} is really just \AgdaFunction{AlgebraicEquality.main}.
 
