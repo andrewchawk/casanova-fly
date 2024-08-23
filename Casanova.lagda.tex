@@ -1188,7 +1188,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
 module CasanovaFlyCore where
 \end{code}
 
-\chapter{The Core Datatypes and Associated Functions}
+\chapter{The Types of Functions and Expressions}
 
 \section{Type Declarations}
 
@@ -1297,7 +1297,7 @@ The following statements hold:
     Ap : (f : F) → Vec ε (arity f) → ε
 \end{code}
 
-\section{Additional Functions}
+\section{Patterns}
 
 \subsection{The Natural Number Pattern}
 \AgdaInductiveConstructor{NumberNatP} \AgdaBound{n} \AgdaBound{c} is Casanova Fly's canonical representation of \AgdaBound{n}.  Despite generally being pretty powerful, the \AgdaKeyword{pattern} stuff can apparently \emph{not} do \AgdaFunction{Coprimality.1-coprimeTo} stuff.
@@ -1320,6 +1320,8 @@ The following statements hold:
        ∷ []))
 \end{code}
 
+\section{Shorthand Functions}
+
 \subsection{The Natural-Number-to-Expression Function}
 \AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's more manageable representation of \AgdaBound{n}.
 
@@ -1328,7 +1330,9 @@ The following statements hold:
   NumberNat n = NumberNatP n (Coprimality.sym (Coprimality.1-coprimeTo _))
 \end{code}
 
-\subsection{The Commutativity-Determining Function}
+\chapter{General-Purpose Functions}
+
+\section{The Commutativity-Determining Function}
 \AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
 
 \begin{code}
@@ -1385,7 +1389,9 @@ The following statements hold:
   commutativePermutations o = List.[ o ]
 \end{code}
 
-\subsection{Decidable Structural Equality on \AgdaDatatype{F}}
+\chapter{Decidable Structural Equality Functions}
+
+\section{Decidable Structural Equality on \AgdaDatatype{F}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
 \begin{code}
@@ -1680,7 +1686,7 @@ This function is used to determine whether or not the input arguments are struct
       equality-implies-variable-equality n1 n2 refl = refl
 \end{code}
 
-\subsection{Decidable Structural Equality on \AgdaDatatype{ε}}
+\section{Decidable Structural Equality on \AgdaDatatype{ε}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
 \begin{code}
@@ -1753,6 +1759,8 @@ This function is used to determine whether or not the input arguments are struct
         x1 ≡ Data.Vec.cast (cong arity sameF) x2
       same-only-with-same-x = {!!}
 \end{code}
+
+\chapter{Functions for Evaluation and Algebraic Equality}
 
 \section{The Types of the Algebraic Equality Type and the Single-Step Evaluation Function}
 
@@ -2072,14 +2080,14 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
   checkAlgebraicEquality = checkAlgebraicEquality.main
 \end{code}
 
-\section{The Less-Than Type}
+\chapter{The Less-Than Type}
 A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
 \begin{code}
   module LessThan where
 \end{code}
 
-\subsection{The Basic Less-Than Type}
+\section{The Basic Less-Than Type}
 Basically, some value of type \AgdaFunction{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
 
 As far as Casanova Fly is concerned, no value is greater than infinity; accordingly, \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{Infinity} is \AgdaDatatype{⊥} for all \AgdaBound{x}.
@@ -2101,7 +2109,7 @@ As far as Casanova Fly is concerned, no value is greater than infinity; accordin
     LT (Ap f x) (Ap g y) = {!!}
 \end{code}
 
-\subsection{The \AgdaFunction{Exceptional} Less-Than Type}
+\section{The \AgdaFunction{Exceptional} Less-Than Type}
 Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} and \AgdaBound{y} are \AgdaInductiveConstructor{inj₂}-containers for values \AgdaBound{x'} and \AgdaBound{y'}, respectively, and \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
 
 \begin{code}
@@ -2128,7 +2136,7 @@ In this case, ``complex'' is justified by \AgdaDatatype{\AgdaUnderscore{}⊎\Agd
   LessThan = LessThan.LessThan
 \end{code}
 
-\section{The Variable Usedness Type}
+\chapter{The Variable Usedness Type}
 \AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
 
 \begin{code}
