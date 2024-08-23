@@ -1279,18 +1279,6 @@ The following statements hold:
   arity (BoundedIntegral name) = 3
 \end{code}
 
-\subsection{The Commutativity-Determining Function}
-\AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
-
-\begin{code}
-  isCommutative : (f : F) → arity f ≡ 2 → Bool
-  isCommutative Sum refl = true
-  isCommutative Product refl = true
-  isCommutative Exponent refl = false
-  isCommutative (Lambda names body) equality = false
-  isCommutative (Limit name) equality = false
-\end{code}
-
 \subsection{Completing \AgdaDatatype{ε}'s Definition}
 The following statements hold:
 
@@ -1338,6 +1326,18 @@ The following statements hold:
              ∷ Ap Negate (NumberNatP 1 coprime ∷ [])
              ∷ [])
        ∷ []))
+\end{code}
+
+\subsection{The Commutativity-Determining Function}
+\AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
+
+\begin{code}
+  isCommutative : (f : F) → arity f ≡ 2 → Bool
+  isCommutative Sum refl = true
+  isCommutative Product refl = true
+  isCommutative Exponent refl = false
+  isCommutative (Lambda names body) equality = false
+  isCommutative (Limit name) equality = false
 \end{code}
 
 \subsection{Decidable Structural Equality on \AgdaDatatype{F}}
