@@ -1352,6 +1352,35 @@ varSubstM (v List.∷ vs) (Variable sv) =
 varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 \end{code}
 
+\section{The Function for Commutativity Permutations}
+\AgdaFunction{commutativePermutations} \AgdaBound{x} is a list of all expressions which are equivalent to \AgdaBound{x} and are derived from \AgdaBound{x} by commutativity.
+
+\begin{code}
+{-# TERMINATING #-}
+commutativePermutations : ε → List.List ε
+commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
+  where
+  combine : (f : F) → (e : List.List ε) → arity f ≡ List.length e → ε
+  combine f e lengthMatch = Ap f (Data.Vec.cast (sym lengthMatch)
+                                                (Data.Vec.fromList e))
+  perms' : (f : F) → (e : List.List ε) → arity f ≡ List.length e → List.List ε
+  perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
+    if isCommutative f lengthMatches then solo else list
+    where
+    solo = List.[ combine f e lengthMatches ]
+    list =
+      f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
+      List.map (λ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
+      List.map (λ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
+      List.concat (List.map (λ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
+                                            List.[ f' (e2 ∷ [ e1 ]) ])
+                            (List.zip (commutativePermutations e1)
+                                      (commutativePermutations e2)))
+      where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
+  perms' f e lengthMatches = List.[ combine f e lengthMatches ]
+commutativePermutations o = List.[ o ]
+\end{code}
+
 \subsection{Decidable Structural Equality on \AgdaDatatype{F}}
 This function is used to determine whether or not the input arguments are structurally equivalent.
 
@@ -1719,35 +1748,6 @@ structuralEqualityOnε = s
       Ap f1 x1 ≡ Ap f2 x2 →
       x1 ≡ Data.Vec.cast (cong arity sameF) x2
     same-only-with-same-x = {!!}
-\end{code}
-
-\subsection{The Function for Commutativity Permutations}
-\AgdaFunction{commutativePermutations} \AgdaBound{x} is a list of all expressions which are equivalent to \AgdaBound{x} and are derived from \AgdaBound{x} by commutativity.
-
-\begin{code}
-{-# TERMINATING #-}
-commutativePermutations : ε → List.List ε
-commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
-  where
-  combine : (f : F) → (e : List.List ε) → arity f ≡ List.length e → ε
-  combine f e lengthMatch = Ap f (Data.Vec.cast (sym lengthMatch)
-                                                (Data.Vec.fromList e))
-  perms' : (f : F) → (e : List.List ε) → arity f ≡ List.length e → List.List ε
-  perms' f e@(e1 List.∷ e2 List.∷ List.[]) lengthMatches =
-    if isCommutative f lengthMatches then solo else list
-    where
-    solo = List.[ combine f e lengthMatches ]
-    list =
-      f' (e2 ∷ [ e1 ]) List.∷ f' (e1 ∷ [ e2 ]) List.∷
-      List.map (λ e2 → f' (e1 ∷ [ e2 ])) (commutativePermutations e2) List.++
-      List.map (λ e1 → f' (e1 ∷ [ e2 ])) (commutativePermutations e1) List.++
-      List.concat (List.map (λ (e1 , e2) → f' (e1 ∷ [ e2 ]) List.∷
-                                            List.[ f' (e2 ∷ [ e1 ]) ])
-                            (List.zip (commutativePermutations e1)
-                                      (commutativePermutations e2)))
-      where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
-  perms' f e lengthMatches = List.[ combine f e lengthMatches ]
-commutativePermutations o = List.[ o ]
 \end{code}
 
 \section{The Types of the Algebraic Equality Type and the Single-Step Evaluation Function}
