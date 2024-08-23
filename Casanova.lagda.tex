@@ -587,9 +587,9 @@ module nonRepeatingPortion-Properties
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
-\chapter{The Computer Algebra System Types}
+\part{Formal Definitions for Computer Algebra Systems}
 
-\section{The Type of Mostly-Unverified Computer Algebra Systems}
+\chapter{The Type of Mostly-Unverified Computer Algebra Systems}
 Fundamentally, a computer algebra system for an expression type \(\epsilon\) can be thought of as being a combination of the following:
 
 \begin{itemize}
@@ -627,54 +627,54 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 
 \AgdaDatatype{CAS} is the type of such computer algebra systems.
 
-\subsection{The Algebraic Equality Type}
+\section{The Algebraic Equality Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y}.
 
-\subsection{The Algebraic \emph{In}equality Type}
+\section{The Algebraic \emph{In}equality Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}.
 
-\subsection{The Less-Than Type}
+\section{The Less-Than Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}<\AgdaUnderscore{}} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
-\subsection{The Less-Than-or-Equal-to Type}
+\section{The Less-Than-or-Equal-to Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≤\AgdaUnderscore{}} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than or equal to \AgdaBound{y}.
 
-\subsection{The Single-Step Evaluation Function}
+\section{The Single-Step Evaluation Function}
 If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
 
 For the purposes of this document, an ``evaluation step'' is the application of a basic operation, e.g., addition or commuting the arguments of a function.  More formally, one can say that an evaluation step is the application of an operation which cannot be further simplified or decomposed into simpler operations.
 
-\subsection{The Proof of Structural Equality}
+\section{The Proof of Structural Equality}
 This one, which is represented via the \AgdaField{structuralEquality} field, should be simple enough for anyone who is familiar with \AgdaFunction{DecidableEquality}.
 
-\subsection{The Semi-Decidable Algebraic Equality Function}
+\section{The Semi-Decidable Algebraic Equality Function}
 Assuming that the function is defined such that iteration counts \emph{are actually meaningful}, \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{i} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{equality}\AgdaSymbol) if and only if the \AgdaField{CAS.definitelyEquals} function finds an appropriate value within \AgdaBound{i} iterations.  The \AgdaField{CAS.definitelyEquals} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate proof of equality.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.definitelyEquals} value is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
 
-\subsection{The Semi-Decidable Less-Than Function}
+\section{The Semi-Decidable Less-Than Function}
 Assuming that the relevant function actually \emph{considers} iteration counts, \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{i} \AgdaBound{x} \AgdaBound{y} is some value \AgdaInductiveConstructor{inj₂} \AgdaSymbol(\AgdaInductiveConstructor{just} \AgdaBound{lessThan}\AgdaSymbol) if and only if the \AgdaField{CAS.isDefinitelyLessThan} function finds an appropriate value.  The \AgdaField{CAS.isDefinitelyLessThan} value is \AgdaInductiveConstructor{inj₂} \AgdaInductiveConstructor{nothing} if and only if the function cannot discover an appropriate inequality proof.  The function encounters an exceptional situation if and only if the \AgdaField{CAS.isDefinitelyLessThan} is \AgdaInductiveConstructor{inj₁} \AgdaBound{e}, where \AgdaBound{e} is a description of the exception.
 
-\subsection{The Natural-to-Expression Function}
+\section{The Natural-to-Expression Function}
 The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
 
-\subsection{The Variable Function}
+\section{The Variable Function}
 Does a computer algebra system which lacks support for variables even qualify as being a computer algebra system?  The author is doubtful.  Anyway, \AgdaField{CAS.variableNamed} \AgdaBound{c} \AgdaBound{name} is \AgdaBound{c}'s representation of the variable whose name is \AgdaBound{name}.
 
-\subsection{The Sum Function}
+\section{The Sum Function}
 Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}+\AgdaUnderscore{}} values are unevaluated sum functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
 
-\subsection{The Difference Function}
+\section{The Difference Function}
 Any half-decent CAS can represent the difference of two given expressions, too.  Accordingly, \AgdaField{\AgdaUnderscore{}-\AgdaUnderscore{}} values are unevaluated differences.  More formally, \AgdaField{CAS.\AgdaUnderscore{}-\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated difference of \AgdaBound{x} and \AgdaBound{y}.
 
-\subsection{The Product Function}
+\section{The Product Function}
 A decent CAS can represent the unevaluated product of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}*\AgdaUnderscore{}} values represent unevaluated products.  More formally, one can say that \AgdaField{CAS.\AgdaUnderscore{}*\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated product of \AgdaBound{x} and \AgdaBound{y}.
 
-\subsection{The Quotient Function}
+\section{The Quotient Function}
 Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}/\AgdaUnderscore{}} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}/\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
 
-\subsection{The Exponent Function}
+\section{The Exponent Function}
 The author is tired of the boilerplate nonsense.  \AgdaField{CAS.\AgdaUnderscore{}\textasciicircum\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of \AgdaBound{x} to the power of \AgdaBound{y}.
 
-\subsection{The Trigonometric Functions}
+\section{The Trigonometric Functions}
 As previously indicated, a CAS also supports certain trigonometric functions.  To prevent using too terribly many \texttt{subsection} declarations, the author uses an \texttt{itemize} environment to describe the relevant functions as follows:
 
 \newcommand\boilerplateTrigDef[2]{\AgdaField{CAS.#1} \AgdaBound{c} \AgdaBound{x} is the \AgdaBound{c} CAS's representation of the application of the #2 function to \AgdaBound{x}.}
@@ -688,87 +688,87 @@ As previously indicated, a CAS also supports certain trigonometric functions.  T
   \item \boilerplateTrigDef{cot}{cotangent}
 \end{itemize}
 
-\subsection{The Derivative Function}
+\section{The Derivative Function}
 \AgdaField{CAS.derivative} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e} represents the derivative of \AgdaBound{e} with respect to the variable whose name is \AgdaBound{name}.
 
-\subsection{The Antiderivative Function}
+\section{The Antiderivative Function}
 \AgdaField{CAS.antiderivative} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e} represents the antiderivative of \AgdaBound{e} with regard to the variable whose name is \AgdaBound{name}.
 
-\subsection{The Additive Inverse Function}
+\section{The Additive Inverse Function}
 \AgdaField{CAS.negation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
 
-\subsection{The Simple Limit Function}
+\section{The Simple Limit Function}
 \AgdaField{CAS.limit} \AgdaBound{c} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\lim_{\AgdaBound{c} \rightarrow \AgdaBound{x}} \textrm{\Epsilon}\), where ``\(\textrm{\Epsilon}\)'' denotes the expanded version of the \AgdaBound{e} expression.
 
-\subsection{The Bounded Integral Function}
+\section{The Bounded Integral Function}
 \AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{\Epsilon}\), where ``\(\mathrm{\Epsilon}\)'' denotes the expansion of \AgdaBound{e}.
 
-\subsection{The Variable Substitution Function}
+\section{The Variable Substitution Function}
 \AgdaField{CAS.substituteVariable} \AgdaBound{c} is the variable substitution function for the \AgdaBound{c} CAS.\footnote{You don't say.}
 In short, \AgdaField{CAS.substituteVariable} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is a version of \AgdaBound{e} such that for all \AgdaSymbol(\AgdaBound{variableName} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{replacement}\AgdaSymbol) in \AgdaBound{list}, all of \AgdaBound{e}'s free instances of \AgdaField{CAS.variableNamed} \AgdaBound{variableName} have been replaced by \AgdaBound{replacement}.  \AgdaField{CAS.substituteVariable} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is otherwise equivalent to \AgdaBound{e}, though.
 
-\subsection{The Variable Containment Type}
+\section{The Variable Containment Type}
 The variable whose name is \AgdaBound{name} is free in \AgdaBound{e} with regard to \AgdaBound{c} if and only if a value of type \AgdaFunction{CAS.IsNameOfVariableIn} \AgdaBound{c} \AgdaBound{name} \AgdaBound{e}.
 
-\subsection{The Realness Type}
+\section{The Realness Type}
 \AgdaBound{e} represents a real number with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsReal} \AgdaBound{c} \AgdaBound{e}.
 
-\subsection{The Complexity Type}
+\section{The Complexity Type}
 \AgdaBound{e} represents an imaginary number with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsImaginary} \AgdaBound{c} \AgdaBound{e}.
 
-\subsection{The Constant Type}
+\section{The Constant Type}
 \AgdaBound{e} represents a constant with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsConstant} \AgdaBound{c} \AgdaBound{e}.
 
-\subsection{The Infinite Type}
+\section{The Infinite Type}
 \AgdaBound{e} represents an infinite thing with regard to \AgdaBound{c} if and only if there exists a value of type \AgdaField{CAS.IsInfinite} \AgdaBound{c} \AgdaBound{e}.
 
-\subsection{The Lambda Expression Function}
+\section{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
 
-\subsection{The \(\tau\) Value}
+\section{The \(\tau\) Value}
 \AgdaField{CAS.τ} \AgdaBound{c} is the \AgdaBound{c} CAS's representation of \(\tau\), i.e., the angular measure of a circle.
 
-\subsection{The Natural Number Proofs}
+\section{The Natural Number Proofs}
 In addition to the basic mapping, proofs of the following attributes should exist:
 
 \begin{itemize}
   \item Any two natural numbers differ only if the CAS's representations of the numbers differ.
 \end{itemize}
 
-\subsection{The Proof which Indicates that Variables of Different Names are Decidedly Not Equivalent}
+\section{The Proof which Indicates that Variables of Different Names are Decidedly Not Equivalent}
 Operations on variables are only sensible if confusing variables is forbidden, i.e., variables of different names are represented differently.  Accordingly, \AgdaField{CAS.differently-named-variables-are-different} \AgdaBound{c} indicates that within \AgdaBound{c}, given any two variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \AgdaBound{c}'s representations of \(x\) and \(y\) differ.
 
-\subsection{The Tracing Recursive Evaluation Function}
+\section{The Tracing Recursive Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
 
-\subsection{The Non-Tracing Maximum Evaluation Function}
+\section{The Non-Tracing Maximum Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input but just returns the resulting exception or expression.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{rEvaluate}.
 
-\subsection{The Iteration Equality Function}
+\section{The Iteration Equality Function}
 A value of type \AgdaField{CAS.equal-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e1} \AgdaBound{e2} exists if and only if \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e1} \AgdaBound{e2} indicates that \AgdaBound{e1} is algebraically equal to \AgdaBound{e2}.  This function mostly exists to eliminate repetition.
 
-\subsection{The Generic Iteration Equality Function}
+\section{The Generic Iteration Equality Function}
 A value of type \AgdaField{CAS.equal-at-some-iteration} \AgdaBound{c} \AgdaBound{e1} \AgdaBound{e2} exists if and only if \AgdaField{CAS.definitelyEquals} \AgdaBound{c} can determine that \AgdaBound{e1} is algebraically equal to \AgdaBound{e2} at some iteration.  Again, this function is really just good for reducing nasty redundancy.
 
-\subsection{The Equality Step Function}
+\section{The Equality Step Function}
 \AgdaField{CAS.equality-at-n-implies-equality-at-n+1} proves that two expressions are definitely equal at a given iteration only if these same expressions are also definitely equal at the following iteration.
 
-\subsection{The Iteration Bogosity Function}
+\section{The Iteration Bogosity Function}
 A value of type \AgdaField{CAS.bogus-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} exists if and only if \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} is an \AgdaInductiveConstructor{inj₂} value.
 
-\subsection{The Generic Iteration Bogosity Function}
+\section{The Generic Iteration Bogosity Function}
 A value of type \AgdaField{CAS.bogus-at-some-iteration} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} is an \AgdaInductiveConstructor{inj₂} value for some \AgdaBound{iterations}.
 
-\subsection{The Bogosity Step Function}
+\section{The Bogosity Step Function}
 \AgdaField{CAS.bogosity-at-n-implies-bogosity-at-n+1} proves that a given expression is bogus at some iteration only if the same expression is bogus at the following iteration.
 
-\subsection{The Non-Bogus Type}
+\section{The Non-Bogus Type}
 This type, in addition to not being bogus, is used to indicate that the relevant expression is not bogus.  More formally, a value of type \AgdaField{CAS.IsNotBogus} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaBound{e} is bogus with regard to \AgdaField{CAS.rEvaluate} \AgdaBound{c} at no iteration, i.e., \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is non-bogus for all \AgdaBound{n}.
 
-\subsection{The Bogus Type}
+\section{The Bogus Type}
 This type is not bogus but \emph{is} used to indicate that a given expression is bogus.  More formally, one can say that a value of type \AgdaField{CAS.IsBogus} \AgdaBound{c} \AgdaBound{e} exists if and only if \AgdaBound{e} is bogus with regard to \AgdaField{CAS.rEvaluate} \AgdaBound{c} at some iteration.
 
-\subsection{The Definition Proper}
+\section{The Definition Proper}
 
 \begin{code}
 record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
@@ -920,7 +920,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   IsImaginary e = IsReal e × IsNotBogus e
 \end{code}
 
-\section{The Type of Verified Computer Algebra Systems}
+\chapter{The Type of Verified Computer Algebra Systems}
 For the purposes of this document, a verified computer algebra system is the combination of a \AgdaRecord{CAS} computer algebra system \(c\) \emph{and} some guarantees about \(c\).  The non-\AgdaRecord{CAS} parts of the combination are as follows:
 
 \begin{itemize}
@@ -948,98 +948,98 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\).
 \end{itemize}
 
-\subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
+\section{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
 A good CAS represents the complex numbers, whose equality relation is an equivalence relation.  Accordingly, a verified CAS's algebraic equality relation should be an equivalence relation.  \AgdaField{equality-is-equivance} values indicate that the algebraic equality relations actually are equivalence relations.
 
-\subsection{The Structural-Equivalence-to-Algebraic-Equality Function}
+\section{The Structural-Equivalence-to-Algebraic-Equality Function}
 Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the same way only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{structural-equality-implies-definite-equality}.
 
-\subsection{The Proof which Indicates that Values of Different Names are Not ``Definitely Equal''}
+\section{The Proof which Indicates that Values of Different Names are Not ``Definitely Equal''}
 Any two given variables are not necessarily equal.  Accordingly, \AgdaField{VCAS.differently-named-variables-are-not-definitely-equal} \AgdaBound{c} indicates that within the \AgdaBound{c} CAS, given any two \AgdaBound{c} variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \(x\) is not definitely equal to \(y\).
 
-\subsection{The Proof which Indicates that Variables of Identical Names are Algebraically Equal}
+\section{The Proof which Indicates that Variables of Identical Names are Algebraically Equal}
 Also, options on variables are only sensible if for all variables \(x\) and \(y\), if the name of \(x\) is also the name of \(y\), then \(x\) is algebraically equal to \(y\).  Accordingly, \AgdaField{VCAS.identically-named-variables-are-equal} \AgdaBound{c} indicates that for any \AgdaBound{c}-CAS variables \(x\) and \(y\), if the name of \(x\) is identical to the name of \(y\), then \AgdaBound{c} can determine that \(x\) is algebraically equal to \(y\).
 
-\subsection{The Natural Number Sum Field}
+\section{The Natural Number Sum Field}
 Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural numbers should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  To prevent such incorrect implementations, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proofs which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
 
-\subsection{The Non-Bogus Sum Field}
+\section{The Non-Bogus Sum Field}
 \AgdaField{VCAS.sum-is-not-bogus} indicates that for any given non-bogus values \AgdaBound{e1} and \AgdaBound{e2}, the sum of \AgdaBound{e1} and \AgdaBound{e2} is not bogus.
 
-\subsection{The 1-Product Field}
+\section{The 1-Product Field}
 \AgdaField{VCAS.product-of-e-and-1-is-e} \AgdaBound{c} indicates that for any non-bogus value \(e\) of the expression type for \AgdaBound{c}, the product of \(e\) and one is equal to \(e\).
 
-\subsection{The Bogus Division Field}
+\section{The Bogus Division Field}
 That the quotient of any given number and zero is bogus, i.e., undefined, is well-known.  This fact --- the bogusness, not being well-known --- is represented through \AgdaField{VCAS.division-by-zero-is-bogus}.
 
-\subsection{The Proof of Commutativity of Addition}
+\section{The Proof of Commutativity of Addition}
 \AgdaField{VCAS.sum-is-commutative} indicates that addition is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.sum-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that there exists a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
 
-\subsection{The Proof of Commutativity of Multiplication}
+\section{The Proof of Commutativity of Multiplication}
 \AgdaField{VCAS.product-is-commutative} indicates that multiplication is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.product-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.\AgdaUnderscore{}*\AgdaUnderscore{}} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.\AgdaUnderscore{}*\AgdaUnderscore{}} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
 
-\subsection{The Proof of Associativity of Addition}
+\section{The Proof of Associativity of Addition}
 \AgdaField{VCAS.sum-is-commutative} indicates that addition is commutative in the relvant CAS.  More formally, \AgdaField{VCAS.sum-is-commutative} \AgdaBound{c} indicates that for any appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, some \AgdaBound{n} exists such that there exists a value of type \AgdaBound{CAS.equal-at-iteration} \AgdaBound{c2} \AgdaSymbol(\AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c2} \AgdaBound{e1} \AgdaBound{e2}\AgdaSymbol) \AgdaSymbol(\AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c2} \AgdaBound{e2} \AgdaBound{e1}\AgdaSymbol), where \AgdaBound{c2} is the CAS record which is verified by \AgdaBound{c}.
 
 
-\subsection{The Proof of the Inverse Relationship between Multiplication and Division}
+\section{The Proof of the Inverse Relationship between Multiplication and Division}
 \AgdaField{VCAS.product-of-quotient-is-same} indicates that for the appropriate CAS, multiplication is the inverse of division.  More formally, \AgdaField{product-of-quotient-is-same} \AgdaBound{c} indicates that for all appropriate expression values \AgdaBound{e1} and \AgdaBound{e2}, \AgdaBound{e2} is equal to the \AgdaBound{c} CAS product of \AgdaBound{e1} and the \AgdaBound{c} CAS quotient of \AgdaBound{e2} and \AgdaBound{e1}.
 
-\subsection{The Proof of the Bogosity of \(0^0\)}
+\section{The Proof of the Bogosity of \(0^0\)}
 \AgdaField{VCAS.0\textasciicircum{}0-is-bogus} \AgdaBound{c} indicates that in the \AgdaBound{c} CAS, \(0^0\) is bogus at some iteration count.
 
-\subsection{The Proof of the Bogosity of \(0^e\), where \(e < 0\)}
+\section{The Proof of the Bogosity of \(0^e\), where \(e < 0\)}
 \AgdaField{VCAS.0\textasciicircum{}-n-is-bogus} \AgdaBound{v} indicates that for all relevant expressions \(e\), if \(e < 0\), then the CAS will eventually determine that \(0^e\) is bogus.
 
-\subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
+\section{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
 \AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
 
-\subsection{The Proof which Indicates that Simple Lambda Substitution Works}
+\section{The Proof which Indicates that Simple Lambda Substitution Works}
 \AgdaField{VCAS.simple-lambda-substitution-works} \AgdaBound{v} indicates that, at some iteration, the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(\left(\lambda\ v \rightarrow v\right) e\) is algebrically equal to the \AgdaBound{v} CAS's representation of \(e\).
 
-\subsection{The Proof of the Futility of Applying a Lambda Expression whose Bound Variable is Unused}
+\section{The Proof of the Futility of Applying a Lambda Expression whose Bound Variable is Unused}
 For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), then \(\left(\lambda\ v \rightarrow M\right)\ e = M\).  The preceding fact is encoded through \AgdaField{VCAS.unapplicable-lambda-returns-lambda-body}.
 
-\subsection{The Unrelated Derivative Proof}
+\section{The Unrelated Derivative Proof}
 \AgdaField{VCAS.unrelated-derivative} \AgdaBound{v} indicates that for all appropriate \AgdaBound{v} CAS expressions \(E\) and all appropriate \(n\), if the variable whose name is \(n\) does not appear in \(E\), then the \AgdaBound{v} CAS can determine that \(E\) is algebraically equal to the derivative of \AgdaBound{E} with respect to the variable whose name is \(n\).
 
-\subsection{The Proof of the Equality of \(\operatorname{sin} \left(\tau \cdot n \cdot \frac12\right)\), where \(n\) is a Natural Number}
+\section{The Proof of the Equality of \(\operatorname{sin} \left(\tau \cdot n \cdot \frac12\right)\), where \(n\) is a Natural Number}
 \AgdaField{VCAS.sin-n*pi-is-zero} \AgdaBound{v} proves that the \AgdaBound{v} CAS can determine that for all natural numbers \(n\), the sine of \(\tau \cdot n \cdot \frac12\), i.e., \(\pi \cdot n\), is algebraically equal to \(0\).
 
-\subsection{The Proof of the Failure of Garbage Variable Substitution\footnote{``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots\label{fn:garbageVariable}}}
+\section{The Proof of the Failure of Garbage Variable Substitution\footnote{``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots\label{fn:garbageVariable}}}
 \AgdaField{VCAS.garbage-variable-substitution-fails} \AgdaBound{v} proves that the \AgdaBound{v} CAS's variable substitution effectively returns the input expression if no variables of the substitution list are free in the input expression.
 
-\subsection{The Proof of the Irrelevance of the Order of Substitution Lists}
+\section{The Proof of the Irrelevance of the Order of Substitution Lists}
 \AgdaField{VCAS.substitution-order-is-irrelevant} \AgdaBound{v} proves that for the \AgdaBound{v} CAS, if some substitution list \(l_1\) is a permutation of some substitution list \(l_2\) and contains no repeated variable names, then the application of \(l_1\) to some expression \(e\) is algebraically equal to the application of \(l_2\) to \(e\).
 
-\subsection{The Constant Derivative Proof}
+\section{The Constant Derivative Proof}
 \AgdaField{VCAS.derivative-of-constant} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that the derivative of any constant with regard to any variable is \(0\).
 
-\subsection{Basic Trigonometric Derivative Correctness Proofs}
+\section{Basic Trigonometric Derivative Correctness Proofs}
 We ain't done yet, folks!  Additional fields include the basic trigonometric derivative correctness proof fields, which are fields for proofs of the correctness of the evaluation of derivatives of basic trigonometric functions.
 
-\subsubsection{The Sine Derivative Proof}
+\subsection{The Sine Derivative Proof}
 \AgdaField{VCAS.derivative-of-sine} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\sin x\) with respect to \(x\) is \(\cos x\).
 
-\subsubsection{The Cosine Derivative Proof}
+\subsection{The Cosine Derivative Proof}
 \AgdaField{VCAS.derivative-of-cosine} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\cos x\) with respect to \(x\) is \(- \sin x\).
 
-\subsubsection{The Tangent Derivative Proof}
+\subsection{The Tangent Derivative Proof}
 \AgdaField{VCAS.derivative-of-tangent} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\tan x\) with respect to \(x\) is \(\left(\sec x\right)^2\).
 
-\subsubsection{The Cosecant Derivative Proof}
+\subsection{The Cosecant Derivative Proof}
 \AgdaField{VCAS.derivative-of-cosecant} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\csc x\) with respect to \(x\) is \(- \cot x \cdot \csc x\).
 
-\subsubsection{The Secant Derivative Proof}
+\subsection{The Secant Derivative Proof}
 \AgdaField{VCAS.derivative-of-secant} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\sec x\) with respect to \(x\) is \(\sec x \cdot \tan x\).
 
-\subsubsection{The Cotangent Derivative Proof}
+\subsection{The Cotangent Derivative Proof}
 \AgdaField{VCAS.derivative-of-cotangent} \AgdaBound{v} proves that the \AgdaBound{v} CAS correctly determines that for all variables \(x\), the derivative of \(\cot x\) with respect to \(x\) is \(- \left(\csc x\right)^2\).
 
-\subsubsection{The Derivative Sum Proof}
+\subsection{The Derivative Sum Proof}
 \AgdaField{VCAS.derivative-of-sum-is-sum-of-derivatives} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that for all relevant \(x\), \(e_1\), and \(e_2\), \(\derivative{x} \left(e_1 + e_2\right)\) is algebraically equal to \(\derivative{x} e_1 + \derivative{x} e_2\).
 
-\subsection{The Definition Proper}
+\section{The Definition Proper}
 
 \begin{code}
 record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
