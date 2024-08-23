@@ -1302,14 +1302,6 @@ data ε where
 pattern NumberNatP n c = NumberRat (ℚ.mkℚ (Data.Integer.+ n) 0 c)
 \end{code}
 
-\subsection{The Natural-Number-to-Expression Function}
-\AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's more manageable representation of \AgdaBound{n}.
-
-\begin{code}
-NumberNat : ℕ → ε
-NumberNat n = NumberNatP n (Coprimality.sym (Coprimality.1-coprimeTo _))
-\end{code}
-
 \subsection{The Quotient Pattern}
 \AgdaInductiveConstructor{NumberRat} \AgdaBound{x} \AgdaBound{y} \AgdaBound{coprimality} is Casanova Fly's representation of \(\frac{\AgdaBound{x}}{\AgdaBound{y}}\).
 
@@ -1324,6 +1316,14 @@ pattern Quotient x y coprime =
      ∷ []))
 \end{code}
 
+\subsection{The Natural-Number-to-Expression Function}
+\AgdaFunction{NumberNat} \AgdaBound{n} is Casanova Fly's more manageable representation of \AgdaBound{n}.
+
+\begin{code}
+NumberNat : ℕ → ε
+NumberNat n = NumberNatP n (Coprimality.sym (Coprimality.1-coprimeTo _))
+\end{code}
+
 \subsection{The Commutativity-Determining Function}
 \AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
 
@@ -1334,6 +1334,22 @@ isCommutative Product refl = true
 isCommutative Exponent refl = false
 isCommutative (Lambda names body) equality = false
 isCommutative (Limit name) equality = false
+\end{code}
+
+\section{The Variable Substitution Function}
+\AgdaFunction{varSubstM} is the multi-variable substitution function.  In \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e}, any variable in \AgdaBound{e} which also has an entry in \AgdaBound{l} will be replaced by the corresponding \AgdaDatatype{ε} entry in \AgdaBound{l}.  More formally, one can say that \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e} is a derivative of \AgdaBound{e} such that for any given variable \AgdaBound{x} in \AgdaBound{e}, if a value \AgdaBound{i} exists such that \AgdaField{proj₁} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol) is \AgdaBound{x}, then \AgdaBound{x} is replaced by \AgdaField{proj₂} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol).
+
+\begin{code}
+{-# TERMINATING #-}
+varSubstM : List.List (String × ε) → ε → ε
+varSubstM List.[] x = x
+varSubstM vars o@(NumberRat r) = o
+varSubstM vars o@Infinity = o
+varSubstM (v List.∷ vs) (Variable sv) =
+  if proj₁ v Data.String.== sv
+     then proj₂ v
+     else varSubstM vs (Variable sv)
+varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 \end{code}
 
 \subsection{Decidable Structural Equality on \AgdaDatatype{F}}
@@ -1732,22 +1748,6 @@ commutativePermutations (Ap f e) = perms' f (Data.Vec.toList e) {!!}
       where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
   perms' f e lengthMatches = List.[ combine f e lengthMatches ]
 commutativePermutations o = List.[ o ]
-\end{code}
-
-\section{The Variable Substitution Function}
-\AgdaFunction{varSubstM} is the multi-variable substitution function.  In \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e}, any variable in \AgdaBound{e} which also has an entry in \AgdaBound{l} will be replaced by the corresponding \AgdaDatatype{ε} entry in \AgdaBound{l}.  More formally, one can say that \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e} is a derivative of \AgdaBound{e} such that for any given variable \AgdaBound{x} in \AgdaBound{e}, if a value \AgdaBound{i} exists such that \AgdaField{proj₁} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol) is \AgdaBound{x}, then \AgdaBound{x} is replaced by \AgdaField{proj₂} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol).
-
-\begin{code}
-{-# TERMINATING #-}
-varSubstM : List.List (String × ε) → ε → ε
-varSubstM List.[] x = x
-varSubstM vars o@(NumberRat r) = o
-varSubstM vars o@Infinity = o
-varSubstM (v List.∷ vs) (Variable sv) =
-  if proj₁ v Data.String.== sv
-     then proj₂ v
-     else varSubstM vs (Variable sv)
-varSubstM vars o@(Ap f x) = Ap f (Data.Vec.map (varSubstM vars) x)
 \end{code}
 
 \section{The Types of the Algebraic Equality Type and the Single-Step Evaluation Function}
