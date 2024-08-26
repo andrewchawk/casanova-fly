@@ -656,8 +656,8 @@ The author acknowledges that the ``more formal'' definition is pretty vague; in 
 \end{enumerate}
 
 \subsection{The Variable Substitution Function}
-\AgdaField{CAS.substituteVariable} \AgdaBound{c} is the variable substitution function for the \AgdaBound{c} CAS.\footnote{You don't say.}
-In short, \AgdaField{CAS.substituteVariable} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is a version of \AgdaBound{e} such that for all \AgdaSymbol(\AgdaBound{variableName} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{replacement}\AgdaSymbol) in \AgdaBound{list}, all of \AgdaBound{e}'s free instances of \AgdaField{CAS.variableNamed} \AgdaBound{variableName} have been replaced by \AgdaBound{replacement}.  \AgdaField{CAS.substituteVariable} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is otherwise equivalent to \AgdaBound{e}, though.
+\AgdaField{CAS.substituteVariables} \AgdaBound{c} is the variable substitution function for the \AgdaBound{c} CAS.\footnote{You don't say.}
+In short, \AgdaField{CAS.substituteVariables} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is a version of \AgdaBound{e} such that for all \AgdaSymbol(\AgdaBound{variableName} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{replacement}\AgdaSymbol) in \AgdaBound{list}, all of \AgdaBound{e}'s free instances of \AgdaField{CAS.variableNamed} \AgdaBound{variableName} have been replaced by \AgdaBound{replacement}.  \AgdaField{CAS.substituteVariables} \AgdaBound{c} \AgdaBound{list} \AgdaBound{e} is otherwise equivalent to \AgdaBound{e}, though.
 
 \subsection{The Non-Tracing Maximum Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input but just returns the resulting exception or expression.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{rEvaluate}.
