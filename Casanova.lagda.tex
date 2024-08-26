@@ -646,7 +646,14 @@ A value of type \AgdaField{CAS.\AgdaUnderscore{}≤\AgdaUnderscore{}} \AgdaBound
 \subsection{The Single-Step Evaluation Function}
 If such a step is possible, then the single-step evaluation function, which is represented in \AgdaDatatype{CAS} records as some \AgdaField{exceptionallyEvaluate} field, performs a single evaluation step on the input.  If no such step is possible, but the input is not bogus, then the output just contains the input.  If the input is bogus, then the output contains a description of the bogusness.
 
-For the purposes of this document, an ``evaluation step'' is the application of a basic operation, e.g., addition or commuting the arguments of a function.  More formally, one can say that an evaluation step is the application of an operation which cannot be further simplified or decomposed into simpler operations.
+For the purposes of this document, an ``evaluation step'' is the application of a basic operation, e.g., addition or commuting the arguments of a function, although this notion may not accurately describe some computer algebra systems, e.g., a computer algebra system which \emph{immediately} simplifies some expressions without explicitly using evaluation steps.\footnote{However, identifying and solving problems in such a computer algebra system \emph{could} be relatively difficult\ldots{}}  More formally, one can say that an evaluation step is the application of an operation which, with regard to the representation system which is used by the computer algebra system in question, cannot be further simplified or decomposed into simpler operations.
+
+The author acknowledges that the ``more formal'' definition is pretty vague; in fact, this vagueness is intentional!  To justify the vagueness, the author has bestowed upon the reader\footnote{Is anyone actually reading this paper?} the following hypothetical: Computer algebra systems \(a\) and \(b\) can have methods of representing values which differ sufficiently wildly to enable the following conditions:
+
+\begin{enumerate}
+  \item \(a\) cannot directly compute natural number sums; rather, natural number sums must be represented as repeated applications of the successor function.  Different and more simplified results are achieved by repeatedly applying the single-step evaluation function.
+  \item \(b\) immediately computes simple integrals, e.g., \(\int_{x=0}^5 \sin x\).  The result is represented directly as a floating-point number, integer, or whatever type happens to be the best fit.  In any case, the immediate result \emph{cannot be further simplified}.
+\end{enumerate}
 
 \subsection{The Variable Substitution Function}
 \AgdaField{CAS.substituteVariable} \AgdaBound{c} is the variable substitution function for the \AgdaBound{c} CAS.\footnote{You don't say.}
