@@ -2113,8 +2113,7 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                ℕ →
                Dec (x ≡ y) →
                Exceptional (Maybe (AlgebraicEquality x y))
-    with-dec iters (yes eq) = inj₂ (just (inj₁ eq))
-    with-dec iters (no neq) = {!!}
+    with-dec iters = maybe (inj₂ ∘ just ∘ inj₁) {!!} ∘ decToMaybe
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
