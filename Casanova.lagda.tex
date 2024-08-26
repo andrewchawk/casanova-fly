@@ -2118,6 +2118,7 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
+
   checkAlgebraicEquality = checkAlgebraicEquality.main
 \end{code}
 
