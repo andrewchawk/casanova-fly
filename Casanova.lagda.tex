@@ -126,6 +126,7 @@ import Data.Nat.Properties
 import Data.Product.Properties as ProdProp
 import Data.Vec.Properties as VecProp
 import Data.Vec.Relation.Unary.Any as AnyVec
+import Data.Vec.Relation.Unary.All as AllVec
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -1453,6 +1454,36 @@ The following statements hold:
         where f' = Ap f ∘ Data.Vec.cast (sym lengthMatches)
     perms' f e lengthMatches = List.[ combine f e lengthMatches ]
   commutativePermutations o = List.[ o ]
+\end{code}
+
+\chapter{Descriptive Types and Related Functions}
+
+\section{The Constant Type}
+A value of type \AgdaFunction{IsConstant} \AgdaBound{e} exists if and only if \AgdaBound{e} is a constant, i.e., refers to no variables.
+
+\begin{code}
+  {-# TERMINATING #-}
+  IsConstant : ε → Set
+  IsConstant (Variable x) = ⊥
+  IsConstant Infinity = ⊤
+  IsConstant (NumberRat x) = ⊤
+  IsConstant (Ap f x) = AllVec.All IsConstant x
+\end{code}
+
+\subsection{The Decidable Constantness Function}
+\AgdaFunction{IsConstant?} is the decidable contstantness function for \AgdaDatatype{ε}.  A bit more formally, one \emph{could} say that exactly one of the following statements applies:
+
+\begin{enumerate}
+  \item \AgdaFunction{IsConstant?} \AgdaBound{x} contains a value of type \AgdaFunction{IsConstant} \AgdaBound{x}.
+  \item \AgdaFunction{IsConstant?} \AgdaBound{x} contains a proof which indicates that \emph{no such value exists}.
+\end{enumerate}
+
+\begin{code}
+  IsConstant? : (e : ε) → Dec (IsConstant e)
+  IsConstant? (Variable x) = no λ ()
+  IsConstant? Infinity = yes tt
+  IsConstant? (NumberRat x) = yes tt
+  IsConstant? (Ap f x) = {!!}
 \end{code}
 
 \chapter{Decidable Structural Equality Functions}
