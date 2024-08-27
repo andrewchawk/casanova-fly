@@ -1411,7 +1411,7 @@ The following statements hold:
 \chapter{General-Purpose Functions}
 
 \section{The Commutativity-Determining Function}
-\AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} if and only if \AgdaBound{f} represents a commutative function.
+\AgdaFunction{isCommutative} \AgdaBound{f} \AgdaBound{a} is \AgdaInductiveConstructor{true} only if \AgdaBound{f} represents a commutative function.
 
 \begin{code}
   isCommutative : (f : F) → arity f ≡ 2 → Bool
