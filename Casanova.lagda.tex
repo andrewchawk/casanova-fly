@@ -1462,12 +1462,14 @@ The following statements hold:
 A value of type \AgdaFunction{IsConstant} \AgdaBound{e} exists if and only if \AgdaBound{e} is a constant, i.e., refers to no variables.
 
 \begin{code}
-  {-# TERMINATING #-}
-  IsConstant : ε → Set
-  IsConstant (Variable x) = ⊥
-  IsConstant Infinity = ⊤
-  IsConstant (NumberRat x) = ⊤
-  IsConstant (Ap f x) = AllVec.All IsConstant x
+  data IsConstant : ε → Set where
+    InfinityIsConstant : IsConstant Infinity
+    RationalIsConstant : {q : ℚ} → IsConstant (NumberRat q)
+    ConstantApplicationIsConstant :
+      (f : F) →
+      (x : Vec ε (arity f)) →
+      AllVec.All IsConstant x →
+      IsConstant (Ap f x)
 \end{code}
 
 \subsection{The Decidable Constantness Function}
@@ -1481,8 +1483,8 @@ A value of type \AgdaFunction{IsConstant} \AgdaBound{e} exists if and only if \A
 \begin{code}
   IsConstant? : (e : ε) → Dec (IsConstant e)
   IsConstant? (Variable x) = no λ ()
-  IsConstant? Infinity = yes tt
-  IsConstant? (NumberRat x) = yes tt
+  IsConstant? Infinity = yes InfinityIsConstant
+  IsConstant? (NumberRat x) = yes RationalIsConstant
   IsConstant? (Ap f x) = {!!}
 \end{code}
 
