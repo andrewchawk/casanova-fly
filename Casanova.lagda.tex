@@ -2153,8 +2153,8 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
       ∷ (λ { (Ap (Lambda names body) expressions) →
              valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
            ; _ → nothing})
-      ∷ (λ { (Ap f x) → [_,_] (just ∘ inj₁)
-                              (just ∘ inj₂ ∘ Ap f)
+      ∷ (λ { (Ap f x) → [_,_] bust
+                              (valid ∘ Ap f)
                               (condenseExceptionList (Data.Vec.map main x))
            ; _ → nothing})
       ∷ [ just ∘ inj₂ ]
