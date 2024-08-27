@@ -2063,6 +2063,11 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                then bust "0^0 is undefined!"
                else valid (NumberNat (x Data.Nat.^ y))
            ; _ → nothing})
+      ∷ (λ { (Ap Exponent (NumberRat x ∷ NumberRat y ∷ [])) →
+             if y ℚ.≤ᵇ ℚ.0ℚ
+                then bust "\\(0^x\\) is undefined for non-positive \\(x\\)!"
+                else nothing
+           ; _ → nothing})
       -- The following "x^0" evaluation rule is a bit dubious; this rule
       -- indicates that Variable x ^ fromℕ 0 is algebraically equal to
       -- fromℕ 1.  However, Variable x *could* feasibly be defined as
@@ -2073,7 +2078,17 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
       -- The following "0^x" evaluation rule, like the "x^0" rule, is
       -- kind of dubious.  This rule, too, mirrors the behavior of
       -- Maxima, though.
-      ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) → valid (NumberNat 0)
+      ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) →
+             let eq2 = Data.Sum.Properties.≡-dec Data.String._≟_
+                                                 structuralEqualityOnε in
+             -- The following check ensures that expressions like
+             -- Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberNat 0 ])
+             -- are not wrongly evaluated to inj₂ (NumberNat 0).
+             if isYes (eq2 (inj₂ e) (exceptionallyEvaluate e))
+                then valid (NumberNat 0)
+                else [_,_] bust
+                           (λ x → valid (Ap Exponent ((NumberNat 0) ∷ [ x ])))
+                           (exceptionallyEvaluate e)
            ; _ → nothing})
       ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
            ; _ → nothing})
