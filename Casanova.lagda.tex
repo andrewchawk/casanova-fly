@@ -648,7 +648,8 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a proof which indicates that for any two natural numbers \(n_1\) and \(n_2\), if \(n_1 \neq n_2\), then the representation of \(n_1\) is not equal to the representation of \(n_2\),
   \item a proof which indicates that variables of different names are not equivalent,
   \item a function which performs the maximum number of evaluation steps on the input,
-  \item a function which displays all evaluation steps which are used on a given input, and
+  \item a function which displays all evaluation steps which are used on a given input,
+  \item a bounded bogosity check function, and
   \item some other functions which are really only terribly useful for verification.
 \end{itemize}
 
@@ -691,6 +692,9 @@ A compliant CAS also has a function which performs the specified number of non-r
 
 \subsection{The Tracing Recursive Evaluation Function}
 A compliant CAS also has a function which performs the specified number of non-repeating simplification steps on the input, returning a list all steps which were taken to get the output, regardless of whether or not the output is an exception.  In \AgdaDatatype{CAS} records, this function is represented through \AgdaField{traceEvaluate}.
+
+\subsection{The Bounded Bogosity Check Function}
+\AgdaField{CAS.bogusBeforeIteration?} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains an appropriate value if and only if such a value exists.\footnote{In other words, the author so kindly suggests reading type definitions instead of expecting spoonfeeding.}  \emph{Gee}, \emph{that} explanation is the bee's knees!
 
 \section{Representational Functions}
 
@@ -973,6 +977,19 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
   fromℤ : Data.Integer.ℤ → ε
   fromℤ (Data.Integer.+ x) = fromℕ x
   fromℤ (Data.Integer.-[1+ x ]) = negation (fromℕ (ℕ.suc x))
+
+  bogusBeforeIteration? :
+    (n : ℕ) →
+    (e : ε) →
+    Maybe ((Σ (Fin n) (λ f → bogus-at-iteration (Fin.toℕ f) e)))
+  bogusBeforeIteration? n e =
+    List.head (List.catMaybes (List.map check (List.allFin n)))
+    where
+    isBogus? : (n : ℕ) → (e : ε) → Maybe (bogus-at-iteration n e)
+    isBogus? n e with rEvaluate n e
+    ... | inj₁ bogus = just (bogus , refl)
+    ... | _ = nothing
+    check = λ x → Data.Maybe.map (x ,_) (isBogus? (Data.Fin.toℕ x) e)
 \end{code}
 
 \chapter{The Type of Verified Computer Algebra Systems}
@@ -2400,19 +2417,6 @@ CasanovaFly-Verified = record
     equal-at-some-iteration (fromℕ 0) e2 →
     bogus-at-some-iteration (e1 / e2)
   division-by-zero-is-bogus x y (iters , eq) with bogusBeforeIteration? (ℕ.suc iters) (x / y)
-    where
-    bogusBeforeIteration? :
-      (n : ℕ) →
-      (e : ε) →
-      Maybe ((Σ (Fin n) (λ f → bogus-at-iteration (Fin.toℕ f) e)))
-    bogusBeforeIteration? n e =
-      List.head (List.catMaybes (List.map check (List.allFin n)))
-      where
-      isBogus? : (n : ℕ) → (e : ε) → Maybe (bogus-at-iteration n e)
-      isBogus? n e with rEvaluate n e
-      ... | inj₁ bogus = just (bogus , refl)
-      ... | _ = nothing
-      check = λ x → Data.Maybe.map (x ,_) (isBogus? (Data.Fin.toℕ x) e)
   ... | just (f , bogus) = Fin.toℕ f , bogus
   ... | nothing = ℕ.suc iters , _ , sym inj1Equality
     where
