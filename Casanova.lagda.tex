@@ -991,8 +991,9 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
  \item a proof of the irrelevance of substitution list order,
  \item a proof which indicates that the derivative of a constant is \(0\),
- \item basic trigonometric derivative correctness proofs, and
- \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\).
+ \item basic trigonometric derivative correctness proofs,
+ \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\), and
+ \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}.
 \end{itemize}
 
 \section{General Proofs regarding Equality}
@@ -1105,6 +1106,12 @@ We ain't done yet, folks!  Additional fields include the basic trigonometric der
 \section{Trigonometric Function Correctness Proofs}
 \subsection{The Proof of the Equality of \(\operatorname{sin} \left(\tau \cdot n \cdot \frac12\right)\), where \(n\) is a Natural Number}
 \AgdaField{VCAS.sin-n*pi-is-zero} \AgdaBound{v} proves that the \AgdaBound{v} CAS can determine that for all natural numbers \(n\), the sine of \(\tau \cdot n \cdot \frac12\), i.e., \(\pi \cdot n\), is algebraically equal to \(0\).
+
+\subsection{The Tangent Bogosity Proof}
+\AgdaField{VCAS.tangent-is-bogus-at-quarter-tau} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\sin \left(\tau \cdot \left(n + \frac{1}{4}\right)\right)\) is totally bogus for all integers \(n\).
+
+\section{The Natural Number Less-Than Proof}
+\AgdaField{VCAS.natural-number-less-than} \AgdaBound{v} proves that for any two natural numbers \(m\) and \(n\), if \(m < n\), then the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(m\) is less than the \AgdaBound{v} CAS's representation of \(n\).
 
 \section{The Definition Proper}
 
@@ -1247,6 +1254,14 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e1 e2 : ε) →
       equal-at-some-iteration (derivative name (e1 + e2))
                               (derivative name e1 + derivative name e2)
+
+    tangent-is-bogus-at-quarter-tau :
+      (n : ℕ) →
+      let product = τ * (fromℕ n + (fromℕ 1 / fromℕ 4)) in
+      _×_ (bogus-at-some-iteration product)
+          (bogus-at-some-iteration (negation product))
+
+    natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
 
 \part{The Core Components of Casanova Fly}
@@ -2510,6 +2525,8 @@ CasanovaFly-Verified = record
   ; derivative-of-secant = {!!}
   ; derivative-of-cotangent = {!!}
   ; derivative-of-sum-is-sum-of-derivatives = {!!}
+  ; tangent-is-bogus-at-quarter-tau = {!!}
+  ; natural-less-than = {!!}
   }
   where
   open CAS CasanovaFly-Base
