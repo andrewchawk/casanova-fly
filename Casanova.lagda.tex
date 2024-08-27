@@ -2405,7 +2405,14 @@ CasanovaFly-Verified = record
       (n : ℕ) →
       (e : ε) →
       Maybe ((Σ (Fin n) (λ f → bogus-at-iteration (Fin.toℕ f) e)))
-    bogusBeforeIteration? = {!!}
+    bogusBeforeIteration? n e =
+      List.head (List.catMaybes (List.map check (List.allFin n)))
+      where
+      isBogus? : (n : ℕ) → (e : ε) → Maybe (bogus-at-iteration n e)
+      isBogus? n e with rEvaluate n e
+      ... | inj₁ bogus = just (bogus , refl)
+      ... | _ = nothing
+      check = λ x → Data.Maybe.map (x ,_) (isBogus? (Data.Fin.toℕ x) e)
   ... | just (f , bogus) = Fin.toℕ f , bogus
   ... | nothing = ℕ.suc iters , _ , sym inj1Equality
     where
