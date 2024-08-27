@@ -1513,11 +1513,21 @@ A value of type \AgdaFunction{IsConstant} \AgdaBound{e} exists if and only if \A
 \end{enumerate}
 
 \begin{code}
+  {-# TERMINATING #-}
   IsConstant? : (e : ε) → Dec (IsConstant e)
   IsConstant? (Variable x) = no λ ()
   IsConstant? Infinity = yes InfinityIsConstant
   IsConstant? (NumberRat x) = yes RationalIsConstant
-  IsConstant? (Ap f x) = {!!}
+  IsConstant? (Ap f x) with AllVec.all? IsConstant? x
+  ... | yes xConstant = yes (ConstantApplicationIsConstant f x xConstant)
+  ... | no xVariable = no (xVariable ∘ constantOnlyIfXConstant)
+    where
+    constantOnlyIfXConstant :
+      {f : F} →
+      {x : Vec ε (arity f)} →
+      IsConstant (Ap f x) →
+      AllVec.All IsConstant x
+    constantOnlyIfXConstant (ConstantApplicationIsConstant f x xC) = xC
 \end{code}
 
 \chapter{Decidable Structural Equality Functions}
