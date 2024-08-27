@@ -1106,6 +1106,9 @@ We ain't done yet, folks!  Additional fields include the basic trigonometric der
 \subsection{The Proof of the Equality of \(\operatorname{sin} \left(\tau \cdot n \cdot \frac12\right)\), where \(n\) is a Natural Number}
 \AgdaField{VCAS.sin-n*pi-is-zero} \AgdaBound{v} proves that the \AgdaBound{v} CAS can determine that for all natural numbers \(n\), the sine of \(\tau \cdot n \cdot \frac12\), i.e., \(\pi \cdot n\), is algebraically equal to \(0\).
 
+\subsection{The Tangent Bogosity Proof}
+\AgdaField{VCAS.tangent-is-bogus-at-quarter-tau} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\sin \left(\tau \cdot \left(n + \frac{1}{4}\right)\right)\) is totally bogus for all integers \(n\).
+
 \section{The Definition Proper}
 
 \begin{code}
@@ -1247,6 +1250,11 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e1 e2 : ε) →
       equal-at-some-iteration (derivative name (e1 + e2))
                               (derivative name e1 + derivative name e2)
+    tangent-is-bogus-at-quarter-tau :
+      (n : ℕ) →
+      let product = τ * (fromℕ n + (fromℕ 1 / fromℕ 4)) in
+      _×_ (bogus-at-some-iteration product)
+          (bogus-at-some-iteration (negation product))
 \end{code}
 
 \part{The Core Components of Casanova Fly}
@@ -2333,6 +2341,7 @@ CasanovaFly-Verified = record
   ; derivative-of-secant = {!!}
   ; derivative-of-cotangent = {!!}
   ; derivative-of-sum-is-sum-of-derivatives = {!!}
+  ; tangent-is-bogus-at-quarter-tau = {!!}
   }
   where
   open CAS CasanovaFly-Base
