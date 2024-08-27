@@ -627,6 +627,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a function which determines certain algebraic equality on non-bogus \(\epsilon\) values,
   \item a function which determines certain inequality on non-bogus \(\epsilon\) values,
   \item a function which converts natural number values into \(\epsilon\) values,
+  \item a function which converts integer values into \(\epsilon\) values,
   \item a function which converts the name of a variable into an \(\epsilon\) variable value,
   \item a function which converts the two input expressions into a representation of the sum of the input expressions,
   \item a function which converts the two input expressions into a representation of the quotient of the input expressions,
@@ -695,6 +696,9 @@ A compliant CAS also has a function which performs the specified number of non-r
 
 \subsection{The Natural-to-Expression Function}
 The author thinks that any computer algebra system which is worthy of being given the time of day can represent natural numbers --- after all, the time of day can be represented \emph{as} a natural number!  Anyway, \AgdaField{fromℕ} indicates that a mapping from the natural numbers to the expression type of the given computer algebra system exists.
+
+\subsection{The Integer-to-Expression Function}
+Similarly, the author believes that any good computer algebra system can represent any given integer.  In fact, when using \AgdaRecord{CAS} records, this value can be derived automatically!  \AgdaField{CAS.fromℤ} \AgdaBound{c} \AgdaBound{x} is the \AgdaBound{c} CAS's representation of \AgdaBound{x}.
 
 \subsection{The Variable Function}
 Does a computer algebra system which lacks support for variables even qualify as being a computer algebra system?  The author is doubtful.  Anyway, \AgdaField{CAS.variableNamed} \AgdaBound{c} \AgdaBound{name} is \AgdaBound{c}'s representation of the variable whose name is \AgdaBound{name}.
@@ -965,6 +969,10 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
 
   IsImaginary : ε → Set a
   IsImaginary e = IsReal e × IsNotBogus e
+
+  fromℤ : Data.Integer.ℤ → ε
+  fromℤ (Data.Integer.+ x) = fromℕ x
+  fromℤ (Data.Integer.-[1+ x ]) = negation (fromℕ (ℕ.suc x))
 \end{code}
 
 \chapter{The Type of Verified Computer Algebra Systems}
