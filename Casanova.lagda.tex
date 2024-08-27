@@ -982,7 +982,6 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that the algebraic equality relation is an equaivalence relation,
  \item a proof which indicates that two values are structurally equivalent only if these same values are also algebraically equal,
  \item a proof which indicates that variables of different names are not definitely equal,
- \item a proof which indicates that two variables which have the same name are algebraically equal,
  \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representations of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\),
  \item a proof which indicates that the product of any non-bogus element \(e\) of type \AgdaBound{ε} and one is \(e\),
  \item a proof of commutativity of addition,
@@ -1016,9 +1015,6 @@ Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the 
 
 \subsection{The Proof which Indicates that Values of Different Names are Not ``Definitely Equal''}
 Any two given variables are not necessarily equal.  Accordingly, \AgdaField{VCAS.differently-named-variables-are-not-definitely-equal} \AgdaBound{c} indicates that within the \AgdaBound{c} CAS, given any two \AgdaBound{c} variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \(x\) is not definitely equal to \(y\).
-
-\subsection{The Proof which Indicates that Variables of Identical Names are Algebraically Equal}
-Also, options on variables are only sensible if for all variables \(x\) and \(y\), if the name of \(x\) is also the name of \(y\), then \(x\) is algebraically equal to \(y\).  Accordingly, \AgdaField{VCAS.identically-named-variables-are-equal} \AgdaBound{c} indicates that for any \AgdaBound{c}-CAS variables \(x\) and \(y\), if the name of \(x\) is identical to the name of \(y\), then \AgdaBound{c} can determine that \(x\) is algebraically equal to \(y\).
 
 \section{Addition Correctness Proofs}
 
@@ -1141,10 +1137,6 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
           (definitelyEquals iterations
                             (variableNamed name1)
                             (variableNamed name2))
-    identically-named-variables-are-equal :
-      (name1 name2 : String) →
-      name1 ≡ name2 →
-      equal-at-some-iteration (variableNamed name1) (variableNamed name2)
     sum-of-nats-is-nat-sum :
       (n1 n2 : ℕ) →
       equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
@@ -2506,7 +2498,6 @@ CasanovaFly-Verified = record
   ; product-of-e-and-1-is-e = {!!}
   ; structural-equality-implies-definite-equality =
     structural-equality-implies-definite-equality
-  ; identically-named-variables-are-equal = invae
   ; differently-named-variables-are-not-definitely-equal = {!!}
   ; difference-is-negated-sum = {!!}
   ; inverse-of-inverse-is-original = invert-inverse
@@ -2611,14 +2602,5 @@ CasanovaFly-Verified = record
       inj₂ (just (inj₁ eq)) ∎
       where
       decyes = dec-yes (structuralEqualityOnε e1 e2) eq
-
-  invae : (name1 name2 : String) →
-          name1 ≡ name2 →
-          equal-at-some-iteration (Variable name1) (Variable name2)
-  invae name1 name2 eq =
-    0 , (structural-equality-implies-definite-equality v1 v2 (cong Variable eq) 0)
-    where
-    v1 = Variable name1
-    v2 = Variable name2
 \end{code}
 \end{document}
