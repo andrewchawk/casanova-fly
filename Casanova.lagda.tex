@@ -700,16 +700,16 @@ The author thinks that any computer algebra system which is worthy of being give
 Does a computer algebra system which lacks support for variables even qualify as being a computer algebra system?  The author is doubtful.  Anyway, \AgdaField{CAS.variableNamed} \AgdaBound{c} \AgdaBound{name} is \AgdaBound{c}'s representation of the variable whose name is \AgdaBound{name}.
 
 \subsection{The Sum Function}
-Any half-decent CAS is capable of representing the unevaluated sum of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}+\AgdaUnderscore{}} values are unevaluated sum functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated sum of \AgdaBound{x} and \AgdaBound{y}.
+Any half-decent CAS is capable of representing the sum of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}+\AgdaUnderscore{}} values are sums.  More formally, \AgdaField{CAS.\AgdaUnderscore{}+\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the sum of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Difference Function}
-Any half-decent CAS can represent the difference of two given expressions, too.  Accordingly, \AgdaField{\AgdaUnderscore{}-\AgdaUnderscore{}} values are unevaluated differences.  More formally, \AgdaField{CAS.\AgdaUnderscore{}-\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated difference of \AgdaBound{x} and \AgdaBound{y}.
+Any half-decent CAS can represent the difference of two given expressions, too.  Accordingly, \AgdaField{\AgdaUnderscore{}-\AgdaUnderscore{}} values are differences.  More formally, \AgdaField{CAS.\AgdaUnderscore{}-\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the difference of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Product Function}
-A decent CAS can represent the unevaluated product of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}*\AgdaUnderscore{}} values represent unevaluated products.  More formally, one can say that \AgdaField{CAS.\AgdaUnderscore{}*\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated product of \AgdaBound{x} and \AgdaBound{y}.
+A decent CAS can represent the product of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}*\AgdaUnderscore{}} values represent products.  More formally, one can say that \AgdaField{CAS.\AgdaUnderscore{}*\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the product of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Quotient Function}
-Any \emph{good} CAS can \emph{also} represent the unevaluated quotient of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}/\AgdaUnderscore{}} values are unevaluated quotient functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}/\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the unevaluated quotient of \AgdaBound{x} and \AgdaBound{y}.
+Any \emph{good} CAS can \emph{also} represent the quotient of two expressions.  Accordingly, \AgdaField{\AgdaUnderscore{}/\AgdaUnderscore{}} values are quotient functions.  More formally, \AgdaField{CAS.\AgdaUnderscore{}/\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of the quotient of \AgdaBound{x} and \AgdaBound{y}.
 
 \subsection{The Exponent Function}
 The author is tired of the boilerplate nonsense.  \AgdaField{CAS.\AgdaUnderscore{}\textasciicircum\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} is \AgdaBound{c}'s representation of \AgdaBound{x} to the power of \AgdaBound{y}.
@@ -2371,25 +2371,11 @@ A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if an
 \end{code}
 
 \section{The Basic Less-Than Type}
-Basically, some value of type \AgdaFunction{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
-
-As far as Casanova Fly is concerned, no value is greater than infinity; accordingly, \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{Infinity} is \AgdaDatatype{⊥} for all \AgdaBound{x}.
+Basically, some value of type \AgdaDatatype{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
 
 \begin{code}
-    LT : ε → ε → Set
-    LT _ Infinity = ⊥
-    LT Infinity (Variable x) = ⊥
-    LT Infinity (NumberRat x) = ⊥
-    LT Infinity (Ap f x) = ⊥
-    LT (Variable x) (Variable y) = ⊥
-    LT (Variable x) (NumberRat y) = ⊥
-    LT (Variable x) (Ap f y) = ⊥
-    LT (NumberRat x) (Variable y) = ⊥
-    LT (NumberRat x) (NumberRat y) = x ℚ.< y
-    LT (NumberRat x) (Ap f y) = {!!}
-    LT (Ap f x) (Variable y) = ⊥
-    LT (Ap f x) (NumberRat y) = {!!}
-    LT (Ap f x) (Ap g y) = {!!}
+    data LT : ε → ε → Set where
+      LT-Rational : {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
 \end{code}
 
 \section{The \AgdaFunction{Exceptional} Less-Than Type}
