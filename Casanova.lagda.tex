@@ -2239,6 +2239,14 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
            ; _ → nothing})
       ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
            ; _ → nothing})
+      -- The following evaluation rule prevents becoming stuck in a
+      -- derivative evaluation loop.
+      ∷ (λ { (Ap (Lambda (n1 List.∷ List.[]) (Ap (Derivative n2) e1)) (e2 ∷ [])) →
+             [_,_]′ bust
+                    (λ derivative → valid ((Ap (Lambda List.[ n1 ] derivative)
+                                               [ e2 ])))
+                    (main (Ap (Derivative n2) e1))
+           ; _ → nothing})
       -- The following evaluation rule is *also* kind of dubious, but,
       -- again, the behavior is like the behavior of Maxima.
       ∷ (λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
