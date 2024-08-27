@@ -2194,25 +2194,11 @@ A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if an
 \end{code}
 
 \section{The Basic Less-Than Type}
-Basically, some value of type \AgdaFunction{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
-
-As far as Casanova Fly is concerned, no value is greater than infinity; accordingly, \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{Infinity} is \AgdaDatatype{⊥} for all \AgdaBound{x}.
+Basically, some value of type \AgdaDatatype{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
 
 \begin{code}
-    LT : ε → ε → Set
-    LT _ Infinity = ⊥
-    LT Infinity (Variable x) = ⊥
-    LT Infinity (NumberRat x) = ⊥
-    LT Infinity (Ap f x) = ⊥
-    LT (Variable x) (Variable y) = ⊥
-    LT (Variable x) (NumberRat y) = ⊥
-    LT (Variable x) (Ap f y) = ⊥
-    LT (NumberRat x) (Variable y) = ⊥
-    LT (NumberRat x) (NumberRat y) = x ℚ.< y
-    LT (NumberRat x) (Ap f y) = {!!}
-    LT (Ap f x) (Variable y) = ⊥
-    LT (Ap f x) (NumberRat y) = {!!}
-    LT (Ap f x) (Ap g y) = {!!}
+    data LT : ε → ε → Set where
+      LT-Rational : {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
 \end{code}
 
 \section{The \AgdaFunction{Exceptional} Less-Than Type}
