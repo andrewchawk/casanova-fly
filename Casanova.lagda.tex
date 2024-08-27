@@ -152,6 +152,27 @@ condenseExceptions (inj₁ e) _ = inj₁ e
 condenseExceptions _ (inj₁ e) = inj₁ e
 \end{code}
 
+\section{The Exceptional List Condensation Function}
+Informally, one can say that \AgdaFunction{condenseExceptionList} \AgdaBound{l} \AgdaInductiveConstructor{inj₂}-contains all values in \AgdaBound{l}, or, if applicable, \AgdaFunction{condenseExceptionList} \AgdaBound{l} \AgdaInductiveConstructor{inj₁}-contains the first exceptional value in \AgdaBound{l}.  Formally and righteously, one can say that the following statements apply:
+
+\begin{enumerate}
+  \item \AgdaFunction{condenseExceptionList} \AgdaBound{l} contains an \AgdaInductiveConstructor{inj₁} value if and only if \AgdaFunction{condenseExceptionList} \AgdaBound{l} is the first exceptional value in \AgdaBound{l}.\label{enum:condenseExceptionList-inj1}
+  \item \AgdaFunction{condenseExceptionList} \AgdaBound{l} is \AgdaInductiveConstructor{inj₂} \AgdaBound{l} if and only if all elements in \AgdaBound{l} are \AgdaInductiveConstructor{inj₂} values.\label{enum:condenseExceptionList-inj2}
+\end{enumerate}
+
+\begin{code}
+condenseExceptionList :
+  {a : Level} →
+  {A : Set a} →
+  {n : ℕ} →
+  Vec (Exceptional A) n →
+  Exceptional (Vec A n)
+condenseExceptionList [] = inj₂ []
+condenseExceptionList (inj₁ x ∷ xs) = inj₁ x
+condenseExceptionList (inj₂ x ∷ xs) =
+  [_,_] inj₁ (inj₂ ∘ _∷_ x) (condenseExceptionList xs)
+\end{code}
+
 \section{The Exceptional Function Reapplication Function}
 Informally, one can say that \AgdaFunction{repeatExceptional} \AgdaBound{n} \AgdaBound{f} \AgdaBound{x} applies \AgdaBound{f} to \AgdaBound{x} \AgdaBound{n} times; \AgdaInductiveConstructor{inj₂} values are subject to reapplication, and \AgdaInductiveConstructor{inj₁} values are immediately returned.  Formally, one can say that the following statements apply:
 
@@ -2086,21 +2107,13 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
            ; _ → nothing})
       ∷ (λ { (Ap f x) → [_,_] (just ∘ inj₁)
                               (just ∘ inj₂ ∘ Ap f)
-                              (condense (Data.Vec.map main x))
+                              (condenseExceptionList (Data.Vec.map main x))
            ; _ → nothing})
       ∷ [ just ∘ inj₂ ]
       )
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
-      condense : {a : Level} →
-                 {A : Set a} →
-                 {n : ℕ} →
-                 Vec (Exceptional A) n →
-                 Exceptional (Vec A n)
-      condense [] = inj₂ []
-      condense (inj₁ x ∷ xs) = inj₁ x
-      condense (inj₂ x ∷ xs) = [_,_] inj₁ (inj₂ ∘ _∷_ x) (condense xs)
 
     {-# TERMINATING #-}
     main e = firstInj2 $ Data.Vec.map (_$ e) functions
