@@ -2588,29 +2588,29 @@ CasanovaFly-Verified = record
     e1 ≡ e2 →
     (iterations : ℕ) →
     equal-at-iteration iterations e1 e2
-  structural-equality-implies-definite-equality = {!!}
+  structural-equality-implies-definite-equality e1 e2 eq it = inj₁ eq , sym caeEquality
+    where
+    open checkAlgebraicEquality
+    caeEquality = begin
+      main it e1 e2
+        ≡⟨⟩
+      with-dec it (structuralEqualityOnε e1 e2)
+        ≡⟨ cong (with-dec it) (proj₂ decyes) ⟩
+      with-dec it (yes (proj₁ decyes))
+        ≡⟨⟩
+      inj₂ (just (inj₁ (proj₁ decyes)))
+        ≡⟨ cong (inj₂ ∘ just ∘ inj₁) (≡-irrelevant (proj₁ decyes) eq) ⟩
+      inj₂ (just (inj₁ eq)) ∎
+      where
+      decyes = dec-yes (structuralEqualityOnε e1 e2) eq
 
   invae : (name1 name2 : String) →
           name1 ≡ name2 →
           equal-at-some-iteration (Variable name1) (Variable name2)
-  invae name1 name2 eq = 0 , (inj₁ (cong Variable eq) , sym caeEquality)
+  invae name1 name2 eq =
+    0 , (structural-equality-implies-definite-equality v1 v2 (cong Variable eq) 0)
     where
-    open checkAlgebraicEquality
     v1 = Variable name1
     v2 = Variable name2
-    caeEquality = begin
-      main 0 v1 v2
-        ≡⟨⟩
-      with-dec 0 (structuralEqualityOnε v1 v2)
-        ≡⟨ cong (with-dec 0)
-                (proj₂ decyes) ⟩
-      with-dec 0 (yes (proj₁ decyes))
-        ≡⟨⟩
-      inj₂ (just (inj₁ (proj₁ decyes)))
-        ≡⟨ cong (inj₂ ∘ just ∘ inj₁)
-                (≡-irrelevant (proj₁ decyes) (cong Variable eq)) ⟩
-      inj₂ (just (inj₁ (cong Variable eq))) ∎
-      where
-      decyes = dec-yes (structuralEqualityOnε v1 v2) (cong Variable eq)
 \end{code}
 \end{document}
