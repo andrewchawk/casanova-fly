@@ -2037,9 +2037,9 @@ This notion of being ``directly equal'' is best understood by reading the Agda-b
 \begin{code}
     AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ [])) =
       _⊎_ (AlgebraicEquality x1 x2 × AlgebraicEquality y1 y2)
-          (AlgebraicEquality x1 y2 × AlgebraicEquality y2 y1)
+          (AlgebraicEquality x1 y2 × AlgebraicEquality y1 x2)
     AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ [])) =
-      (main x1 x2 × main y1 y2) ⊎ (main x1 y2 × main y2 y1)
+      (main x1 x2 × main y1 y2) ⊎ (main x1 y2 × main y1 x2)
 \end{code}
 
 \subsubsection{\ldots{} and the Rest}
