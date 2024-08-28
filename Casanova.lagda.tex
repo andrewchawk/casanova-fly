@@ -157,7 +157,7 @@ condenseExceptions _ (inj₁ e) = inj₁ e
 \end{code}
 
 \section{The Exceptional List Condensation Function}
-Informally, one can say that \AgdaFunction{condenseExceptionList} \AgdaBound{l} \AgdaInductiveConstructor{inj₂}-contains all values in \AgdaBound{l}, or, if applicable, \AgdaFunction{condenseExceptionList} \AgdaBound{l} \AgdaInductiveConstructor{inj₁}-contains the first exceptional value in \AgdaBound{l}.  Formally and righteously, one can say that the following statements apply:
+Informally, one can say that \AgdaFunction{condenseExceptionList} \AgdaBound{l} \gls{inj2contain} all values in \AgdaBound{l}, or, if applicable, \AgdaFunction{condenseExceptionList} \AgdaBound{l} \gls{inj2contain} the first exceptional value in \AgdaBound{l}.  Formally and righteously, one can say that the following statements apply:
 
 \begin{enumerate}
   \item \AgdaFunction{condenseExceptionList} \AgdaBound{l} contains an \AgdaInductiveConstructor{inj₁} value if and only if \AgdaFunction{condenseExceptionList} \AgdaBound{l} is the first exceptional value in \AgdaBound{l}.\label{enum:condenseExceptionList-inj1}
@@ -1999,7 +1999,7 @@ This notion of being ``directly equal'' is best understood by reading the Agda-b
 \end{code}
 
 \subsection{The Exceptional Equality Type}
-A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \AgdaInductiveConstructor{inj₂}-contain equal values.
+A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \glspl{inj2contain} equal values.
 
 \begin{code}
     AE2 : Exceptional ε → Exceptional ε → Set
@@ -2194,7 +2194,7 @@ Basically, some value of type \AgdaDatatype{LT} \AgdaBound{x} \AgdaBound{y} exis
 \end{code}
 
 \section{The \AgdaFunction{Exceptional} Less-Than Type}
-Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} and \AgdaBound{y} are \AgdaInductiveConstructor{inj₂}-containers for values \AgdaBound{x'} and \AgdaBound{y'}, respectively, and \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
+Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} and \AgdaBound{y} are \gls{inj2contain} for values \AgdaBound{x'} and \AgdaBound{y'}, respectively, and \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
 
 \begin{code}
     LT2 : Exceptional ε → Exceptional ε → Set
@@ -2412,6 +2412,12 @@ CasanovaFly-Verified = record
 \newglossaryentry{algInj2equal}
   { name = algebraically \AgdaInductiveConstructor{inj₂}-equal
   , description = {Within this paper, values \AgdaBound{x} and \AgdaBound{y} of type \AgdaBound{A} \AgdaFunction{\AgdaDatatype{⊎}} \AgdaBound{B} are said to be \gls{algInj2equal} if and only if some values \AgdaBound{x'} and \AgdaBound{y'} exist such that \AgdaBound{x'} and \AgdaBound{y'} are algebraically equal, and \AgdaBound{x} and \AgdaBound{y} are \AgdaInductiveConstructor{inj₂} \AgdaBound{x'} and \AgdaInductiveConstructor{inj₂} \AgdaBound{y'}, respectively.  Equivalently, one can say that \AgdaBound{x} is \gls{algInj2equal} to \AgdaBound{y}}
+  }
+
+\newglossaryentry{inj2contain}
+  { name = \AgdaInductiveConstructor{inj₂}-contains
+  , plural = \AgdaInductiveConstructor{inj₂}-contain
+  , description = {For the scope of this paper, a value \AgdaBound{x} of type \AgdaBound{A} \AgdaOperator{\AgdaDatatype{⊎}} \AgdaBound{B} is said to \AgdaInductiveConstructor{inj₂}-contain a value \AgdaBound{y} of type \AgdaBound{B} if and only if \AgdaBound{x} is equal to \AgdaInductiveConstructor{inj₂} \AgdaBound{y}}
   }
 
 \clearpage{}
