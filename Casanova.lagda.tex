@@ -2224,12 +2224,18 @@ In this case, ``complex'' is justified by \AgdaDatatype{\AgdaUnderscore{}⊎\Agd
 \AgdaBound{name} is the name of a variable which is referenced in \AgdaBound{e} if and only if there exists a value of type \AgdaFunction{IsReferencedIn} \AgdaBound{name} \AgdaBound{e}.
 
 \begin{code}
-  {-# TERMINATING #-}
-  IsReferencedIn : String → ε → Set
-  IsReferencedIn name Infinity = ⊥
-  IsReferencedIn name (NumberRat r) = ⊥
-  IsReferencedIn name (Variable name2) = name ≡ name2
-  IsReferencedIn name (Ap f list) = AnyVec.Any (IsReferencedIn name) list
+  data IsReferencedIn : String → ε → Set where
+    ArgumentIsLiterallyTheVariable :
+      {name : String} →
+      {e : ε} →
+      e ≡ Variable name →
+      IsReferencedIn name e
+    VariableIsAnArgument :
+      {name : String} →
+      {f : F} →
+      {list : Vec ε (arity f)} →
+      AnyVec.Any (IsReferencedIn name) list →
+      IsReferencedIn name (Ap f list)
 \end{code}
 
 \part{The Rest is F-L-Y}
