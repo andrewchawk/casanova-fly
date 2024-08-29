@@ -1965,60 +1965,73 @@ Regardless of the indentation in the compiled PDF document, this entire section,
   module AlgebraicEquality where
 \end{code}
 
-\subsection{The Type of the Main Function}
-A value of type \AgdaFunction{main} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The reader may be right to think that this explanation is uncannily similar to another explanation\ldots{}
+\subsection{The Type of the Main Equality Type}
+A value of type \AgdaDatatype{main} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The reader may be right to think that this explanation is uncannily similar to another explanation\ldots{}
 
 \begin{code}
-    main : ε → ε → Set
-\end{code}
-
-\subsection{The Basic Equality Type}
-Basically, a proof of type \AgdaDatatype{AE} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} is ``directly equal'' to \AgdaBound{y}.
-
-This notion of being ``directly equal'' is best understood by reading the Agda-based definition, but the author's Englishy explanation is as follows: When possible, \AgdaFunction{AE} uses natural number equality proofs, quotient type equality proofs, and other such structural equality proofs which cannot be achieved through the use of \AgdaDatatype{\AgdaUnderscore{}≡\AgdaUnderscore{}} alone.  Where applicable, commutativity and associativity are also considered.
-
-\begin{code}
-    data AE : ε → ε → Set where
-      EqualityImpliesAE : {e1 e2 : ε} → e1 ≡ e2 → AE e1 e2
-      SumCommutes :
-        {x1 y1 x2 y2 : ε} →
-        main x1 y2 × main y1 x2 →
-        AE (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ []))
-      ProductCommutes :
-        {x1 y1 x2 y2 : ε} →
-        main x1 y2 × main y1 x2 →
-        AE (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ []))
-      SumIsAssociative :
-        {x1 x2 x3 : ε} →
-        AE (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
-           (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
-      ProductIsAssociative :
-        {x1 x2 x3 : ε} →
-        AE (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
-           (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+    data main : ε → ε → Set
 \end{code}
 
 \subsection{The Exceptional Equality Type}
-A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \glspl{inj2contain} equal values.
+A value of type \AgdaFunction{main2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \glspl{inj2contain} equal values.
 
 \begin{code}
-    AE2 : Exceptional ε → Exceptional ε → Set
-    AE2 (inj₂ x) (inj₂ y) = main x y
-    AE2 _ _ = ⊥
+    main2 : Exceptional ε → Exceptional ε → Set
+    main2 (inj₂ x) (inj₂ y) = main x y
+    main2 _ _ = ⊥
 \end{code}
 
-\subsection{Completing the Algebraic Equality Function}
+\subsection{Completing the Main Equality Type}
+
+\subsubsection{Structural Equality's Implication of Algebraic Equality}
+According to \AgdaInductiveConstructor{EqualityImpliesAE}, two \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y} are structurally equal only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.
+
+\subsubsection{Sum Commutativity}
+Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a + b = b + a\) or, equivalently, if \(a = a'\) and \(b = b'\), then \(a + b = b' + a'\).
+
+\subsubsection{Product Commutativity}
+Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a \cdot b = b \cdot a\) or, equivalently, if \(a = a'\) and \(b = b'\), then \(a \cdot b = b' \cdot a'\).
+
+\subsubsection{Sum Associativity}
+Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a + \left(b + c\right) = \left(a + b\right) + c\).
+
+\subsubsection{Product Associativity}
+Basically, according to \AgdaInductiveConstructor{ProductCommutes}, \(a \cdot \left(b \cdot c\right) = \left(a \cdot b\right) \cdot c\).
+
+\subsubsection{Eventuality}
+For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evaluation of \AgdaBound{x} \gls{inj2contain} a value which is algebraically equal to a value which is contained by some evaluation of \AgdaBound{y}, then \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The preceding fact is encoded through \AgdaInductiveConstructor{Eventuality}.
+
+\subsubsection{The Formal Definition}
 
 \begin{code}
-    main x y =
-      x ≡ y ⊎
-      AE x y ⊎
-      Σ (ℕ × ℕ) (λ (n , m) → AE2 (repeatExceptional n commutativeEvaluate x)
-                                 (repeatExceptional m commutativeEvaluate y))
+    data main where
+      EqualityImpliesAE : {e1 e2 : ε} → e1 ≡ e2 → main e1 e2
+      SumCommutes :
+        {x1 y1 x2 y2 : ε} →
+        main x1 y2 × main y1 x2 →
+        main (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ []))
+      ProductCommutes :
+        {x1 y1 x2 y2 : ε} →
+        main x1 y2 × main y1 x2 →
+        main (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ []))
+      SumIsAssociative :
+        {x1 x2 x3 : ε} →
+        main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
+             (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+      ProductIsAssociative :
+        {x1 x2 x3 : ε} →
+        main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
+             (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+      Eventuality :
+        {x y : ε} →
+        (itx ity : ℕ) →
+        main2 (repeatExceptional itx exceptionallyEvaluate x)
+              (repeatExceptional ity exceptionallyEvaluate y) →
+        main x y
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
-\AgdaFunction{AlgebraicEquality} is really just \AgdaFunction{AlgebraicEquality.main}.
+\AgdaFunction{AlgebraicEquality} is really just \AgdaDatatype{AlgebraicEquality.main}.
 
 \begin{code}
   AlgebraicEquality = AlgebraicEquality.main
@@ -2165,7 +2178,7 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                ℕ →
                Dec (x ≡ y) →
                Exceptional (Maybe (AlgebraicEquality x y))
-    with-dec iters = maybe (inj₂ ∘ just ∘ inj₁) {!!} ∘ decToMaybe
+    with-dec iters = maybe (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE) {!!} ∘ decToMaybe
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
@@ -2293,7 +2306,7 @@ CasanovaFly-Base = record
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
   { equality-is-equivalence = record
-    { refl = inj₁ refl
+    { refl = AlgebraicEquality.EqualityImpliesAE refl
     ; sym = equality-is-symmetric
     ; trans = {!!}
     }
@@ -2335,9 +2348,9 @@ CasanovaFly-Verified = record
   open InternalEqualityFunctions
 
   equality-is-symmetric : Symmetric _≈_
-  equality-is-symmetric (inj₁ refl) = inj₁ refl
-  equality-is-symmetric (inj₂ (inj₁ complexAlgebraic)) = {!!}
-  equality-is-symmetric (inj₂ (inj₂ evaluatedEquality)) = {!!}
+  equality-is-symmetric (AlgebraicEquality.EqualityImpliesAE refl) =
+    AlgebraicEquality.EqualityImpliesAE refl
+  equality-is-symmetric x = {!!}
 
   mapMaybe-justness-implies-output-justness :
     {a b : Level} →
@@ -2373,7 +2386,8 @@ CasanovaFly-Verified = record
       (e : ε) →
       e ≈ inv (inv e)
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
-    inv-inv-propEq e = inj₂ (inj₂ ((0 , 1) ,  {!!}))
+    inv-inv-propEq e =
+      AlgebraicEquality.Eventuality 0 1 (AlgebraicEquality.EqualityImpliesAE refl)
 
   division-by-zero-is-bogus :
     (e1 e2 : ε) →
@@ -2393,7 +2407,8 @@ CasanovaFly-Verified = record
     e1 ≡ e2 →
     (iterations : ℕ) →
     equal-at-iteration iterations e1 e2
-  structural-equality-implies-definite-equality e1 e2 eq it = inj₁ eq , sym caeEquality
+  structural-equality-implies-definite-equality e1 e2 eq it =
+    AlgebraicEquality.EqualityImpliesAE eq , sym caeEquality
     where
     open checkAlgebraicEquality
     caeEquality = begin
@@ -2403,9 +2418,10 @@ CasanovaFly-Verified = record
         ≡⟨ cong (with-dec it) (proj₂ decyes) ⟩
       with-dec it (yes (proj₁ decyes))
         ≡⟨⟩
-      inj₂ (just (inj₁ (proj₁ decyes)))
-        ≡⟨ cong (inj₂ ∘ just ∘ inj₁) (≡-irrelevant (proj₁ decyes) eq) ⟩
-      inj₂ (just (inj₁ eq)) ∎
+      inj₂ (just (AlgebraicEquality.EqualityImpliesAE (proj₁ decyes)))
+        ≡⟨ cong (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE)
+                (≡-irrelevant (proj₁ decyes) eq) ⟩
+      inj₂ (just (AlgebraicEquality.EqualityImpliesAE eq)) ∎
       where
       decyes = dec-yes (structuralEqualityOnε e1 e2) eq
 \end{code}
