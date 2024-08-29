@@ -2198,12 +2198,39 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
 
 \begin{code}
   module checkAlgebraicEquality where
+    module directCheck where
+      Check = {x y : ε} → Maybe (AlgebraicEquality x y)
+
+      sumCommCheck : Check
+      sumCommCheck = {!!}
+
+      prodCommCheck : Check
+      prodCommCheck = {!!}
+
+      sumAssCheck : Check
+      sumAssCheck = {!!}
+
+      prodAssCheck : Check
+      prodAssCheck = {!!}
+
+      main : Check
+      main =   sumCommCheck
+           <∣> prodCommCheck
+           <∣> sumAssCheck
+           <∣> prodAssCheck
+
+    module complexCheck where
+      main : {x y : ε} → ℕ → Exceptional (Maybe (AlgebraicEquality x y))
+      main = {!!}
+
     with-dec : {x y : ε} →
                ℕ →
                Dec (x ≡ y) →
                Exceptional (Maybe (AlgebraicEquality x y))
     with-dec iters = maybe (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE)
-                           {!!}
+                           (maybe′ (inj₂ ∘ just)
+                                   (complexCheck.main iters)
+                                   directCheck.main)
                    ∘ decToMaybe
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
