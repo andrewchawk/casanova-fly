@@ -2133,13 +2133,6 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
   module exceptionallyEvaluate where
     main : ε → Exceptional ε
 
-    firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
-                Vec (Maybe (Exceptional A)) (ℕ.suc n) → Exceptional A
-    firstInj2 = fromMaybe errorMsg ∘ List.head ∘ List.catMaybes
-              ∘ Data.Vec.toList
-      where errorMsg = inj₁ "The list of exceptionallyEvaluate results \
-                            \was just a bunch of nothingness!"
-
     functions =
       ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
            ; _ → nothing})
@@ -2179,11 +2172,11 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
              -- The following check ensures that expressions like
              -- Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberNat 0 ])
              -- are not wrongly evaluated to inj₂ (NumberNat 0).
-             if isYes (eq2 (inj₂ e) (exceptionallyEvaluate e))
+             if isYes (eq2 (inj₂ e) (main e))
                 then valid (NumberNat 0)
                 else [_,_] bust
                            (λ x → valid (Ap Exponent ((NumberNat 0) ∷ [ x ])))
-                           (exceptionallyEvaluate e)
+                           (main e)
            ; _ → nothing})
       ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
            ; _ → nothing})
@@ -2262,7 +2255,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
                               (valid ∘ Ap f)
                               (condenseExceptionList (Data.Vec.map main x))
            ; _ → nothing})
-      ∷ [ just ∘ inj₂ ]
+      ∷ []
       )
       where
       bust = just ∘ inj₁
@@ -2289,7 +2282,9 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
         b _ = nothing
 
     {-# TERMINATING #-}
-    main e = firstInj2 $ Data.Vec.map (_$ e) functions
+    main e = fromMaybe (inj₂ e)
+           $ List.head ∘ List.mapMaybe (_$ e)
+           $ Data.Vec.toList functions
 
   {-# TERMINATING #-}
   exceptionallyEvaluate = exceptionallyEvaluate.main
@@ -2318,15 +2313,14 @@ A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if an
   module LessThan where
 \end{code}
 
-\section{The Basic Less-Than Type}
-Basically, some value of type \AgdaDatatype{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} can be trivially, i.e., without using evaluation steps, shown to be less than \AgdaBound{y}.
+\section{The Type of the Less-Than Thingamajig}
+Basically, some value of type \AgdaDatatype{LT} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
 \begin{code}
-    data LT : ε → ε → Set where
-      LT-Rational : {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
+    data LT : ε → ε → Set
 \end{code}
 
-\section{The \AgdaFunction{Exceptional} Less-Than Type}
+\section{The \emph{Exceptional} Less-Than Function}
 Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if and only if \AgdaBound{x} and \AgdaBound{y} are \gls{inj2contain} for values \AgdaBound{x'} and \AgdaBound{y'}, respectively, and \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
 
 \begin{code}
@@ -2335,22 +2329,25 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
     LT2 _ _ = ⊥
 \end{code}
 
-\subsection{The Complex Less-Than Type}
-In this case, ``complex'' is justified by \AgdaDatatype{\AgdaUnderscore{}⊎\AgdaUnderscore{}}'s relevance to the type, not complex numbers or something, although complex numbers are supported!  Anyway, according to \AgdaFunction{LessThan}, \AgdaBound{x} is less than \AgdaBound{y} if and only if \AgdaBound{x} can be trivially shown to be less than \AgdaBound{y}, or commutative evaluation reduces \AgdaBound{x} and \AgdaBound{y} to \AgdaBound{x'} and \AgdaBound{y'} such that \AgdaBound{x'} can be trivially shown to be less than \AgdaBound{y'}.
+\section{Completing the Less-Than Thingamajig}
 
 \begin{code}
-    LessThan : ε → ε → Set
-    LessThan x y =
-      _⊎_ (LT x y)
-          (let rEvaluate = flip repeatExceptional commutativeEvaluate in
-           (Σ (ℕ × ℕ) (λ (m , n) → LT2 (rEvaluate m x) (rEvaluate n y))))
+    data LT where
+      LT-Rational :
+        {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
+      Eventuality :
+        {x y : ε} →
+        (itx ity : ℕ) →
+        let rEvaluate = flip repeatExceptional commutativeEvaluate in
+        LT2 (rEvaluate itx x) (rEvaluate ity y) →
+        LT x y
 \end{code}
 
-\subsection{Exporting the Function}
-\AgdaFunction{LessThan.LessThan} has all necessary properties for the \AgdaFunction{LessThan} function; accordion, \AgdaFunction{LessThan} is really just \AgdaFunction{LessThan.LessThan}.
+\section{Exporting Stuff}
+\AgdaDatatype{LessThan.LT} has all necessary properties for the \AgdaFunction{LessThan} function; accordion, \AgdaFunction{LessThan} is really just \AgdaDatatype{LessThan.LT}.
 
 \begin{code}
-  LessThan = LessThan.LessThan
+  LessThan = LessThan.LT
 \end{code}
 
 \chapter{The Variable Usedness Type}
