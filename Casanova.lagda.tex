@@ -2030,13 +2030,6 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
   module exceptionallyEvaluate where
     main : ε → Exceptional ε
 
-    firstInj2 : {n : ℕ} → {a : Level} → {A : Set a} →
-                Vec (Maybe (Exceptional A)) (ℕ.suc n) → Exceptional A
-    firstInj2 = fromMaybe errorMsg ∘ List.head ∘ List.catMaybes
-              ∘ Data.Vec.toList
-      where errorMsg = inj₁ "The list of exceptionallyEvaluate results \
-                            \was just a bunch of nothingness!"
-
     functions =
       ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
            ; _ → nothing})
@@ -2149,14 +2142,16 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                               (valid ∘ Ap f)
                               (condenseExceptionList (Data.Vec.map main x))
            ; _ → nothing})
-      ∷ [ just ∘ inj₂ ]
+      ∷ []
       )
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
 
     {-# TERMINATING #-}
-    main e = firstInj2 $ Data.Vec.map (_$ e) functions
+    main e = fromMaybe (inj₂ e)
+           $ List.head ∘ List.mapMaybe (_$ e)
+           $ Data.Vec.toList functions
 
   {-# TERMINATING #-}
   exceptionallyEvaluate = exceptionallyEvaluate.main
