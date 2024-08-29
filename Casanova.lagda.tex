@@ -2202,7 +2202,9 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                ℕ →
                Dec (x ≡ y) →
                Exceptional (Maybe (AlgebraicEquality x y))
-    with-dec iters = maybe (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE) {!!} ∘ decToMaybe
+    with-dec iters = maybe (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE)
+                           {!!}
+                   ∘ decToMaybe
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
