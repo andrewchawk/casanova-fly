@@ -2207,30 +2207,30 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                        (decToMaybe (structuralEqualityOnε b c))
 
       module sumCommCheck where
-        applyEquality : {x y x' y' : ε} →
-                        x ≡ x' →
-                        y ≡ y' →
-                        AlgebraicEquality (Ap Sum (x ∷ y ∷ []))
-                                          (Ap Sum (y' ∷ x' ∷ []))
-        applyEquality refl refl = AlgebraicEquality.SumCommutes
+        applyEqualities : {x y x' y' : ε} →
+                          x ≡ x' →
+                          y ≡ y' →
+                          AlgebraicEquality (Ap Sum (x ∷ y ∷ []))
+                                            (Ap Sum (y' ∷ x' ∷ []))
+        applyEqualities refl refl = AlgebraicEquality.SumCommutes
 
         main : Check
         main {Ap Sum (a ∷ b ∷ [])} {Ap Sum (c ∷ d ∷ [])} =
-          Data.Maybe.map (uncurry applyEquality) bi-eq
+          Data.Maybe.map (uncurry applyEqualities) bi-eq
         main = nothing
 
       module prodCommCheck where
-        applyEquality :
+        applyEqualities :
           {x y x' y' : ε} →
           x ≡ x' →
           y ≡ y' →
           AlgebraicEquality (Ap Product (x ∷ y ∷ []))
                             (Ap Product (y' ∷ x' ∷ []))
-        applyEquality refl refl = AlgebraicEquality.ProductCommutes
+        applyEqualities refl refl = AlgebraicEquality.ProductCommutes
 
         main : Check
         main {Ap Product (a ∷ b ∷ [])} {Ap Product (c ∷ d ∷ [])} =
-          Data.Maybe.map (uncurry applyEquality) bi-eq
+          Data.Maybe.map (uncurry applyEqualities) bi-eq
         main = nothing
 
       sumAssCheck : Check
