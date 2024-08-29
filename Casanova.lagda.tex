@@ -2008,6 +2008,9 @@ Basically, according to \AgdaInductiveConstructor{ProductCommutes}, \(a \cdot \l
 \subsubsection{Symmetry}
 Basically, according to \AgdaInductiveConstructor{Symmetry}, if \(a = b\), then \(b = a\).
 
+\subsubsection{Transitivity}
+Basically, according to \AgdaInductiveConstructor{Symmetry}, if \(a = b\) and \(b = c\), then \(a = c\).
+
 \subsubsection{Eventuality}
 For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evaluation of \AgdaBound{x} \gls{inj2contain} a value which is algebraically equal to a value which is contained by some evaluation of \AgdaBound{y}, then \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The preceding fact is encoded through \AgdaInductiveConstructor{Eventuality}.
 
@@ -2033,6 +2036,7 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
              (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
       Symmetry : {x y : ε} → main x y → main y x
+      Transitivity : {x y z : ε} → main x y → main y z → main x z
       Eventuality :
         {x y : ε} →
         (itx ity : ℕ) →
@@ -2047,9 +2051,8 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
     equivalence = record
       { refl = EqualityImpliesAE refl
       ; sym = Symmetry
-      ; trans = {!!}
+      ; trans = Transitivity
       }
-
 \end{code}
 
 \begin{code}
