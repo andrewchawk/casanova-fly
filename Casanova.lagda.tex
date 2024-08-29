@@ -2219,8 +2219,19 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
           Data.Maybe.map (uncurry applyEquality) eq
         main = nothing
 
-      prodCommCheck : Check
-      prodCommCheck = {!!}
+      module prodCommCheck where
+        applyEquality :
+          {x y x' y' : ε} →
+          x ≡ x' →
+          y ≡ y' →
+          AlgebraicEquality (Ap Product (x ∷ y ∷ []))
+                            (Ap Product (y' ∷ x' ∷ []))
+        applyEquality refl refl = AlgebraicEquality.ProductCommutes
+
+        main : Check
+        main {Ap Product (a ∷ b ∷ [])} {Ap Product (c ∷ d ∷ [])} =
+          Data.Maybe.map (uncurry applyEquality) sumCommCheck.eq
+        main = nothing
 
       sumAssCheck : Check
       sumAssCheck = {!!}
@@ -2230,7 +2241,7 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
 
       main : Check
       main =   sumCommCheck.main
-           <∣> prodCommCheck
+           <∣> prodCommCheck.main
            <∣> sumAssCheck
            <∣> prodAssCheck
 
