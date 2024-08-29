@@ -1972,6 +1972,13 @@ A value of type \AgdaDatatype{main} \AgdaBound{x} \AgdaBound{y} exists if and on
     data main : ε → ε → Set
 \end{code}
 
+\subsection{The Type of the Equivalence Proof}
+\AgdaFunction{equivalence} proves that \AgdaDatatype{main} is an equivalence relation.
+
+\begin{code}
+    equivalence : IsEquivalence main
+\end{code}
+
 \subsection{The Exceptional Equality Type}
 A value of type \AgdaFunction{main2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \glspl{inj2contain} equal values.
 
@@ -2028,6 +2035,23 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         main2 (repeatExceptional itx exceptionallyEvaluate x)
               (repeatExceptional ity exceptionallyEvaluate y) →
         main x y
+\end{code}
+
+\subsection{Completing the Equivalence Proof}
+
+\begin{code}
+    equivalence = record
+      { refl = EqualityImpliesAE refl
+      ; sym =
+        λ { (EqualityImpliesAE refl) → EqualityImpliesAE refl
+          ; x → {!!}
+          }
+      ; trans = {!!}
+      }
+
+\end{code}
+
+\begin{code}
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
@@ -2305,11 +2329,7 @@ CasanovaFly-Base = record
 \begin{code}
 CasanovaFly-Verified : VCAS CasanovaFly-Base
 CasanovaFly-Verified = record
-  { equality-is-equivalence = record
-    { refl = AlgebraicEquality.EqualityImpliesAE refl
-    ; sym = equality-is-symmetric
-    ; trans = {!!}
-    }
+  { equality-is-equivalence = AlgebraicEquality.equivalence
   ; sum-of-nats-is-nat-sum = sum-of-nats-is-nat-sum
   ; product-of-e-and-1-is-e = {!!}
   ; structural-equality-implies-definite-equality =
@@ -2346,11 +2366,6 @@ CasanovaFly-Verified = record
   where
   open CAS CasanovaFly-Base
   open InternalEqualityFunctions
-
-  equality-is-symmetric : Symmetric _≈_
-  equality-is-symmetric (AlgebraicEquality.EqualityImpliesAE refl) =
-    AlgebraicEquality.EqualityImpliesAE refl
-  equality-is-symmetric x = {!!}
 
   mapMaybe-justness-implies-output-justness :
     {a b : Level} →
