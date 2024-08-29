@@ -2020,15 +2020,9 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
     data main where
       EqualityImpliesAE : {e1 e2 : ε} → e1 ≡ e2 → main e1 e2
       SumCommutes :
-        {x1 y1 x2 y2 : ε} →
-        main x1 y2 →
-        main y1 x2 →
-        main (Ap Sum (x1 ∷ y1 ∷ [])) (Ap Sum (x2 ∷ y2 ∷ []))
+        {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
       ProductCommutes :
-        {x1 y1 x2 y2 : ε} →
-        main x1 y2 →
-        main y1 x2 →
-        main (Ap Product (x1 ∷ y1 ∷ [])) (Ap Product (x2 ∷ y2 ∷ []))
+        {x y : ε} → main (Ap Product (x ∷ y ∷ [])) (Ap Product (y ∷ x ∷ []))
       SumIsAssociative :
         {x1 x2 x3 : ε} →
         main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
