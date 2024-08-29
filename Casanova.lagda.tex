@@ -1320,7 +1320,8 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Product} represents the product, i.e., multiplication, function.
   \item \AgdaInductiveConstructor{Exponent} represents the exponentiation function.
   \item \AgdaInductiveConstructor{Limit} represents the limit function, i.e., \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Limit} \AgdaBound{name}\AgdaSymbol) \AgdaSymbol(\AgdaBound{bound} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{expression} \AgdaInductiveConstructor{List.[]}\AgdaSymbol) represents the limit of \AgdaBound{expression} as \AgdaBound{name} approaches \AgdaBound{bound}.
-  \item \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} represents a lambda function whose bound variables are listed in \AgdaBound{names} and whose body is \AgdaBound{body}.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} \AgdaBound{body} is equivalent to Agda's \texttt{\textbackslash\ n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+  \AgdaInductiveConstructor{Lambda} \AgdaBound{names} represents a lambda function function\footnote{No typo exists here.} whose bound variables are listed in \AgdaBound{names} and whose body is the first argument of the relevant list.  A bit more understandably, one can say that \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaField{Lambda} \AgdaBound{names}\AgdaSymbol) \AgdaSymbol(\AgdaBound{M} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{values}\AgdaSymbol) \(\left(\lambda\ \AgdaBound{N} \rightarrow \AgdaBound{M'}\right)\ \AgdaBound{V}\), where ``\AgdaBound{N}'', ``\AgdaBound{M'}'', and ``\AgdaBound{V}'' denote the appropriate expansions of \AgdaBound{names}, \AgdaBound{M}, and \AgdaBound{values}, respectively.  Alternatively, if \AgdaBound{names} consists of values \texttt{n1}, \texttt{n2}, \texttt{n3}, and so on, then one could say that \AgdaInductiveConstructor{Lambda} \AgdaBound{names} is \emph{similar} to Agda's \texttt{\textbackslash\ body n1 n2 n3 ... -> body2}, where \texttt{body2} is an expansion of \AgdaBound{body}.
+
   {
     \newcommand{\boilerplateBogusTrigCrap}[2]{
       \item \AgdaInductiveConstructor{#1} represents the trigonometric #2 function.
@@ -1345,7 +1346,7 @@ The following statements hold:
      Sum
      Product
      Exponent : F
-    Lambda : List.List String → ε → F
+    Lambda : List.List String → F
     Sin
      Cos
      Tan
@@ -1374,7 +1375,7 @@ The following statements hold:
   arity Csc = 1
   arity Sec = 1
   arity Cot = 1
-  arity (Lambda names body) = List.length names
+  arity (Lambda names) = ℕ.suc (List.length names)
   arity (Limit name) = 2
   arity (Derivative name) = 1
   arity (Antiderivative name) = 1
@@ -1442,7 +1443,7 @@ The following statements hold:
   isCommutative Sum refl = true
   isCommutative Product refl = true
   isCommutative Exponent refl = false
-  isCommutative (Lambda names body) equality = false
+  isCommutative (Lambda names) equality = false
   isCommutative (Limit name) equality = false
 \end{code}
 
@@ -1548,7 +1549,7 @@ This function is used to determine whether or not the input arguments are struct
     s Abs Sum = no λ ()
     s Abs Product = no λ ()
     s Abs Exponent = no λ ()
-    s Abs (Lambda name exp) = no λ ()
+    s Abs (Lambda name) = no λ ()
     s Abs Sin = no λ ()
     s Abs Cos = no λ ()
     s Abs Tan = no λ ()
@@ -1564,7 +1565,7 @@ This function is used to determine whether or not the input arguments are struct
     s Negate Sum = no λ ()
     s Negate Product = no λ ()
     s Negate Exponent = no λ ()
-    s Negate (Lambda name exp) = no λ ()
+    s Negate (Lambda name) = no λ ()
     s Negate Sin = no λ ()
     s Negate Cos = no λ ()
     s Negate Tan = no λ ()
@@ -1580,7 +1581,7 @@ This function is used to determine whether or not the input arguments are struct
     s Sum Sum = yes refl
     s Sum Product = no λ ()
     s Sum Exponent = no λ ()
-    s Sum (Lambda name exp) = no λ ()
+    s Sum (Lambda name) = no λ ()
     s Sum Sin = no λ ()
     s Sum Cos = no λ ()
     s Sum Tan = no λ ()
@@ -1596,7 +1597,7 @@ This function is used to determine whether or not the input arguments are struct
     s Product Sum = no λ ()
     s Product Product = yes refl
     s Product Exponent = no λ ()
-    s Product (Lambda name exp) = no λ ()
+    s Product (Lambda name) = no λ ()
     s Product Sin = no λ ()
     s Product Cos = no λ ()
     s Product Tan = no λ ()
@@ -1612,7 +1613,7 @@ This function is used to determine whether or not the input arguments are struct
     s Exponent Sum = no λ ()
     s Exponent Product = no λ ()
     s Exponent Exponent = yes refl
-    s Exponent (Lambda name exp) = no λ ()
+    s Exponent (Lambda name) = no λ ()
     s Exponent Sin = no λ ()
     s Exponent Cos = no λ ()
     s Exponent Tan = no λ ()
@@ -1623,29 +1624,29 @@ This function is used to determine whether or not the input arguments are struct
     s Exponent (Derivative name) = no λ ()
     s Exponent (Antiderivative name) = no λ ()
     s Exponent (BoundedIntegral name) = no λ ()
-    s (Lambda n1 e1) Abs = no λ ()
-    s (Lambda n1 e1) Negate = no λ ()
-    s (Lambda n1 e1) Sum = no λ ()
-    s (Lambda n1 e1) Product = no λ ()
-    s (Lambda n1 e1) Exponent = no λ ()
-    s (Lambda n1 e1) (Lambda n2 e2) = {!!}
-    s (Lambda n1 e1) Sin = no λ ()
-    s (Lambda n1 e1) Cos = no λ ()
-    s (Lambda n1 e1) Tan = no λ ()
-    s (Lambda n1 e1) Csc = no λ ()
-    s (Lambda n1 e1) Sec = no λ ()
-    s (Lambda n1 e1) Cot = no λ ()
-    s (Lambda n1 e1) (Limit name) = no λ ()
-    s (Lambda n1 e1) (Derivative name) = no λ ()
-    s (Lambda n1 e1) (Antiderivative name) = no λ ()
-    s (Lambda n1 e1) (BoundedIntegral name) = no λ ()
+    s (Lambda n1) Abs = no λ ()
+    s (Lambda n1) Negate = no λ ()
+    s (Lambda n1) Sum = no λ ()
+    s (Lambda n1) Product = no λ ()
+    s (Lambda n1) Exponent = no λ ()
+    s (Lambda n1) (Lambda n2) = {!!}
+    s (Lambda n1) Sin = no λ ()
+    s (Lambda n1) Cos = no λ ()
+    s (Lambda n1) Tan = no λ ()
+    s (Lambda n1) Csc = no λ ()
+    s (Lambda n1) Sec = no λ ()
+    s (Lambda n1) Cot = no λ ()
+    s (Lambda n1) (Limit name) = no λ ()
+    s (Lambda n1) (Derivative name) = no λ ()
+    s (Lambda n1) (Antiderivative name) = no λ ()
+    s (Lambda n1) (BoundedIntegral name) = no λ ()
     -- Help!  I'm trapped in a boring nonsense factory!
     s Sin Abs = no λ ()
     s Sin Negate = no λ ()
     s Sin Sum = no λ ()
     s Sin Product = no λ ()
     s Sin Exponent = no λ ()
-    s Sin (Lambda name exp) = no λ ()
+    s Sin (Lambda name) = no λ ()
     s Sin Sin = yes refl
     s Sin Cos = no λ ()
     s Sin Tan = no λ ()
@@ -1661,7 +1662,7 @@ This function is used to determine whether or not the input arguments are struct
     s Cos Sum = no λ ()
     s Cos Product = no λ ()
     s Cos Exponent = no λ ()
-    s Cos (Lambda name exp) = no λ ()
+    s Cos (Lambda name) = no λ ()
     s Cos Sin = no λ ()
     s Cos Cos = yes refl
     s Cos Tan = no λ ()
@@ -1677,7 +1678,7 @@ This function is used to determine whether or not the input arguments are struct
     s Tan Sum = no λ ()
     s Tan Product = no λ ()
     s Tan Exponent = no λ ()
-    s Tan (Lambda name exp) = no λ ()
+    s Tan (Lambda name) = no λ ()
     s Tan Sin = no λ ()
     s Tan Cos = no λ ()
     s Tan Tan = yes refl
@@ -1693,7 +1694,7 @@ This function is used to determine whether or not the input arguments are struct
     s Csc Sum = no λ ()
     s Csc Product = no λ ()
     s Csc Exponent = no λ ()
-    s Csc (Lambda name exp) = no λ ()
+    s Csc (Lambda name) = no λ ()
     s Csc Sin = no λ ()
     s Csc Cos = no λ ()
     s Csc Tan = no λ ()
@@ -1709,7 +1710,7 @@ This function is used to determine whether or not the input arguments are struct
     s Sec Sum = no λ ()
     s Sec Product = no λ ()
     s Sec Exponent = no λ ()
-    s Sec (Lambda name exp) = no λ ()
+    s Sec (Lambda name) = no λ ()
     s Sec Sin = no λ ()
     s Sec Cos = no λ ()
     s Sec Tan = no λ ()
@@ -1725,7 +1726,7 @@ This function is used to determine whether or not the input arguments are struct
     s Cot Sum = no λ ()
     s Cot Product = no λ ()
     s Cot Exponent = no λ ()
-    s Cot (Lambda name exp) = no λ ()
+    s Cot (Lambda name) = no λ ()
     s Cot Sin = no λ ()
     s Cot Cos = no λ ()
     s Cot Tan = no λ ()
@@ -1741,7 +1742,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Limit n1) Sum = no λ ()
     s (Limit n1) Product = no λ ()
     s (Limit n1) Exponent = no λ ()
-    s (Limit n1) (Lambda name exp) = no λ ()
+    s (Limit n1) (Lambda name) = no λ ()
     s (Limit n1) Sin = no λ ()
     s (Limit n1) Cos = no λ ()
     s (Limit n1) Tan = no λ ()
@@ -1764,7 +1765,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Derivative n1) Sum = no λ ()
     s (Derivative n1) Product = no λ ()
     s (Derivative n1) Exponent = no λ ()
-    s (Derivative n1) (Lambda name exp) = no λ ()
+    s (Derivative n1) (Lambda name) = no λ ()
     s (Derivative n1) Sin = no λ ()
     s (Derivative n1) Cos = no λ ()
     s (Derivative n1) Tan = no λ ()
@@ -1787,7 +1788,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Antiderivative n1) Sum = no λ ()
     s (Antiderivative n1) Product = no λ ()
     s (Antiderivative n1) Exponent = no λ ()
-    s (Antiderivative n1) (Lambda name exp) = no λ ()
+    s (Antiderivative n1) (Lambda name) = no λ ()
     s (Antiderivative n1) Sin = no λ ()
     s (Antiderivative n1) Cos = no λ ()
     s (Antiderivative n1) Tan = no λ ()
@@ -1810,7 +1811,7 @@ This function is used to determine whether or not the input arguments are struct
     s (BoundedIntegral n1) Sum = no λ ()
     s (BoundedIntegral n1) Product = no λ ()
     s (BoundedIntegral n1) Exponent = no λ ()
-    s (BoundedIntegral n1) (Lambda name exp) = no λ ()
+    s (BoundedIntegral n1) (Lambda name) = no λ ()
     s (BoundedIntegral n1) Sin = no λ ()
     s (BoundedIntegral n1) Cos = no λ ()
     s (BoundedIntegral n1) Tan = no λ ()
@@ -2142,7 +2143,7 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
                                    ∷ [ NumberNat 2 ]) ])
                else nothing
            ; _ → nothing})
-      ∷ (λ { (Ap (Lambda names body) expressions) →
+      ∷ (λ { (Ap (Lambda names) (body ∷ expressions)) →
              valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
            ; _ → nothing})
       ∷ (λ { (Ap f x) → [_,_] bust
@@ -2283,7 +2284,7 @@ CasanovaFly-Base = record
   ; IsReal = {!!}
   ; IsInfinite = {!!}
   ; τ = {!!}
-  ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ] e1) [ e2 ]
+  ; lambda = λ name e1 e2 → Ap (Lambda List.[ name ]) (e1 ∷ [ e2 ])
   ; negation = Ap Negate ∘ [_]
   ; different-if-nats-are-different = {!!}
   ; differently-named-variables-are-different = {!!}
