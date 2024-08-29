@@ -1343,7 +1343,6 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Derivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \derivative{\AgdaBound{name}} e\right)\).
   \item \AgdaInductiveConstructor{Antiderivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \int_{\AgdaBound{name}} e\right)\).
   \item \AgdaInductiveConstructor{BoundedIntegral} \AgdaBound{name} represents \(\left(\lambda\ b_1\ b_2\ e \rightarrow \int_{\AgdaBound{name} = b_1}^{b_2} e\right)\).
-  \item \AgdaInductiveConstructor{Diff} \AgdaBound{f} represents the application function of the derivative of the \AgdaBound{f} function.  Possibly a bit more intuitively, one could say that \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Diff} \AgdaBound{f}\AgdaSymbol) \AgdaBound{x} represents the derivative of \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x}.
   \item \AgdaInductiveConstructor{Compose} \AgdaBound{g} \AgdaBound{f} represents the composition of \AgdaBound{g} and \AgdaBound{f}, i.e., \(g' ∘ f'\), where \(g'\) and \(f'\) are the functions which are represented by \AgdaBound{g} and \AgdaBound{f}, respectively.
 \end{itemize}
 
@@ -1365,7 +1364,6 @@ The following statements hold:
      Derivative
      Antiderivative
      BoundedIntegral : String → F
-    Diff : F → F
     Compose : (g f : F) → arity g ≡ 1 → F
 \end{code}
 
@@ -1388,7 +1386,6 @@ The following statements hold:
   arity (Derivative name) = 1
   arity (Antiderivative name) = 1
   arity (BoundedIntegral name) = 3
-  arity (Diff f) = arity f
   arity (Compose g f eq) = arity f
 \end{code}
 
@@ -1455,7 +1452,6 @@ The following statements hold:
   isCommutative Exponent refl = false
   isCommutative (Lambda names body) equality = false
   isCommutative (Limit name) equality = false
-  isCommutative (Diff name) x = false
   isCommutative (Compose g f eq) x = false
 \end{code}
 
@@ -1572,7 +1568,6 @@ This function is used to determine whether or not the input arguments are struct
     s Abs (Derivative name) = no λ ()
     s Abs (Antiderivative name) = no λ ()
     s Abs (BoundedIntegral name) = no λ ()
-    s Abs (Diff f) = no λ ()
     s Abs (Compose g f eq) = no λ ()
     s Negate Abs = no λ ()
     s Negate Negate = yes refl
@@ -1590,7 +1585,6 @@ This function is used to determine whether or not the input arguments are struct
     s Negate (Derivative name) = no λ ()
     s Negate (Antiderivative name) = no λ ()
     s Negate (BoundedIntegral name) = no λ ()
-    s Negate (Diff f) = no λ ()
     s Negate (Compose g f eq) = no λ ()
     s Sum Abs = no λ ()
     s Sum Negate = no λ ()
@@ -1608,7 +1602,6 @@ This function is used to determine whether or not the input arguments are struct
     s Sum (Derivative name) = no λ ()
     s Sum (Antiderivative name) = no λ ()
     s Sum (BoundedIntegral name) = no λ ()
-    s Sum (Diff f) = no λ ()
     s Sum (Compose g f eq) = no λ ()
     s Product Abs = no λ ()
     s Product Negate = no λ ()
@@ -1626,7 +1619,6 @@ This function is used to determine whether or not the input arguments are struct
     s Product (Derivative name) = no λ ()
     s Product (Antiderivative name) = no λ ()
     s Product (BoundedIntegral name) = no λ ()
-    s Product (Diff f) = no λ ()
     s Product (Compose g f eq) = no λ ()
     s Exponent Abs = no λ ()
     s Exponent Negate = no λ ()
@@ -1644,7 +1636,6 @@ This function is used to determine whether or not the input arguments are struct
     s Exponent (Derivative name) = no λ ()
     s Exponent (Antiderivative name) = no λ ()
     s Exponent (BoundedIntegral name) = no λ ()
-    s Exponent (Diff f) = no λ ()
     s Exponent (Compose g f eq) = no λ ()
     s (Lambda n1 e1) Abs = no λ ()
     s (Lambda n1 e1) Negate = no λ ()
@@ -1662,7 +1653,6 @@ This function is used to determine whether or not the input arguments are struct
     s (Lambda n1 e1) (Derivative name) = no λ ()
     s (Lambda n1 e1) (Antiderivative name) = no λ ()
     s (Lambda n1 e1) (BoundedIntegral name) = no λ ()
-    s (Lambda n1 e1) (Diff f) = no λ ()
     s (Lambda n1 e1) (Compose g f eq) = no λ ()
     -- Help!  I'm trapped in a boring nonsense factory!
     s Sin Abs = no λ ()
@@ -1681,7 +1671,6 @@ This function is used to determine whether or not the input arguments are struct
     s Sin (Derivative name) = no λ ()
     s Sin (Antiderivative name) = no λ ()
     s Sin (BoundedIntegral name) = no λ ()
-    s Sin (Diff f) = no λ ()
     s Sin (Compose g f eq) = no λ ()
     s Cos Abs = no λ ()
     s Cos Negate = no λ ()
@@ -1699,7 +1688,6 @@ This function is used to determine whether or not the input arguments are struct
     s Cos (Derivative name) = no λ ()
     s Cos (Antiderivative name) = no λ ()
     s Cos (BoundedIntegral name) = no λ ()
-    s Cos (Diff f) = no λ ()
     s Cos (Compose g f eq) = no λ ()
     s Tan Abs = no λ ()
     s Tan Negate = no λ ()
@@ -1717,7 +1705,6 @@ This function is used to determine whether or not the input arguments are struct
     s Tan (Derivative name) = no λ ()
     s Tan (Antiderivative name) = no λ ()
     s Tan (BoundedIntegral name) = no λ ()
-    s Tan (Diff f) = no λ ()
     s Tan (Compose g f eq) = no λ ()
     s Csc Abs = no λ ()
     s Csc Negate = no λ ()
@@ -1735,7 +1722,6 @@ This function is used to determine whether or not the input arguments are struct
     s Csc (Derivative name) = no λ ()
     s Csc (Antiderivative name) = no λ ()
     s Csc (BoundedIntegral name) = no λ ()
-    s Csc (Diff f) = no λ ()
     s Csc (Compose g f eq) = no λ ()
     s Sec Abs = no λ ()
     s Sec Negate = no λ ()
@@ -1753,7 +1739,6 @@ This function is used to determine whether or not the input arguments are struct
     s Sec (Derivative name) = no λ ()
     s Sec (Antiderivative name) = no λ ()
     s Sec (BoundedIntegral name) = no λ ()
-    s Sec (Diff f) = no λ ()
     s Sec (Compose g f eq) = no λ ()
     s Cot Abs = no λ ()
     s Cot Negate = no λ ()
@@ -1771,7 +1756,6 @@ This function is used to determine whether or not the input arguments are struct
     s Cot (Derivative name) = no λ ()
     s Cot (Antiderivative name) = no λ ()
     s Cot (BoundedIntegral name) = no λ ()
-    s Cot (Diff f) = no λ ()
     s Cot (Compose g f eq) = no λ ()
     s (Limit n1) Abs = no λ ()
     s (Limit n1) Negate = no λ ()
@@ -1796,7 +1780,6 @@ This function is used to determine whether or not the input arguments are struct
     s (Limit n1) (Derivative name) = no λ ()
     s (Limit n1) (Antiderivative name) = no λ ()
     s (Limit n1) (BoundedIntegral name) = no λ ()
-    s (Limit n1) (Diff f) = no λ ()
     s (Limit n1) (Compose g f eq) = no λ ()
     s (Derivative n1) Abs = no λ ()
     s (Derivative n1) Negate = no λ ()
@@ -1821,7 +1804,6 @@ This function is used to determine whether or not the input arguments are struct
       equality-implies-variable-equality n1 n2 refl = refl
     s (Derivative n1) (Antiderivative name) = no λ ()
     s (Derivative n1) (BoundedIntegral name) = no λ ()
-    s (Derivative n1) (Diff f) = no λ ()
     s (Derivative n1) (Compose g f eq) = no λ ()
     s (Antiderivative n1) Abs = no λ ()
     s (Antiderivative n1) Negate = no λ ()
@@ -1846,7 +1828,6 @@ This function is used to determine whether or not the input arguments are struct
              n1 ≡ n2
       equality-implies-variable-equality n1 n2 refl = refl
     s (Antiderivative n1) (BoundedIntegral name) = no λ ()
-    s (Antiderivative n1) (Diff f) = no λ ()
     s (Antiderivative n1) (Compose g f eq) = no λ ()
     s (BoundedIntegral n1) Abs = no λ ()
     s (BoundedIntegral n1) Negate = no λ ()
@@ -1871,31 +1852,7 @@ This function is used to determine whether or not the input arguments are struct
              BoundedIntegral n1 ≡ BoundedIntegral n2 →
              n1 ≡ n2
       equality-implies-variable-equality n1 n2 refl = refl
-    s (BoundedIntegral n1) (Diff f) = no λ ()
     s (BoundedIntegral n1) (Compose g f eq) = no λ ()
-    s (Diff f) Abs = no λ ()
-    s (Diff f) Negate = no λ ()
-    s (Diff f) Sum = no λ ()
-    s (Diff f) Product = no λ ()
-    s (Diff f) Exponent = no λ ()
-    s (Diff f) (Lambda name exp) = no λ ()
-    s (Diff f) Sin = no λ ()
-    s (Diff f) Cos = no λ ()
-    s (Diff f) Tan = no λ ()
-    s (Diff f) Csc = no λ ()
-    s (Diff f) Sec = no λ ()
-    s (Diff f) Cot = no λ ()
-    s (Diff f) (Limit name) = no λ ()
-    s (Diff f) (Derivative name) = no λ ()
-    s (Diff f) (Antiderivative name) = no λ ()
-    s (Diff f) (BoundedIntegral name) = no λ ()
-    s (Diff f) (Diff g) with s f g
-    ... | yes equality = yes (cong Diff equality)
-    ... | no different = no (different ∘ equality-implies-fun-equality)
-      where
-      equality-implies-fun-equality : {f g : F} → Diff f ≡ Diff g → f ≡ g
-      equality-implies-fun-equality refl = refl
-    s (Diff f) (Compose y x eq) = no λ ()
     s (Compose g f eq1) Abs = no λ ()
     s (Compose g f eq1) Negate = no λ ()
     s (Compose g f eq1) Sum = no λ ()
@@ -1912,7 +1869,6 @@ This function is used to determine whether or not the input arguments are struct
     s (Compose g f eq1) (Derivative name) = no λ ()
     s (Compose g f eq1) (Antiderivative name) = no λ ()
     s (Compose g f eq1) (BoundedIntegral name) = no λ ()
-    s (Compose g f eq1) (Diff x) = no λ ()
     s (Compose g f eq1) (Compose y x eq2) with s g y | s f x
     ... | yes gIsy | yes fIsx = yes (compeq gIsy fIsx)
       where
