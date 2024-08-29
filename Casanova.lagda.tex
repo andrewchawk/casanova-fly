@@ -2070,11 +2070,11 @@ A value of type \AgdaFunction{AE2} \AgdaBound{x} \AgdaBound{y} exists if and onl
              -- The following check ensures that expressions like
              -- Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberNat 0 ])
              -- are not wrongly evaluated to inj₂ (NumberNat 0).
-             if isYes (eq2 (inj₂ e) (exceptionallyEvaluate e))
+             if isYes (eq2 (inj₂ e) (main e))
                 then valid (NumberNat 0)
                 else [_,_] bust
                            (λ x → valid (Ap Exponent ((NumberNat 0) ∷ [ x ])))
-                           (exceptionallyEvaluate e)
+                           (main e)
            ; _ → nothing})
       ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
            ; _ → nothing})
