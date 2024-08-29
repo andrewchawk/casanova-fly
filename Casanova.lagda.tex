@@ -2671,8 +2671,23 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
     module directCheck where
       Check = {x y : ε} → Maybe (AlgebraicEquality x y)
 
-      sumCommCheck : Check
-      sumCommCheck = {!!}
+      module sumCommCheck where
+        applyEquality : {x y x' y' : ε} →
+                        x ≡ x' →
+                        y ≡ y' →
+                        AlgebraicEquality (Ap Sum (x ∷ y ∷ []))
+                                          (Ap Sum (y' ∷ x' ∷ []))
+        applyEquality refl refl = AlgebraicEquality.SumCommutes
+
+        eq : {a b c d : ε} → Maybe ((a ≡ d) × (b ≡ c))
+        eq {a} {b} {c} {d} =
+          Data.Maybe.zip (decToMaybe (structuralEqualityOnε a d))
+                         (decToMaybe (structuralEqualityOnε b c))
+
+        main : Check
+        main {Ap Sum (a ∷ b ∷ [])} {Ap Sum (c ∷ d ∷ [])} =
+          Data.Maybe.map (uncurry applyEquality) eq
+        main = nothing
 
       prodCommCheck : Check
       prodCommCheck = {!!}
@@ -2684,7 +2699,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
       prodAssCheck = {!!}
 
       main : Check
-      main =   sumCommCheck
+      main =   sumCommCheck.main
            <∣> prodCommCheck
            <∣> sumAssCheck
            <∣> prodAssCheck
