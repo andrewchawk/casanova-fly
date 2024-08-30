@@ -321,10 +321,9 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
         ≡⟨⟩
       mapSuc (posh List.[ x ] xs)
         ≡⟨⟩
-      mapSuc
-        (if isYes (any? (DEQ x1) List.[ x ])
-            then just Fin.zero
-            else mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
+      mapSuc (if isYes (any? (DEQ x1) List.[ x ])
+                 then just Fin.zero
+                 else mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
         ≡⟨ cong (λ e → mapSuc (if isYes e
                                    then just Fin.zero
                                    else mapSuc (posh (x1 List.∷ List.[ x ]) xs1)))
@@ -1930,7 +1929,7 @@ Informally, one can say that \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n}
 \end{code}
 
 \subsection{The Single-Step Evaluation Function}
-\AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicates that \AgdaBound{x} is in some way nonsensical.
+\AgdaFunction{exceptionallyEvaluate} \AgdaBound{x} contains the result of performing a single evaluation step on \AgdaBound{x} \emph{or} a value which indicate that \AgdaBound{x} is in some way nonsensical.
 
 \begin{code}
   exceptionallyEvaluate : ε → Exceptional ε
