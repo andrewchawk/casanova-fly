@@ -792,7 +792,7 @@ This type is not bogus but \emph{is} used to indicate that a given expression is
 A value of type \AgdaField{CAS.equal-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e1} \AgdaBound{e2} exists if and only if \AgdaField{CAS.definitelyEquals} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e1} \AgdaBound{e2} indicates that \AgdaBound{e1} is algebraically equal to \AgdaBound{e2}.  This function mostly exists to eliminate repetition.
 
 \subsection{The Iteration Bogosity Function}
-A value of type \AgdaField{CAS.bogus-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} exists if and only if \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} is an \AgdaInductiveConstructor{inj₂} value.
+A value of type \AgdaField{CAS.bogus-at-iteration} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} exists if and only if \AgdaField{CAS.rEvaluate} \AgdaBound{c} \AgdaBound{iterations} \AgdaBound{e} is an \AgdaInductiveConstructor{inj₁} value.
 
 \subsection{The Generic Iteration Equality Function}
 A value of type \AgdaField{CAS.equal-at-some-iteration} \AgdaBound{c} \AgdaBound{e1} \AgdaBound{e2} exists if and only if \AgdaField{CAS.definitelyEquals} \AgdaBound{c} can determine that \AgdaBound{e1} is algebraically equal to \AgdaBound{e2} at some iteration.  Again, this function is really just good for reducing nasty redundancy.
