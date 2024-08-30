@@ -130,6 +130,7 @@ import Data.Product.Properties as ProdProp
 import Data.Vec.Properties as VecProp
 import Data.Vec.Relation.Unary.Any as AnyVec
 import Data.Vec.Relation.Unary.All as AllVec
+import Data.List.Properties as ListProp
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -1627,7 +1628,15 @@ This function is used to determine whether or not the input arguments are struct
     s (Lambda n1) Sum = no λ ()
     s (Lambda n1) Product = no λ ()
     s (Lambda n1) Exponent = no λ ()
-    s (Lambda n1) (Lambda n2) = {!!}
+    s (Lambda n1) (Lambda n2) with ListProp.≡-dec Data.String._≟_ n1 n2
+    ... | yes nEq = yes (cong Lambda nEq)
+    ... | no nNeq = no (nNeq ∘ equality-implies-name-equality)
+      where
+      equality-implies-name-equality :
+        {n1 n2 : List.List String} →
+        Lambda n1 ≡ Lambda n2 →
+        n1 ≡ n2
+      equality-implies-name-equality refl = refl
     s (Lambda n1) Sin = no λ ()
     s (Lambda n1) Cos = no λ ()
     s (Lambda n1) Tan = no λ ()
