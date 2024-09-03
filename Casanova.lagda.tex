@@ -2292,14 +2292,31 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
         main = nothing
 
-      prodAssCheck : Check
-      prodAssCheck = {!!}
+      module prodAssCheck where
+        applyEqualities :
+          {a b c a' b' c' : ε} →
+          a ≡ a' →
+          b ≡ b' →
+          c ≡ c' →
+          AlgebraicEquality (Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ []))
+                            (Ap Product (Ap Product (a' ∷ b' ∷ []) ∷ c' ∷ []))
+        applyEqualities refl refl refl = AlgebraicEquality.ProductIsAssociative
+
+        main : Check
+        main {Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ [])}
+             {Ap Product (Ap Product (x ∷ y ∷ []) ∷ z ∷ [])} =
+             Data.Maybe.map (λ (a , b , c) → applyEqualities a b c)
+                            (tri-eq {a} {b} {c} {x} {y} {z})
+        main e1@{Ap Product (Ap Product (x ∷ y ∷ []) ∷ z ∷ [])}
+             e2@{Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ [])} =
+               Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
+        main = nothing
 
       main : Check
       main =   sumCommCheck.main
            <∣> prodCommCheck.main
            <∣> sumAssCheck.main
-           <∣> prodAssCheck
+           <∣> prodAssCheck.main
 
     module complexCheck where
       main : {x y : ε} → ℕ → Exceptional (Maybe (AlgebraicEquality x y))
