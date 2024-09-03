@@ -11,6 +11,9 @@
 \usepackage{physics}
 \usepackage{fancyref}
 \usepackage[toc]{glossaries}
+\usepackage[backend=bibtex]{biblatex}
+
+\addbibresource{citationNeeded.bib}
 
 \newcommand{\Epsilon}{E}
 
@@ -73,7 +76,7 @@ In short, the answer to the last question is ``Casanova Fly, of course''.  The r
 \part{Generic Stuff}
 
 \chapter{Prerequisites for Understanding}
-The author recommends that anyone who tries to understand Casanova Fly is familiar with the following modules:
+The author recommends that anyone who tries to understand Casanova Fly is familiar with the following modules, which are defined in \cite{The_Agda_Community_Agda_Standard_Library_2024}:
 
 \begin{code}
 open import Function
@@ -2466,6 +2469,8 @@ CasanovaFly-Verified = record
 \end{code}
 
 \part{Miscellany}
+
+\printbibliography{}
 
 \newglossaryentry{algInj2equal}
   { name = algebraically \AgdaInductiveConstructor{inj₂}-equal
