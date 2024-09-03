@@ -1019,7 +1019,8 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the irrelevance of substitution list order,
  \item a proof which indicates that the derivative of a constant is \(0\),
  \item basic trigonometric derivative correctness proofs,
- \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\), and
+ \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\),
+ \item a proof of the equality between \(x\) and \(- \left(- x\right)\), and
  \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}.
 \end{itemize}
 
@@ -1134,6 +1135,12 @@ We ain't done yet, folks!  Additional fields include the basic trigonometric der
 \subsection{The Tangent Bogosity Proof}
 \AgdaField{VCAS.tangent-is-bogus-at-quarter-tau} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\sin \left(\tau \cdot \left(n + \frac{1}{4}\right)\right)\) is totally bogus for all integers \(n\).
 
+\section{General Proofs}
+
+\subsection{The Repeated Negation Proof}
+\AgdaField{VCAS.repeated-negation-cancelation} \AgdaBound{v} proves that the \AgdaBound{v} CAS recognizes that for all expressions \(x\), \(- \left(- x\right) = x\).
+
+
 \section{The Natural Number Less-Than Proof}
 \AgdaField{VCAS.natural-number-less-than} \AgdaBound{v} proves that for any two natural numbers \(m\) and \(n\), if \(m < n\), then the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(m\) is less than the \AgdaBound{v} CAS's representation of \(n\).
 
@@ -1202,6 +1209,8 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       equal-at-some-iteration e2 (e1 * (e2 / e1))
     0^0-is-bogus : IsBogus (fromℕ 0 ^ fromℕ 0)
     0^-n-is-bogus : (e : ε) → e < fromℕ 0 → IsBogus (fromℕ 0 ^ e)
+    repeated-negation-cancelation :
+      (e : ε) → equal-at-some-iteration e (negation (negation e))
     limit-of-unrelated-value-is-unrelated-value :
       (name : String) →
       (e bound : ε) →
@@ -2355,6 +2364,11 @@ CasanovaFly-Verified = record
   ; product-of-quotient-is-same = {!!}
   ; 0^0-is-bogus = 1 , _ , refl
   ; 0^-n-is-bogus = {!!}
+  ; repeated-negation-cancelation =
+    let open AlgebraicEquality in
+    λ e → 1
+        , Eventuality 0 1 (EqualityImpliesAE refl)
+        , {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
