@@ -2093,7 +2093,7 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                then bust "0^0 is undefined!"
                else valid (NumberNat (x Data.Nat.^ y))
            ; _ → nothing})
-      ∷ (λ { (Ap Exponent (NumberRat x ∷ NumberRat y ∷ [])) →
+      ∷ (λ { (Ap Exponent (NumberNatP 0 coprime ∷ NumberRat y ∷ [])) →
              if y ℚ.≤ᵇ ℚ.0ℚ
                 then bust "\\(0^x\\) is undefined for non-positive \\(x\\)!"
                 else nothing
