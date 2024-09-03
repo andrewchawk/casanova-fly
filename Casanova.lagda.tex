@@ -2238,6 +2238,13 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         Data.Maybe.zip (decToMaybe (structuralEqualityOnε a d))
                        (decToMaybe (structuralEqualityOnε b c))
 
+      tri-eq : {a b c x y z : ε} →
+               Maybe ((a ≡ x) × (b ≡ y) × (c ≡ z))
+      tri-eq {a} {b} {c} {x} {y} {z} =
+        Data.Maybe.zip (decToMaybe (structuralEqualityOnε a x))
+                       (Data.Maybe.zip (decToMaybe (structuralEqualityOnε b y))
+                                       (decToMaybe (structuralEqualityOnε c z)))
+
       module sumCommCheck where
         applyEqualities : {x y x' y' : ε} →
                           x ≡ x' →
@@ -2265,8 +2272,25 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
           Data.Maybe.map (uncurry applyEqualities) bi-eq
         main = nothing
 
-      sumAssCheck : Check
-      sumAssCheck = {!!}
+      module sumAssCheck where
+        applyEqualities :
+          {a b c a' b' c' : ε} →
+          a ≡ a' →
+          b ≡ b' →
+          c ≡ c' →
+          AlgebraicEquality (Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ []))
+                            (Ap Sum (Ap Sum (a' ∷ b' ∷ []) ∷ c' ∷ []))
+        applyEqualities refl refl refl = AlgebraicEquality.SumIsAssociative
+
+        main : Check
+        main {Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ [])}
+             {Ap Sum (Ap Sum (x ∷ y ∷ []) ∷ z ∷ [])} =
+             Data.Maybe.map (λ (a , b , c) → applyEqualities a b c)
+                            (tri-eq {a} {b} {c} {x} {y} {z})
+        main e1@{Ap Sum (Ap Sum (x ∷ y ∷ []) ∷ z ∷ [])}
+             e2@{Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ [])} =
+               Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
+        main = nothing
 
       prodAssCheck : Check
       prodAssCheck = {!!}
@@ -2274,7 +2298,7 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
       main : Check
       main =   sumCommCheck.main
            <∣> prodCommCheck.main
-           <∣> sumAssCheck
+           <∣> sumAssCheck.main
            <∣> prodAssCheck
 
     module complexCheck where
