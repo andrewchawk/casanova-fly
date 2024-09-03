@@ -2163,8 +2163,9 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                            ∷ [ Ap (Derivative v1) [ y ] ]))
            ; _ → nothing})
       ∷ (λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
-             valid (Ap Product ( Ap (Derivative v1) [ x ]
-                               ∷ [ Ap (Derivative v1) [ y ] ]))
+             valid (Ap Sum
+                       ( Ap Product (Ap (Derivative v1) [ x ] ∷ [ y ])
+                       ∷ [ Ap Product (Ap (Derivative v1) [ y ] ∷ [ x ])]))
            ; _ → nothing})
       ∷ (λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
              if v1 Data.String.== v2
