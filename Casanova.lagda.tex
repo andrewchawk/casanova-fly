@@ -119,6 +119,13 @@ open import Relation.Binary.PropositionalEquality.WithK
   using
     ( ≡-irrelevant
     )
+open import Data.List.Relation.Binary.Permutation.Setoid
+  renaming
+    ( _↭_ to IsSetoidPermutation
+    )
+  using
+    (
+    )
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
@@ -2024,11 +2031,8 @@ A value of type \AgdaFunction{main2} \AgdaBound{x} \AgdaBound{y} exists if and o
 \subsubsection{Structural Equality's Implication of Algebraic Equality}
 According to \AgdaInductiveConstructor{EqualityImpliesAE}, two \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y} are structurally equal only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.
 
-\subsubsection{Sum Commutativity}
-Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a + b = b + a\) or, equivalently, if \(a = a\prime\) and \(b = b\prime\), then \(a + b = b\prime + a\prime\).
-
-\subsubsection{Product Commutativity}
-Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a \cdot b = b \cdot a\) or, equivalently, if \(a = a\prime\) and \(b = b\prime\), then \(a \cdot b = b\prime \cdot a\prime\).
+\subsubsection{Commutativity}
+Basically, according to \AgdaInductiveConstructor{Commutativity}, if \AgdaBound{a} is a permutation of \AgdaBound{b} and \AgdaBound{f} is commutative, then \AgdaBound{f} \AgdaBound{a} is algebraically equivalent to \AgdaBound{f} \AgdaBound{b}.
 
 \subsubsection{Sum Associativity}
 Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a + \left(b + c\right) = \left(a + b\right) + c\).
@@ -2050,10 +2054,15 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
 \begin{code}
     data main where
       EqualityImpliesAE : {e1 e2 : ε} → e1 ≡ e2 → main e1 e2
-      SumCommutes :
-        {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
-      ProductCommutes :
-        {x y : ε} → main (Ap Product (x ∷ y ∷ [])) (Ap Product (y ∷ x ∷ []))
+      Commutativity :
+        {f : F} →
+        {x y : Vec ε (arity f)} →
+        {eq2 : arity f ≡ 2} →
+        true ≡ isCommutative f eq2 →
+        IsSetoidPermutation (record {isEquivalence = isEquivalence})
+                            (Data.Vec.toList x)
+                            (Data.Vec.toList y) →
+        main (Ap f x) (Ap f y)
       SumIsAssociative :
         {x1 x2 x3 : ε} →
         main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
@@ -2070,6 +2079,26 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         main2 (repeatExceptional itx exceptionallyEvaluate x)
               (repeatExceptional ity exceptionallyEvaluate y) →
         main x y
+
+    SumCommutes :
+      {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
+    SumCommutes {x} {y} =
+      Commutativity {Sum}
+                    {x ∷ y ∷ []}
+                    {y ∷ x ∷ []}
+                    {refl}
+                    refl
+                    {!!}
+
+    ProductCommutes :
+      {x y : ε} → main (Ap Product (x ∷ y ∷ [])) (Ap Product (y ∷ x ∷ []))
+    ProductCommutes {x} {y} =
+      Commutativity {Product}
+                    {x ∷ y ∷ []}
+                    {y ∷ x ∷ []}
+                    {refl}
+                    refl
+                    {!!}
 \end{code}
 
 \subsection{Completing the Equivalence Proof}
