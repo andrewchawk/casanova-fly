@@ -2166,19 +2166,17 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
       }
 \end{code}
 
-\begin{code}
-\end{code}
-
 \subsection{Various Properties of the Algebraic Equality Type Function}
 
 \begin{code}
   module Properties where
+    open AlgebraicEquality
 \end{code}
 
 \subsubsection{Basic Composition Equality}
 A bit informally, one can say that \AgdaFunction{composition-equality} proves that relevant composition is algebraically equivalent to relevant repeated application.
 
-\end{code}
+\begin{code}
     composition-equality :
       (g f : F) →
       (x : Vec ε (arity f)) →
