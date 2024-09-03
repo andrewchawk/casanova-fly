@@ -1409,7 +1409,7 @@ The following statements hold:
 \end{code}
 
 \subsection{The Quotient Pattern}
-\AgdaInductiveConstructor{NumberRat} \AgdaBound{x} \AgdaBound{y} \AgdaBound{coprimality} is Casanova Fly's representation of \(\frac{\AgdaBound{x}}{\AgdaBound{y}}\).
+\AgdaInductiveConstructor{Quotient} \AgdaBound{x} \AgdaBound{y} \AgdaBound{coprimality} is Casanova Fly's representation of \(\frac{\AgdaBound{x}}{\AgdaBound{y}}\).
 
 \begin{code}
   pattern Quotient x y coprime =
@@ -2017,7 +2017,7 @@ Basically, according to \AgdaInductiveConstructor{ProductCommutes}, \(a \cdot \l
 Basically, according to \AgdaInductiveConstructor{Symmetry}, if \(a = b\), then \(b = a\).
 
 \subsubsection{Transitivity}
-Basically, according to \AgdaInductiveConstructor{Symmetry}, if \(a = b\) and \(b = c\), then \(a = c\).
+Basically, according to \AgdaInductiveConstructor{Transitivity}, if \(a = b\) and \(b = c\), then \(a = c\).
 
 \subsubsection{Eventuality}
 For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evaluation of \AgdaBound{x} \gls{inj2contain} a value which is algebraically equal to a value which is contained by some evaluation of \AgdaBound{y}, then \AgdaBound{x} is algebraically equal to \AgdaBound{y}.  The preceding fact is encoded through \AgdaInductiveConstructor{Eventuality}.
