@@ -141,6 +141,7 @@ import Data.Vec.Properties as VecProp
 import Data.Vec.Relation.Unary.Any as AnyVec
 import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
+import Data.List.Relation.Binary.Pointwise as PointwiseList
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -2088,7 +2089,10 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                     {y ∷ x ∷ []}
                     {refl}
                     refl
-                    {!!}
+                    (swapP refl refl (reflP PointwiseList.[]))
+        where
+        swapP = Data.List.Relation.Binary.Permutation.Setoid.swap
+        reflP = Data.List.Relation.Binary.Permutation.Setoid.refl
 
     ProductCommutes :
       {x y : ε} → main (Ap Product (x ∷ y ∷ [])) (Ap Product (y ∷ x ∷ []))
@@ -2098,7 +2102,10 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                     {y ∷ x ∷ []}
                     {refl}
                     refl
-                    {!!}
+                    (swapP refl refl (reflP PointwiseList.[]))
+        where
+        swapP = Data.List.Relation.Binary.Permutation.Setoid.swap
+        reflP = Data.List.Relation.Binary.Permutation.Setoid.refl
 \end{code}
 
 \subsection{Completing the Equivalence Proof}
