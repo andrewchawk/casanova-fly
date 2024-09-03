@@ -2060,8 +2060,8 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
              (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
       ProductIsAssociative :
         {x1 x2 x3 : ε} →
-        main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
-             (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+        main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
+             (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
       Symmetry : {x y : ε} → main x y → main y x
       Transitivity : {x y z : ε} → main x y → main y z → main x z
       Eventuality :
