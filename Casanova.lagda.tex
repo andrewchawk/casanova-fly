@@ -664,7 +664,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 \section{Types for Equalities and Inequalities}
 
 \subsection{The Algebraic Equality Type}
-A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y}.
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be \AgdaBound{c}-\gls{algEq} to \AgdaBound{y}.
 
 \subsection{The Algebraic \emph{In}equality Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}.
@@ -752,10 +752,10 @@ As previously indicated, a CAS also supports certain trigonometric functions.  T
 \AgdaField{CAS.negation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
 
 \subsection{The Simple Limit Function}
-\AgdaField{CAS.limit} \AgdaBound{c} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\lim_{\AgdaBound{c} \rightarrow \AgdaBound{x}} \textrm{\Epsilon}\), where ``\(\textrm{\Epsilon}\)'' denotes the expanded version of the \AgdaBound{e} expression.
+\AgdaField{CAS.limit} \AgdaBound{v} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{v}'s representation of \(\lim_{\AgdaBound{x} \rightarrow \AgdaBound{c}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expanded version of the \AgdaBound{e} expression.
 
 \subsection{The Bounded Integral Function}
-\AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{\Epsilon}\), where ``\(\mathrm{\Epsilon}\)'' denotes the expansion of \AgdaBound{e}.
+\AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expansion of \AgdaBound{e}.
 
 \subsection{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
@@ -1018,12 +1018,17 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\),
  \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\),
  \item a proof of \(0\)'s equality with \(\tan \left(\tau \cdot n \cdot \frac12\right)\),
- \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
+ \item a proof of the failure of garbage variable substitution\footnote{See \fref{sec:garbageVariableSubstitutionPseudoFootnote}.},
  \item a proof of the irrelevance of substitution list order,
  \item a proof which indicates that the derivative of a constant is \(0\),
  \item basic trigonometric derivative correctness proofs,
  \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\),
  \item a proof of the correct handling of the derivatives of products,
+ \item a proof of the equality between \(c\) and \(\lim_{x \rightarrow y} c\), where \(c\) is a constant,
+ \item a proof of the equality between \(\lim_{x \rightarrow y} x\) and \(y\),
+ \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a + b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) + \lim_{x \rightarrow y} b\),
+ \item a proof of the equality between \(\lim_{x \rightarrow y} \left(- x\right)\) and \(- \lim_{x \rightarrow y} x\),
+ \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a \cdot b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) \cdot \lim_{x \rightarrow y} b\),
  \item a proof of the equality between \(x\) and \(- \left(- x\right)\), and
  \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}.
 \end{itemize}
@@ -1081,8 +1086,23 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \section{Limit Correctness Proofs}
 
+\subsection{The Constant Limit Field}
+\AgdaField{VCAS.limit-of-constant-is-constant} \AgdaBound{v} proves that for all constants \(e\), \(e\) is \AgdaBound{c}-\gls{algEq} to \(\lim_{x \rightarrow y} e\), where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
+
 \subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
 \AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
+
+\subsection{The Same Variable Limit Field}
+\AgdaField{VCAS.limit-of-same-variable-is-value} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} x\) is algebraically equivalent to \(y\).
+
+\subsection{The Sum Limit Field}
+\AgdaField{VCAS.limit-of-sums-is-sum} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(v + w\right)\) is algebraically equivalent to \(\left(\lim_{x \rightarrow y} v\right) + \lim_{x \rightarrow y} w\).
+
+\subsubsection{The Negation Limit Field}
+\AgdaField{VCAS.limit-negation} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(- w\right)\), i.e., \(\lim_{x \rightarrow y} \left(0 - w\right)\), i.e., \(0 - \lim_{x \rightarrow y} w\), is algebraically equivalent to \(- \lim_{x \rightarrow y} w\).
+
+\subsection{The Product Limit Field}
+\AgdaField{VCAS.limit-of-products-is-product} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(v \cdot w\right)\) is algebraically equivalent to \(\left(\lim_{x \rightarrow y} v\right) \cdot \lim_{x \rightarrow y} w\).
 
 \section{Lambda Correctness Proofs}
 
@@ -1094,8 +1114,11 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \section{Variable Substitution Correctness Proofs}
 
-\subsection{The Proof of the Failure of Garbage Variable Substitution\footnote{``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots\label{fn:garbageVariable}}}
+\subsection{The Proof of the Failure of Garbage Variable Substitution}
 \AgdaField{VCAS.garbage-variable-substitution-fails} \AgdaBound{v} proves that the \AgdaBound{v} CAS's variable substitution effectively returns the input expression if no variables of the substitution list are free in the input expression.
+
+\subsubsection{On the Name of this Subsection}\label{sec:garbageVariableSubstitutionPseudoFootnote} % Using this jank instead of a footnote ensures that no footnote-related errors occur.
+In the title of this subsection, ``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots
 
 \subsection{The Proof of the Irrelevance of the Order of Substitution Lists}
 \AgdaField{VCAS.substitution-order-is-irrelevant} \AgdaBound{v} proves that for the \AgdaBound{v} CAS, if some substitution list \(l_1\) is a permutation of some substitution list \(l_2\) and contains no repeated variable names, then the application of \(l_1\) to some expression \(e\) is algebraically equal to the application of \(l_2\) to \(e\).
@@ -1218,11 +1241,6 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     0^-n-is-bogus : (e : ε) → e < fromℕ 0 → IsBogus (fromℕ 0 ^ e)
     repeated-negation-cancelation :
       (e : ε) → equal-at-some-iteration e (negation (negation e))
-    limit-of-unrelated-value-is-unrelated-value :
-      (name : String) →
-      (e bound : ε) →
-      ¬ IsNameOfVariableIn name e →
-      equal-at-some-iteration e (limit name bound e)
     simple-lambda-substitution-works :
       (name : String) →
       (e : ε) →
@@ -1297,6 +1315,41 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus e2 →
       equal-at-some-iteration (derivative name (e1 * e2))
                               ((derivative name e1 * e2) + (derivative name e2 * e1))
+    limit-of-constant-is-constant :
+      (name : String) →
+      (e bound : ε) →
+      IsConstant e →
+      equal-at-some-iteration e (limit name bound e)
+    limit-of-unrelated-value-is-unrelated-value :
+      (name : String) →
+      (e bound : ε) →
+      ¬ IsNameOfVariableIn name e →
+      equal-at-some-iteration e (limit name bound e)
+    limit-of-same-variable-is-value :
+      (name : String) →
+      (bound : ε) →
+      equal-at-some-iteration (limit name bound (variableNamed name))
+                              bound
+    limit-of-sums-is-sum :
+      (name : String) →
+      (bound e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
+      equal-at-some-iteration (limit name bound (e1 + e2))
+                              (limit name bound e1 + limit name bound e2)
+    limit-negation :
+      (name : String) →
+      (bound e : ε) →
+      IsNotBogus e →
+      equal-at-some-iteration (limit name bound (negation e))
+                              (negation (limit name bound e))
+    limit-of-products-is-product :
+      (name : String) →
+      (bound e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
+      equal-at-some-iteration (limit name bound (e1 * e2))
+                              (limit name bound e1 * limit name bound e2)
 
     tangent-is-bogus-at-quarter-tau :
       (n : ℕ) →
@@ -2515,7 +2568,12 @@ CasanovaFly-Verified = record
     λ e → 1
         , Eventuality 0 1 (EqualityImpliesAE refl)
         , {!!}
+  ; limit-of-constant-is-constant = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
+  ; limit-of-same-variable-is-value = {!!}
+  ; limit-of-sums-is-sum = {!!}
+  ; limit-negation = {!!}
+  ; limit-of-products-is-product = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
@@ -2625,6 +2683,21 @@ CasanovaFly-Verified = record
   { name = \AgdaInductiveConstructor{inj₂}-contains
   , plural = \AgdaInductiveConstructor{inj₂}-contain
   , description = {For the scope of this paper, a value \AgdaBound{x} of type \AgdaBound{A} \AgdaOperator{\AgdaDatatype{⊎}} \AgdaBound{B} is said to \AgdaInductiveConstructor{inj₂}-contain a value \AgdaBound{y} of type \AgdaBound{B} if and only if \AgdaBound{x} is equal to \AgdaInductiveConstructor{inj₂} \AgdaBound{y}}
+  }
+
+\newglossaryentry{algEq1}
+  { name = algebraically-equal\({}_1\)
+  , description = A term \AgdaBound{x} is \AgdaBound{c}-\gls{algEq1} to some term \AgdaBound{y} if and only if there exists some value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y}
+  }
+
+\newglossaryentry{algEq2}
+  { name = algebraically-equal\({}_2\)
+  , description = A mathematical expression \(x\) is \AgdaBound{c}-\gls{algEq2} to some mathematical expression \(y\) if and only if the \AgdaBound{c} CAS's representation of \(x\) is \AgdaBound{c}-algebraically-equal to the \AgdaBound{c} CAS's representation of \(y\)
+  }
+
+\newglossaryentry{algEq}
+  { name = algebraically-equal\({}_2\)
+  , description = Any appropriate thing \(a\) is \AgdaBound{c}-\gls{algEq} to any appropriate thing \(b\) if and only if \(x\) is \AgdaBound{c}-\gls{algEq1} or \AgdaBound{c}-\gls{algEq2} to \(y\).  This term is vaguer than ``\AgdaBound{x}-\gls{algEq2}'' and ``\AgdaBound{c}\gls{algEq1}'' and facilitates more concise communication
   }
 
 \clearpage{}
