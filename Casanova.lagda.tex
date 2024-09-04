@@ -2111,17 +2111,16 @@ Informally, one can say that \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n}
 \end{code}
 
 \section{The Point-Free Rewrite Function}
-If the result is not \AgdaInductiveConstructor{nothing}, then \AgdaFunction{pfRewrite} \AgdaBound{e} contains values \AgdaBound{g} and \AgdaBound{x} such that the following statements hold:
+If the result is not \AgdaInductiveConstructor{nothing}, then \AgdaFunction{pfRewrite} \AgdaBound{e} contains some expression of the form \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Compose} \AgdaBound{g} \AgdaBound{f} \AgdaBound{arityProof}\AgdaSymbol) \AgdaBound{x} such that the following statements hold:
 
 \begin{enumerate}
-  \item \AgdaBound{g} constitutes a nontrivial use of \AgdaInductiveConstructor{Compose}.\label{enum:pfRewriteCompose}
-  \item \AgdaBound{e} is algebraically equal to \AgdaInductiveConstructor{Ap} \AgdaBound{g} \AgdaBound{x}.\label{enum:pfRewriteEquality}
+  \item \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Compose} \AgdaBound{g} \AgdaBound{f} \AgdaBound{arityProof}\AgdaSymbol) \AgdaBound{x} is algebraically equal to \AgdaBound{ε}.\label{enum:pfRewriteEquality}
 \end{enumerate}
 
 \begin{code}
-  pfRewrite : ε → Maybe (Σ F (Vec ε ∘ arity))
+  pfRewrite : ε → Maybe ε
   pfRewrite (Ap g x) with arity g | x | inspect arity g
-  ... | 1 | Ap f y ∷ [] | ⟦ arityIs1 ⟧ = just (Compose g f arityIs1 , y)
+  ... | 1 | Ap f y ∷ [] | ⟦ arityIs1 ⟧ = just (Ap (Compose g f arityIs1) y)
   ... | _ | _ | _ = nothing
   pfRewrite _ = nothing
 \end{code}
@@ -2383,7 +2382,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
       freeDerivativesFromPoints : ε → Maybe (Exceptional ε)
       freeDerivativesFromPoints =
         λ { (Ap (Derivative n) (x ∷ [])) →
-            Data.Maybe.map (inj₂ ∘ Ap (Derivative n) ∘ [_] ∘ uncurry Ap)
+            Data.Maybe.map (inj₂ ∘ Ap (Derivative n) ∘ [_])
                            (pfRewrite x)
           ; _ → nothing}
       basicDerivativeChainRuleFunction : ε → Maybe (Exceptional ε)
