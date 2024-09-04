@@ -752,10 +752,10 @@ As previously indicated, a CAS also supports certain trigonometric functions.  T
 \AgdaField{CAS.negation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
 
 \subsection{The Simple Limit Function}
-\AgdaField{CAS.limit} \AgdaBound{v} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{v}'s representation of \(\lim_{\AgdaBound{x} \rightarrow \AgdaBound{c}} \textrm{\Epsilon}\), where ``\(\textrm{\Epsilon}\)'' denotes the expanded version of the \AgdaBound{e} expression.
+\AgdaField{CAS.limit} \AgdaBound{v} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{v}'s representation of \(\lim_{\AgdaBound{x} \rightarrow \AgdaBound{c}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expanded version of the \AgdaBound{e} expression.
 
 \subsection{The Bounded Integral Function}
-\AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{\Epsilon}\), where ``\(\mathrm{\Epsilon}\)'' denotes the expansion of \AgdaBound{e}.
+\AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expansion of \AgdaBound{e}.
 
 \subsection{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
