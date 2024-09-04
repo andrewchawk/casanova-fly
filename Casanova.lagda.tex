@@ -1018,7 +1018,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\),
  \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\),
  \item a proof of \(0\)'s equality with \(\tan \left(\tau \cdot n \cdot \frac12\right)\),
- \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
+ \item a proof of the failure of garbage variable substitution\footnote{See \fref{sec:garbageVariableSubstitutionPseudoFootnote}.},
  \item a proof of the irrelevance of substitution list order,
  \item a proof which indicates that the derivative of a constant is \(0\),
  \item basic trigonometric derivative correctness proofs,
@@ -1114,8 +1114,11 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \section{Variable Substitution Correctness Proofs}
 
-\subsection{The Proof of the Failure of Garbage Variable Substitution\footnote{``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots\label{fn:garbageVariable}}}
+\subsection{The Proof of the Failure of Garbage Variable Substitution}
 \AgdaField{VCAS.garbage-variable-substitution-fails} \AgdaBound{v} proves that the \AgdaBound{v} CAS's variable substitution effectively returns the input expression if no variables of the substitution list are free in the input expression.
+
+\subsubsection{On the Name of this Subsection}\label{sec:garbageVariableSubstitutionPseudoFootnote} % Using this jank instead of a footnote ensures that no footnote-related errors occur.
+In the title of this subsection, ``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots
 
 \subsection{The Proof of the Irrelevance of the Order of Substitution Lists}
 \AgdaField{VCAS.substitution-order-is-irrelevant} \AgdaBound{v} proves that for the \AgdaBound{v} CAS, if some substitution list \(l_1\) is a permutation of some substitution list \(l_2\) and contains no repeated variable names, then the application of \(l_1\) to some expression \(e\) is algebraically equal to the application of \(l_2\) to \(e\).
