@@ -1024,6 +1024,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item basic trigonometric derivative correctness proofs,
  \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\),
  \item a proof of the correct handling of the derivatives of products,
+ \item a proof of the equality between \(c\) and \(\lim_{x \rightarrow y} c\), where \(c\) is a constant,
  \item a proof of the equality between \(\lim_{x \rightarrow y} x\) and \(y\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a + b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) + \lim_{x \rightarrow y} b\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(- x\right)\) and \(- \lim_{x \rightarrow y} x\),
@@ -1084,6 +1085,9 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 \AgdaField{VCAS.0\textasciicircum{}-n-is-bogus} \AgdaBound{v} indicates that for all relevant expressions \(e\), if \(e < 0\), then the CAS will eventually determine that \(0^e\) is bogus.
 
 \section{Limit Correctness Proofs}
+
+\subsection{The Constant Limit Field}
+\AgdaField{VCAS.limit-of-constant-is-constant} \AgdaBound{v} proves that for all constants \(e\), \(e\) is \AgdaBound{c}-\gls{algEq} to \(\lim_{x \rightarrow y} e\), where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
 
 \subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
 \AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
@@ -1308,6 +1312,11 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus e2 →
       equal-at-some-iteration (derivative name (e1 * e2))
                               ((derivative name e1 * e2) + (derivative name e2 * e1))
+    limit-of-constant-is-constant :
+      (name : String) →
+      (e bound : ε) →
+      IsConstant e →
+      equal-at-some-iteration e (limit name bound e)
     limit-of-unrelated-value-is-unrelated-value :
       (name : String) →
       (e bound : ε) →
@@ -2425,6 +2434,7 @@ CasanovaFly-Verified = record
     λ e → 1
         , Eventuality 0 1 (EqualityImpliesAE refl)
         , {!!}
+  ; limit-of-constant-is-constant = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
   ; limit-of-same-variable-is-value = {!!}
   ; limit-of-sums-is-sum = {!!}
