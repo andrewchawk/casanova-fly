@@ -1370,7 +1370,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
 
-\part{The Core Components of Casanova Fly}
+\part{The Core Components of Casanova Fly}\label{sec:casanovaFlyCore}
 
 \begin{code}
 module CasanovaFlyCore where
@@ -2496,6 +2496,27 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
       {list : Vec ε (arity f)} →
       AnyVec.Any (IsReferencedIn name) list →
       IsReferencedIn name (Ap f list)
+\end{code}
+
+\chapter{The Associated Proofs}
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\section{Purpose}
+This chapter contains various proofs regarding the stuff which was defined in \ref{sec:casanovaFlyCore}.
+
+\subsection{\AgdaFunction{pfRewrite} Equality}
+\AgdaFunction{pfRewrite-basicEquality} proves that the statement in \ref{enum:pfRewriteEquality} is actually \emph{correct}.
+
+\begin{code}
+  pfRewrite-basicEquality :
+    (e : ε) →
+    (isJust : Is-just (pfRewrite e)) →
+    AlgebraicEquality e (to-witness isJust)
+  pfRewrite-basicEquality (Ap f e) isJust = {!!}
+  pfRewrite-basicEquality x isJust = {!!} -- bogus
 \end{code}
 
 \part{The Rest is F-L-Y}
