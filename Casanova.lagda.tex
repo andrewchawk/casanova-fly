@@ -2128,11 +2128,26 @@ If the result is not \AgdaInductiveConstructor{nothing}, then \AgdaFunction{pfRe
 \end{enumerate}
 
 \begin{code}
-  pfRewrite : ε → Maybe ε
-  pfRewrite (Ap g x) with arity g | x | inspect arity g
-  ... | 1 | Ap f y ∷ [] | ⟦ arityIs1 ⟧ = just (Ap (Compose g f arityIs1) y)
-  ... | _ | _ | _ = nothing
-  pfRewrite _ = nothing
+  module pfRewrite where
+
+    helper : (f : F) → ε → arity f ≡ 1 → Maybe ε
+    helper g (Ap f x) eq = just (Ap (Compose g f eq) x)
+    helper g x eq = nothing
+
+    onlyElement : {n : ℕ} →
+                  {a : Level} →
+                  {A : Set a} →
+                  Vec A n →
+                  n ≡ 1 →
+                  A
+    onlyElement x eq = Data.Vec.lookup (Data.Vec.cast eq x) Fin.zero
+
+    main : ε → Maybe ε
+    main (Ap g x) = _>>=_ (decToMaybe (arity g Data.Nat.≟ 1))
+                          (λ eq → helper g (onlyElement x eq) eq)
+    main _ = nothing
+
+  pfRewrite = pfRewrite.main
 \end{code}
 
 \section{Completing the Algebraic Equality Function}
