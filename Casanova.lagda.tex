@@ -1029,6 +1029,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a + b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) + \lim_{x \rightarrow y} b\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(- x\right)\) and \(- \lim_{x \rightarrow y} x\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a \cdot b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) \cdot \lim_{x \rightarrow y} b\),
+ \item a proof which indicates that \(f x\) is equal to \(\lim_{y \rightarrow x} \left(f y\right)\) if \(f x\) is non-bogus,
  \item a proof of the equality between \(x\) and \(- \left(- x\right)\), and
  \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}.
 \end{itemize}
@@ -1103,6 +1104,9 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \subsection{The Product Limit Field}
 \AgdaField{VCAS.limit-of-products-is-product} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(v \cdot w\right)\) is algebraically equivalent to \(\left(\lim_{x \rightarrow y} v\right) \cdot \lim_{x \rightarrow y} w\).
+
+\subsection{The Non-Bogus Limit Field}
+\AgdaField{VCAS.limit-of-non-bogus-expression} \AgdaBound{v} proves that if \(f y\) is not \gls{bogusWrt} \AgdaBound{c}, then \(\lim_{x \rightarrow y} \left(f x\right)\) is \AgdaBound{c}-\gls{algEq} \(f y\).
 
 \section{Lambda Correctness Proofs}
 
@@ -1350,6 +1354,12 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus e2 →
       equal-at-some-iteration (limit name bound (e1 * e2))
                               (limit name bound e1 * limit name bound e2)
+    limit-of-non-bogus-expression :
+      (name : String) →
+      (bound e : ε) →
+      IsNotBogus (substituteVariables List.[ name , bound ] e) →
+      equal-at-some-iteration (limit name bound e)
+                              (substituteVariables List.[ name , bound ] e)
 
     tangent-is-bogus-at-quarter-tau :
       (n : ℕ) →
@@ -2573,6 +2583,7 @@ CasanovaFly-Verified = record
   ; limit-of-sums-is-sum = {!!}
   ; limit-negation = {!!}
   ; limit-of-products-is-product = {!!}
+  ; limit-of-non-bogus-expression = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
@@ -2697,6 +2708,11 @@ CasanovaFly-Verified = record
 \newglossaryentry{algEq}
   { name = algebraically-equal
   , description = Any appropriate thing \(a\) is \AgdaBound{c}-\gls{algEq} to any appropriate thing \(b\) if and only if \(x\) is \AgdaBound{c}-\gls{algEq1} or \AgdaBound{c}-\gls{algEq2} to \(y\).  This term is vaguer than ``\AgdaBound{x}-\gls{algEq2}'' and ``\AgdaBound{c}\gls{algEq1}'' and facilitates more concise communication
+  }
+
+\newglossaryentry{bogusWrt}
+  { name = bogus with regard to
+  , description = {For a given \AgdaRecord{CAS} record \AgdaBound{c}, some mathematical expression \(x\) is \gls{bogusWrt} \AgdaBound{c} if and only if there exists some value of type \AgdaField{CAS.IsBogus} \AgdaBound{x'}, where \AgdaBound{x'} represents \(x\)}
   }
 
 \clearpage{}
