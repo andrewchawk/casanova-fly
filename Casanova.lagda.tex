@@ -277,7 +277,7 @@ repeatExceptional = repeatExceptional.repeatExceptional
 
 \begin{itemize}
   \item If \AgdaBound{x} contains no repeating elements, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} is \AgdaInductiveConstructor{nothing}.
-  \item If \AgdaBound{x} has repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x}.
+  \item If \AgdaBound{x} has repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x}.  A bit more formally, one can say that if \(v\) is some value which occurs at multiple positions in \AgdaBound{x}, and there exists no value \(w\) such that \(w\) occurs at multiple positions in \AgdaBound{x} and occupies a position which precedes the first index of \(v\), then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the first index of \(v\) in \AgdaBound{x}.  Way more formally, one can refer to the definition in \fref{sec:firstRepeatPosition-isFirst}.\label{enum:firstRepeatPosition-isFirst}
 \end{itemize}
 
 \begin{code}
@@ -481,15 +481,24 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 \end{code}
 
 \subsubsection{The Proof of Equalling the Position of the First Repeating Value}
-\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.
+\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.  Equivalently, one can say that \AgdaFunction{pos-is-position-of-first-repeat} proves that \fref{enum:firstRepeatPosition-isFirst} actually applies.
 
 \begin{code}
     pos-is-position-of-first-repeat :
-      (x : List.List A) →
-      (i : Fin (List.length x)) →
-      UniqueList (List.take (Fin.toℕ i) x) →
-      List.lookup x i ∈ List.take (Fin.toℕ i) x →
-      pos x ≡ just i
+      (l : List.List A) →
+      (v : A) →
+      (vi1 vi2 : Fin (List.length l)) →
+      List.lookup l vi1 ≡ v →
+      List.lookup l vi2 ≡ v →
+      (vi1-is-first : (index : Fin (List.length l)) →
+                      index Data.Fin.< vi1 →
+                      List.lookup l index ≢ v) →
+      ¬ (Σ (A × Fin (List.length l) × Fin (List.length l))
+           (λ (w , wi1 , wi2) →
+                List.lookup l wi1 ≡ w
+              × List.lookup l wi2 ≡ w
+              × wi1 Data.Fin.< vi1)) →
+      pos l ≡ just vi1
     pos-is-position-of-first-repeat = {!!}
 \end{code}
 
