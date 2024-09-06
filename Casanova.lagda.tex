@@ -2173,13 +2173,6 @@ A value of type \AgdaDatatype{main} \AgdaBound{x} \AgdaBound{y} exists if and on
     data main : ε → ε → Set
 \end{code}
 
-\subsection{The Type of the Equivalence Proof}
-\AgdaFunction{equivalence} proves that \AgdaDatatype{main} is an equivalence relation.
-
-\begin{code}
-    equivalence : IsEquivalence main
-\end{code}
-
 \subsection{The Exceptional Equality Type}
 A value of type \AgdaFunction{main2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \glspl{inj2contain} equal values.
 
@@ -2242,9 +2235,11 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         main x y
 \end{code}
 
-\subsection{Completing the Equivalence Proof}
+\subsection{The Equivalence Proof}
+\AgdaFunction{equivalence} proves that \AgdaDatatype{main} is an equivalence relation.
 
 \begin{code}
+    equivalence : IsEquivalence main
     equivalence = record
       { refl = EqualityImpliesAE refl
       ; sym = Symmetry
