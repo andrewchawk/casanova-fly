@@ -2530,8 +2530,91 @@ This chapter contains various proofs regarding the stuff which was defined in \f
     (e : ε) →
     (isJust : Is-just (pfRewrite e)) →
     AlgebraicEquality e (to-witness isJust)
-  pfRewrite-basicEquality (Ap f e) isJust = {!!}
-  pfRewrite-basicEquality x isJust = {!!} -- bogus
+
+  module pfRewrite-basicEquality where
+    open pfRewrite hiding (main)
+    open AlgebraicEquality hiding (main)
+
+    lookup-cast :
+      {n : ℕ}
+      {a : Level} →
+      {A : Set a} →
+      (x : A) →
+      (eq : n ≡ 1) →
+      lookup (cast eq (cast (sym eq) [ x ])) Fin.zero ≡ x
+    lookup-cast x eq = cong (λ x → lookup x Fin.zero)
+                            (VecProp.cast-sym (sym eq) refl)
+
+    specific-equality :
+      (g f : F) →
+      (x : Vec ε (arity f))
+      (eq : arity g ≡ 1) →
+      _≡_ (pfRewrite (Ap g (Data.Vec.cast (sym eq) [ Ap f x ])))
+          (just (Ap (Compose g f eq) x))
+    specific-equality g f x eq = begin
+      pfRewrite (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
+        ≡⟨ refl ⟩
+      _>>=_ (decToMaybe (arity g Data.Nat.≟ 1))
+            (λ eq → helper g
+                           (onlyElement (Data.Vec.cast (sym eq)
+                                                       [ Ap f x ])
+                                        eq)
+                           eq)
+        ≡⟨ cong (Data.Maybe._>>= λ eq →
+                                   helper g
+                                          (onlyElement (Data.Vec.cast (sym eq)
+                                                                      [ Ap f x ])
+                                                       eq)
+                                          eq)
+                decToMaybe-is-just ⟩
+      _>>=_ (just eq)
+            (λ eq →
+               helper g (onlyElement (Data.Vec.cast (sym eq)
+                                                    [ Ap f x ])
+                                     eq)
+                        eq)
+        ≡⟨⟩
+      helper g (onlyElement (Data.Vec.cast (sym eq) [ Ap f x ]) eq) eq
+        ≡⟨ cong (λ x → helper g x eq) (lookup-cast (Ap f x) eq) ⟩
+      helper g (Ap f x) eq
+        ≡⟨⟩
+      just (Ap (Compose g f eq) x) ∎
+      where
+      decToMaybe-is-just : decToMaybe (arity g Data.Nat.≟ 1) ≡ just eq
+      decToMaybe-is-just = let question = arity g Data.Nat.≟ 1 in begin
+        decToMaybe (arity g Data.Nat.≟ 1)
+          ≡⟨ cong decToMaybe (proj₂ (dec-yes question eq)) ⟩
+        just (proj₁ (dec-yes question eq))
+          ≡⟨ cong just (≡-irrelevant (proj₁ (dec-yes question eq)) eq) ⟩
+        just eq ∎
+
+    main : (e : ε) →
+           (isJust : Is-just (pfRewrite e)) →
+           AlgebraicEquality e (to-witness isJust)
+    main (Ap g x) isJust with arity g Data.Nat.≟ 1
+    ... | no differentArity = {!!} -- impossible
+    ... | yes rightArity with Data.Vec.cast rightArity x
+                            | inspect (Data.Vec.cast rightArity) x
+    ... | Ap f y ∷ [] | ⟦ eq ⟧ =
+          Transymmetry (subst (λ e → AlgebraicEquality (Ap (Compose g f rightArity) y)
+                                                       (Ap g e))
+                              (VecProp.cast-sym rightArity eq)
+                              (composition-equality g f y rightArity))
+                       (EqualityImpliesAE (sym (begin
+                         to-witness isJust
+                           ≡⟨ {!!} ⟩
+                         Ap (Compose g f rightArity) y ∎)))
+          where
+          open AlgebraicEquality.Properties
+          Transymmetry : {x y z : ε} →
+                         AlgebraicEquality y x →
+                         AlgebraicEquality y z →
+                         AlgebraicEquality x z
+          Transymmetry = Transitivity ∘ Symmetry
+    ... | x | ⟦ unimportantProof ⟧ = {!!} -- impossible
+    main x isJust = {!!} -- also impossible
+
+  pfRewrite-basicEquality = pfRewrite-basicEquality.main
 \end{code}
 
 \part{The Rest is F-L-Y}
