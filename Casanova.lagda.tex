@@ -513,7 +513,7 @@ firstRepeatPosition = firstRepeatPosition.firstRepeatPosition
 \end{code}
 
 \section{The Non-Repeating Subsequence Function}
-\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
+\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating consecutive subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
 
 \begin{code}
 nonRepeatingPortion : {a : Level} →
