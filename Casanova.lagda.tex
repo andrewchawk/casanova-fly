@@ -85,7 +85,7 @@ open import Data.Nat using (ℕ)
 open import Data.Sum
 open import Level
 open import Data.String hiding (_≈_; _<_; _≤_)
-open import Relation.Binary.PropositionalEquality hiding ([_])
+open import Relation.Binary.PropositionalEquality renaming ([_] to ⟦_⟧)
 open ≡-Reasoning
 open import Data.Vec
 open import Data.Maybe
@@ -672,7 +672,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
 \section{Types for Equalities and Inequalities}
 
 \subsection{The Algebraic Equality Type}
-A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be algebraically equal to \AgdaBound{y}.
+A value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is shown to be \AgdaBound{c}-\gls{algEq} to \AgdaBound{y}.
 
 \subsection{The Algebraic \emph{In}equality Type}
 A value of type \AgdaField{CAS.\AgdaUnderscore{}≉\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is algebraically \emph{un}equal to \AgdaBound{y}.
@@ -760,10 +760,10 @@ As previously indicated, a CAS also supports certain trigonometric functions.  T
 \AgdaField{CAS.negation} \AgdaBound{c} \AgdaBound{x} is the additive inverse of \AgdaBound{x}.
 
 \subsection{The Simple Limit Function}
-\AgdaField{CAS.limit} \AgdaBound{c} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\lim_{\AgdaBound{c} \rightarrow \AgdaBound{x}} \textrm{\Epsilon}\), where ``\(\textrm{\Epsilon}\)'' denotes the expanded version of the \AgdaBound{e} expression.
+\AgdaField{CAS.limit} \AgdaBound{v} \AgdaBound{x} \AgdaBound{c} \AgdaBound{e} is \AgdaBound{v}'s representation of \(\lim_{\AgdaBound{x} \rightarrow \AgdaBound{c}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expanded version of the \AgdaBound{e} expression.
 
 \subsection{The Bounded Integral Function}
-\AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{\Epsilon}\), where ``\(\mathrm{\Epsilon}\)'' denotes the expansion of \AgdaBound{e}.
+\AgdaField{CAS.boundedIntegral} \AgdaBound{c} \AgdaBound{name} \AgdaBound{b1} \AgdaBound{b2} \AgdaBound{e} is \AgdaBound{c}'s representation of \(\int_{\AgdaBound{name}=\AgdaBound{b1}}^{\AgdaBound{b2}} \mathrm{E}\), where ``\(\mathrm{E}\)'' denotes the expansion of \AgdaBound{e}.
 
 \subsection{The Lambda Expression Function}
 \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{expression} \AgdaBound{value} represents the application to \AgdaBound{value} of the lambda expression whose bound variable's name is \AgdaBound{name} and whose expression is \AgdaBound{expression}.  Equivalently, one can say that \AgdaField{CAS.lambda} \AgdaBound{c} \AgdaBound{name} \AgdaBound{M} \AgdaBound{value} is equivalent to \(\left(\lambda\ \AgdaBound{name} \rightarrow \AgdaBound{M}\right)\ \AgdaBound{value}\).
@@ -1026,12 +1026,18 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that \(\left(\lambda\ x \rightarrow y\right)\ e\) is algebraically equal to \(y\) if \(x\) is not referenced in \(y\),
  \item a proof which indicates that if \(n\) does not appear in \(E\), then the \(n\)-derivative of \(E\) is equal to \(E\),
  \item a proof of \(0\)'s equality with \(\tan \left(\tau \cdot n \cdot \frac12\right)\),
- \item a proof of the failure of garbage variable substitution\footnote{See \fref{fn:garbageVariable}.},
+ \item a proof of the failure of garbage variable substitution\footnote{See \fref{sec:garbageVariableSubstitutionPseudoFootnote}.},
  \item a proof of the irrelevance of substitution list order,
  \item a proof which indicates that the derivative of a constant is \(0\),
  \item basic trigonometric derivative correctness proofs,
  \item a proof of the algebraic equality between \(\derivative{x} \left(e_1 + e_2\right)\) and \(\derivative{x} e_1 + \derivative{x} e_2\),
  \item a proof of the correct handling of the derivatives of products,
+ \item a proof of the equality between \(c\) and \(\lim_{x \rightarrow y} c\), where \(c\) is a constant,
+ \item a proof of the equality between \(\lim_{x \rightarrow y} x\) and \(y\),
+ \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a + b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) + \lim_{x \rightarrow y} b\),
+ \item a proof of the equality between \(\lim_{x \rightarrow y} \left(- x\right)\) and \(- \lim_{x \rightarrow y} x\),
+ \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a \cdot b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) \cdot \lim_{x \rightarrow y} b\),
+ \item a proof which indicates that \(f x\) is equal to \(\lim_{y \rightarrow x} \left(f y\right)\) if \(f x\) is non-bogus,
  \item a proof of the equality between \(x\) and \(- \left(- x\right)\), and
  \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}.
 \end{itemize}
@@ -1089,8 +1095,26 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \section{Limit Correctness Proofs}
 
+\subsection{The Constant Limit Field}
+\AgdaField{VCAS.limit-of-constant-is-constant} \AgdaBound{v} proves that for all constants \(e\), \(e\) is \AgdaBound{c}-\gls{algEq} to \(\lim_{x \rightarrow y} e\), where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
+
 \subsection{The Proof of the Futility of Taking the Limit of an Expression which does Not Use the Named Variable}
 \AgdaField{limit-of-unrelated-value-is-unrelated-value} \AgdaBound{v} indicates that in the \AgdaBound{v} CAS, if \(x\) is not used in \(e\), then \(\lim_{x \rightarrow b} e\) is equivalent to \(e\) for all \(b\), \(e\), and \(x\).
+
+\subsection{The Same Variable Limit Field}
+\AgdaField{VCAS.limit-of-same-variable-is-value} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} x\) is algebraically equivalent to \(y\).
+
+\subsection{The Sum Limit Field}
+\AgdaField{VCAS.limit-of-sums-is-sum} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(v + w\right)\) is algebraically equivalent to \(\left(\lim_{x \rightarrow y} v\right) + \lim_{x \rightarrow y} w\).
+
+\subsubsection{The Negation Limit Field}
+\AgdaField{VCAS.limit-negation} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(- w\right)\), i.e., \(\lim_{x \rightarrow y} \left(0 - w\right)\), i.e., \(0 - \lim_{x \rightarrow y} w\), is algebraically equivalent to \(- \lim_{x \rightarrow y} w\).
+
+\subsection{The Product Limit Field}
+\AgdaField{VCAS.limit-of-products-is-product} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(v \cdot w\right)\) is algebraically equivalent to \(\left(\lim_{x \rightarrow y} v\right) \cdot \lim_{x \rightarrow y} w\).
+
+\subsection{The Non-Bogus Limit Field}
+\AgdaField{VCAS.limit-of-non-bogus-expression} \AgdaBound{v} proves that if \(f y\) is not \gls{bogusWrt} \AgdaBound{c}, then \(\lim_{x \rightarrow y} \left(f x\right)\) is \AgdaBound{c}-\gls{algEq} \(f y\).
 
 \section{Lambda Correctness Proofs}
 
@@ -1102,8 +1126,11 @@ For all relevant \(v\), \(M\), and \(e\), if \(v\) is not referenced in \(M\), t
 
 \section{Variable Substitution Correctness Proofs}
 
-\subsection{The Proof of the Failure of Garbage Variable Substitution\footnote{``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots\label{fn:garbageVariable}}}
+\subsection{The Proof of the Failure of Garbage Variable Substitution}
 \AgdaField{VCAS.garbage-variable-substitution-fails} \AgdaBound{v} proves that the \AgdaBound{v} CAS's variable substitution effectively returns the input expression if no variables of the substitution list are free in the input expression.
+
+\subsubsection{On the Name of this Subsection}\label{sec:garbageVariableSubstitutionPseudoFootnote} % Using this jank instead of a footnote ensures that no footnote-related errors occur.
+In the title of this subsection, ``Garbage'' affects ``Variable Substitution'', although ``garbage variable'' \emph{could} \emph{also} apply\ldots
 
 \subsection{The Proof of the Irrelevance of the Order of Substitution Lists}
 \AgdaField{VCAS.substitution-order-is-irrelevant} \AgdaBound{v} proves that for the \AgdaBound{v} CAS, if some substitution list \(l_1\) is a permutation of some substitution list \(l_2\) and contains no repeated variable names, then the application of \(l_1\) to some expression \(e\) is algebraically equal to the application of \(l_2\) to \(e\).
@@ -1226,11 +1253,6 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     0^-n-is-bogus : (e : ε) → e < fromℕ 0 → IsBogus (fromℕ 0 ^ e)
     repeated-negation-cancelation :
       (e : ε) → equal-at-some-iteration e (negation (negation e))
-    limit-of-unrelated-value-is-unrelated-value :
-      (name : String) →
-      (e bound : ε) →
-      ¬ IsNameOfVariableIn name e →
-      equal-at-some-iteration e (limit name bound e)
     simple-lambda-substitution-works :
       (name : String) →
       (e : ε) →
@@ -1305,6 +1327,47 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus e2 →
       equal-at-some-iteration (derivative name (e1 * e2))
                               ((derivative name e1 * e2) + (derivative name e2 * e1))
+    limit-of-constant-is-constant :
+      (name : String) →
+      (e bound : ε) →
+      IsConstant e →
+      equal-at-some-iteration e (limit name bound e)
+    limit-of-unrelated-value-is-unrelated-value :
+      (name : String) →
+      (e bound : ε) →
+      ¬ IsNameOfVariableIn name e →
+      equal-at-some-iteration e (limit name bound e)
+    limit-of-same-variable-is-value :
+      (name : String) →
+      (bound : ε) →
+      equal-at-some-iteration (limit name bound (variableNamed name))
+                              bound
+    limit-of-sums-is-sum :
+      (name : String) →
+      (bound e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
+      equal-at-some-iteration (limit name bound (e1 + e2))
+                              (limit name bound e1 + limit name bound e2)
+    limit-negation :
+      (name : String) →
+      (bound e : ε) →
+      IsNotBogus e →
+      equal-at-some-iteration (limit name bound (negation e))
+                              (negation (limit name bound e))
+    limit-of-products-is-product :
+      (name : String) →
+      (bound e1 e2 : ε) →
+      IsNotBogus e1 →
+      IsNotBogus e2 →
+      equal-at-some-iteration (limit name bound (e1 * e2))
+                              (limit name bound e1 * limit name bound e2)
+    limit-of-non-bogus-expression :
+      (name : String) →
+      (bound e : ε) →
+      IsNotBogus (substituteVariables List.[ name , bound ] e) →
+      equal-at-some-iteration (limit name bound e)
+                              (substituteVariables List.[ name , bound ] e)
 
     tangent-is-bogus-at-quarter-tau :
       (n : ℕ) →
@@ -1315,7 +1378,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
 
-\part{The Core Components of Casanova Fly}
+\part{The Core Components of Casanova Fly}\label{sec:casanovaFlyCore}
 
 \begin{code}
 module CasanovaFlyCore where
@@ -1330,6 +1393,13 @@ Values of type \AgdaDatatype{F} represent functions.
 
 \begin{code}
   data F : Set
+\end{code}
+
+\subsection{The Type and Summary of the Arity Function}
+\AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
+
+\begin{code}
+  arity : F → ℕ
 \end{code}
 
 \subsection{\AgdaDatatype{ε}'s Type and Summary}
@@ -1367,6 +1437,7 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Derivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \derivative{\AgdaBound{name}} e\right)\).
   \item \AgdaInductiveConstructor{Antiderivative} \AgdaBound{name} represents \(\left(\lambda\ e \rightarrow \int_{\AgdaBound{name}} e\right)\).
   \item \AgdaInductiveConstructor{BoundedIntegral} \AgdaBound{name} represents \(\left(\lambda\ b_1\ b_2\ e \rightarrow \int_{\AgdaBound{name} = b_1}^{b_2} e\right)\).
+  \item \AgdaInductiveConstructor{Compose} \AgdaBound{g} \AgdaBound{f} represents the composition of \AgdaBound{g} and \AgdaBound{f}, i.e., \(g' ∘ f'\), where \(g'\) and \(f'\) are the functions which are represented by \AgdaBound{g} and \AgdaBound{f}, respectively.
 \end{itemize}
 
 \begin{code}
@@ -1387,13 +1458,12 @@ The following statements hold:
      Derivative
      Antiderivative
      BoundedIntegral : String → F
+    Compose : (g f : F) → arity g ≡ 1 → F
 \end{code}
 
-\subsection{The Arity-Determining Function}
-\AgdaFunction{arity} \AgdaBound{f} is the arity of the \AgdaBound{f} function.
+\subsection{Completing the Arity Function}
 
 \begin{code}
-  arity : F → ℕ
   arity Abs = 1
   arity Negate = 1
   arity Sum = 2
@@ -1410,6 +1480,7 @@ The following statements hold:
   arity (Derivative name) = 1
   arity (Antiderivative name) = 1
   arity (BoundedIntegral name) = 3
+  arity (Compose g f eq) = arity f
 \end{code}
 
 \subsection{Completing \AgdaDatatype{ε}'s Definition}
@@ -1475,6 +1546,7 @@ The following statements hold:
   isCommutative Exponent refl = false
   isCommutative (Lambda names) equality = false
   isCommutative (Limit name) equality = false
+  isCommutative (Compose g f eq) x = false
 \end{code}
 
 \section{The Variable Substitution Function}\label{sec:varSubstM-def}
@@ -1590,6 +1662,7 @@ This function is used to determine whether or not the input arguments are struct
     s Abs (Derivative name) = no λ ()
     s Abs (Antiderivative name) = no λ ()
     s Abs (BoundedIntegral name) = no λ ()
+    s Abs (Compose g f eq) = no λ ()
     s Negate Abs = no λ ()
     s Negate Negate = yes refl
     s Negate Sum = no λ ()
@@ -1606,6 +1679,7 @@ This function is used to determine whether or not the input arguments are struct
     s Negate (Derivative name) = no λ ()
     s Negate (Antiderivative name) = no λ ()
     s Negate (BoundedIntegral name) = no λ ()
+    s Negate (Compose g f eq) = no λ ()
     s Sum Abs = no λ ()
     s Sum Negate = no λ ()
     s Sum Sum = yes refl
@@ -1622,6 +1696,7 @@ This function is used to determine whether or not the input arguments are struct
     s Sum (Derivative name) = no λ ()
     s Sum (Antiderivative name) = no λ ()
     s Sum (BoundedIntegral name) = no λ ()
+    s Sum (Compose g f eq) = no λ ()
     s Product Abs = no λ ()
     s Product Negate = no λ ()
     s Product Sum = no λ ()
@@ -1638,6 +1713,7 @@ This function is used to determine whether or not the input arguments are struct
     s Product (Derivative name) = no λ ()
     s Product (Antiderivative name) = no λ ()
     s Product (BoundedIntegral name) = no λ ()
+    s Product (Compose g f eq) = no λ ()
     s Exponent Abs = no λ ()
     s Exponent Negate = no λ ()
     s Exponent Sum = no λ ()
@@ -1654,6 +1730,7 @@ This function is used to determine whether or not the input arguments are struct
     s Exponent (Derivative name) = no λ ()
     s Exponent (Antiderivative name) = no λ ()
     s Exponent (BoundedIntegral name) = no λ ()
+    s Exponent (Compose g f eq) = no λ ()
     s (Lambda n1) Abs = no λ ()
     s (Lambda n1) Negate = no λ ()
     s (Lambda n1) Sum = no λ ()
@@ -1678,6 +1755,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Lambda n1) (Derivative name) = no λ ()
     s (Lambda n1) (Antiderivative name) = no λ ()
     s (Lambda n1) (BoundedIntegral name) = no λ ()
+    s (Lambda n1) (Compose g f eq) = no λ ()
     -- Help!  I'm trapped in a boring nonsense factory!
     s Sin Abs = no λ ()
     s Sin Negate = no λ ()
@@ -1695,6 +1773,7 @@ This function is used to determine whether or not the input arguments are struct
     s Sin (Derivative name) = no λ ()
     s Sin (Antiderivative name) = no λ ()
     s Sin (BoundedIntegral name) = no λ ()
+    s Sin (Compose g f eq) = no λ ()
     s Cos Abs = no λ ()
     s Cos Negate = no λ ()
     s Cos Sum = no λ ()
@@ -1711,6 +1790,7 @@ This function is used to determine whether or not the input arguments are struct
     s Cos (Derivative name) = no λ ()
     s Cos (Antiderivative name) = no λ ()
     s Cos (BoundedIntegral name) = no λ ()
+    s Cos (Compose g f eq) = no λ ()
     s Tan Abs = no λ ()
     s Tan Negate = no λ ()
     s Tan Sum = no λ ()
@@ -1727,6 +1807,7 @@ This function is used to determine whether or not the input arguments are struct
     s Tan (Derivative name) = no λ ()
     s Tan (Antiderivative name) = no λ ()
     s Tan (BoundedIntegral name) = no λ ()
+    s Tan (Compose g f eq) = no λ ()
     s Csc Abs = no λ ()
     s Csc Negate = no λ ()
     s Csc Sum = no λ ()
@@ -1743,6 +1824,7 @@ This function is used to determine whether or not the input arguments are struct
     s Csc (Derivative name) = no λ ()
     s Csc (Antiderivative name) = no λ ()
     s Csc (BoundedIntegral name) = no λ ()
+    s Csc (Compose g f eq) = no λ ()
     s Sec Abs = no λ ()
     s Sec Negate = no λ ()
     s Sec Sum = no λ ()
@@ -1759,6 +1841,7 @@ This function is used to determine whether or not the input arguments are struct
     s Sec (Derivative name) = no λ ()
     s Sec (Antiderivative name) = no λ ()
     s Sec (BoundedIntegral name) = no λ ()
+    s Sec (Compose g f eq) = no λ ()
     s Cot Abs = no λ ()
     s Cot Negate = no λ ()
     s Cot Sum = no λ ()
@@ -1775,6 +1858,7 @@ This function is used to determine whether or not the input arguments are struct
     s Cot (Derivative name) = no λ ()
     s Cot (Antiderivative name) = no λ ()
     s Cot (BoundedIntegral name) = no λ ()
+    s Cot (Compose g f eq) = no λ ()
     s (Limit n1) Abs = no λ ()
     s (Limit n1) Negate = no λ ()
     s (Limit n1) Sum = no λ ()
@@ -1798,6 +1882,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Limit n1) (Derivative name) = no λ ()
     s (Limit n1) (Antiderivative name) = no λ ()
     s (Limit n1) (BoundedIntegral name) = no λ ()
+    s (Limit n1) (Compose g f eq) = no λ ()
     s (Derivative n1) Abs = no λ ()
     s (Derivative n1) Negate = no λ ()
     s (Derivative n1) Sum = no λ ()
@@ -1821,6 +1906,7 @@ This function is used to determine whether or not the input arguments are struct
       equality-implies-variable-equality n1 n2 refl = refl
     s (Derivative n1) (Antiderivative name) = no λ ()
     s (Derivative n1) (BoundedIntegral name) = no λ ()
+    s (Derivative n1) (Compose g f eq) = no λ ()
     s (Antiderivative n1) Abs = no λ ()
     s (Antiderivative n1) Negate = no λ ()
     s (Antiderivative n1) Sum = no λ ()
@@ -1844,6 +1930,7 @@ This function is used to determine whether or not the input arguments are struct
              n1 ≡ n2
       equality-implies-variable-equality n1 n2 refl = refl
     s (Antiderivative n1) (BoundedIntegral name) = no λ ()
+    s (Antiderivative n1) (Compose g f eq) = no λ ()
     s (BoundedIntegral n1) Abs = no λ ()
     s (BoundedIntegral n1) Negate = no λ ()
     s (BoundedIntegral n1) Sum = no λ ()
@@ -1867,6 +1954,50 @@ This function is used to determine whether or not the input arguments are struct
              BoundedIntegral n1 ≡ BoundedIntegral n2 →
              n1 ≡ n2
       equality-implies-variable-equality n1 n2 refl = refl
+    s (BoundedIntegral n1) (Compose g f eq) = no λ ()
+    s (Compose g f eq1) Abs = no λ ()
+    s (Compose g f eq1) Negate = no λ ()
+    s (Compose g f eq1) Sum = no λ ()
+    s (Compose g f eq1) Product = no λ ()
+    s (Compose g f eq1) Exponent = no λ ()
+    s (Compose g f eq1) (Lambda name) = no λ ()
+    s (Compose g f eq1) Sin = no λ ()
+    s (Compose g f eq1) Cos = no λ ()
+    s (Compose g f eq1) Tan = no λ ()
+    s (Compose g f eq1) Csc = no λ ()
+    s (Compose g f eq1) Sec = no λ ()
+    s (Compose g f eq1) Cot = no λ ()
+    s (Compose g f eq1) (Limit name) = no λ ()
+    s (Compose g f eq1) (Derivative name) = no λ ()
+    s (Compose g f eq1) (Antiderivative name) = no λ ()
+    s (Compose g f eq1) (BoundedIntegral name) = no λ ()
+    s (Compose g f eq1) (Compose y x eq2) with s g y | s f x
+    ... | yes gIsy | yes fIsx = yes (compeq gIsy fIsx)
+      where
+      compeq : {g f y x : F} →
+               {eq1 : _} →
+               {eq2 : _} →
+               g ≡ y →
+               f ≡ x →
+               Compose g f eq1 ≡ Compose y x eq2
+      compeq refl refl = {!!}
+    ... | no gIsNoty | _ = no (gIsNoty ∘ eq-implies-first-eq)
+      where
+      eq-implies-first-eq :
+        {f g x y : F} →
+        {eq1 : _} →
+        {eq2 : _} →
+        Compose g f eq1 ≡ Compose y x eq2 → g ≡ y
+      eq-implies-first-eq refl = refl
+    ... | _ | no fIsNotx = no (fIsNotx ∘ eq-implies-second-eq)
+      where
+      eq-implies-second-eq :
+        {f g x y : F} →
+        {eq1 : _} →
+        {eq2 : _} →
+        Compose g f eq1 ≡ Compose y x eq2 →
+        f ≡ x
+      eq-implies-second-eq refl = refl
 \end{code}
 
 \section{Decidable Structural Equality on \AgdaDatatype{ε}}
@@ -1997,6 +2128,36 @@ Informally, one can say that \AgdaFunction{checkAlgebraicEquality} \AgdaBound{n}
   commutativeEvaluate e = exceptionallyEvaluate e
 \end{code}
 
+\section{The Point-Free Rewrite Function}
+If the result is not \AgdaInductiveConstructor{nothing}, then \AgdaFunction{pfRewrite} \AgdaBound{e} contains some expression of the form \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Compose} \AgdaBound{g} \AgdaBound{f} \AgdaBound{arityProof}\AgdaSymbol) \AgdaBound{x} such that the following statements hold:
+
+\begin{enumerate}
+  \item \AgdaInductiveConstructor{Ap} \AgdaSymbol(\AgdaInductiveConstructor{Compose} \AgdaBound{g} \AgdaBound{f} \AgdaBound{arityProof}\AgdaSymbol) \AgdaBound{x} is algebraically equal to \AgdaBound{ε}.\label{enum:pfRewriteEquality}
+\end{enumerate}
+
+\begin{code}
+  module pfRewrite where
+
+    helper : (f : F) → ε → arity f ≡ 1 → Maybe ε
+    helper g (Ap f x) eq = just (Ap (Compose g f eq) x)
+    helper g x eq = nothing
+
+    onlyElement : {n : ℕ} →
+                  {a : Level} →
+                  {A : Set a} →
+                  Vec A n →
+                  n ≡ 1 →
+                  A
+    onlyElement x eq = Data.Vec.lookup (Data.Vec.cast eq x) Fin.zero
+
+    main : ε → Maybe ε
+    main (Ap g x) = _>>=_ (decToMaybe (arity g Data.Nat.≟ 1))
+                          (λ eq → helper g (onlyElement x eq) eq)
+    main _ = nothing
+
+  pfRewrite = pfRewrite.main
+\end{code}
+
 \section{Completing the Algebraic Equality Function}
 Regardless of the indentation in the compiled PDF document, this entire section, save for the final definition, constitutes a single module\ldots{} and facilitates defining \AgdaFunction{AlgebraicEquality}.
 
@@ -2070,8 +2231,8 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
              (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
       ProductIsAssociative :
         {x1 x2 x3 : ε} →
-        main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
-             (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+        main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
+             (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
       Symmetry : {x y : ε} → main x y → main y x
       Transitivity : {x y z : ε} → main x y → main y z → main x z
       Eventuality :
@@ -2118,7 +2279,23 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
       }
 \end{code}
 
+\subsection{Various Properties of the Algebraic Equality Type Function}
+
 \begin{code}
+    module Properties where
+\end{code}
+
+\subsubsection{Basic Composition Equality}
+A bit informally, one can say that \AgdaFunction{composition-equality} proves that relevant composition is algebraically equivalent to relevant repeated application.
+
+\begin{code}
+      composition-equality :
+        (g f : F) →
+        (x : Vec ε (arity f)) →
+        (eq : arity g ≡ 1) →
+        main (Ap (Compose g f eq) x)
+             (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
+      composition-equality = {!!}
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
@@ -2180,6 +2357,14 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                            (main e)
            ; _ → nothing})
       ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
+           ; _ → nothing})
+      -- The following evaluation rule prevents becoming stuck in a
+      -- derivative evaluation loop.
+      ∷ (λ { (Ap (Lambda (n1 List.∷ List.[])) (Ap (Derivative n2) e1 ∷ e2 ∷ [])) →
+             [_,_]′ bust
+                    (λ derivative → valid (Ap (Lambda List.[ n1 ])
+                                              (derivative ∷ [ e2 ])))
+                    (main (Ap (Derivative n2) e1))
            ; _ → nothing})
       -- The following evaluation rule is *also* kind of dubious, but,
       -- again, the behavior is like the behavior of Maxima.
@@ -2243,6 +2428,8 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
       ∷ (λ { (Ap (Lambda names) (body ∷ expressions)) →
              valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
            ; _ → nothing})
+      ∷ freeDerivativesFromPoints
+      ∷ basicDerivativeChainRuleFunction
       ∷ (λ { (Ap f x) → [_,_] bust
                               (valid ∘ Ap f)
                               (condenseExceptionList (Data.Vec.map main x))
@@ -2252,6 +2439,26 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
+      freeDerivativesFromPoints : ε → Maybe (Exceptional ε)
+      freeDerivativesFromPoints =
+        λ { (Ap (Derivative n) (x ∷ [])) →
+            Data.Maybe.map (inj₂ ∘ Ap (Derivative n) ∘ [_])
+                           (pfRewrite x)
+          ; _ → nothing}
+      basicDerivativeChainRuleFunction : ε → Maybe (Exceptional ε)
+      basicDerivativeChainRuleFunction = b
+        where
+        b : ε → Maybe (Exceptional ε)
+        b (Ap (Derivative n1) (Ap (Compose g f eq) x ∷ [])) with arity f Data.Nat.≟ 1
+        ... | no not-applicable = nothing
+        ... | yes fArity1 =
+          valid (Ap Product
+                    ( Ap (Derivative n1) [ Ap g x2 ]
+                    ∷ [ fDiff [ Ap g x2 ] ]))
+            where
+            fDiff = Ap (Lambda List.[ n1 ]) ∘ (Ap (Derivative n1) [ Ap f x ] ∷_)
+            x2 = Data.Vec.cast (trans fArity1 (sym eq)) x
+        b _ = nothing
 
     {-# TERMINATING #-}
     main e = fromMaybe (inj₂ e)
@@ -2342,6 +2549,27 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
       IsReferencedIn name (Ap f list)
 \end{code}
 
+\chapter{The Associated Proofs}
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\section{Purpose}
+This chapter contains various proofs regarding the stuff which was defined in \fref{sec:casanovaFlyCore}.
+
+\subsection{\AgdaFunction{pfRewrite} Equality}
+\AgdaFunction{pfRewrite-basicEquality} proves that the statement in \fref{enum:pfRewriteEquality} is actually \emph{correct}.
+
+\begin{code}
+  pfRewrite-basicEquality :
+    (e : ε) →
+    (isJust : Is-just (pfRewrite e)) →
+    AlgebraicEquality e (to-witness isJust)
+  pfRewrite-basicEquality (Ap f e) isJust = {!!}
+  pfRewrite-basicEquality x isJust = {!!} -- bogus
+\end{code}
+
 \part{The Rest is F-L-Y}
 
 \chapter{Overview and Intent}
@@ -2420,7 +2648,13 @@ CasanovaFly-Verified = record
     λ e → 1
         , Eventuality 0 1 (EqualityImpliesAE refl)
         , {!!}
+  ; limit-of-constant-is-constant = {!!}
   ; limit-of-unrelated-value-is-unrelated-value = {!!}
+  ; limit-of-same-variable-is-value = {!!}
+  ; limit-of-sums-is-sum = {!!}
+  ; limit-negation = {!!}
+  ; limit-of-products-is-product = {!!}
+  ; limit-of-non-bogus-expression = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
@@ -2530,6 +2764,26 @@ CasanovaFly-Verified = record
   { name = \AgdaInductiveConstructor{inj₂}-contains
   , plural = \AgdaInductiveConstructor{inj₂}-contain
   , description = {For the scope of this paper, a value \AgdaBound{x} of type \AgdaBound{A} \AgdaOperator{\AgdaDatatype{⊎}} \AgdaBound{B} is said to \AgdaInductiveConstructor{inj₂}-contain a value \AgdaBound{y} of type \AgdaBound{B} if and only if \AgdaBound{x} is equal to \AgdaInductiveConstructor{inj₂} \AgdaBound{y}}
+  }
+
+\newglossaryentry{algEq1}
+  { name = algebraically-equal\({}_1\)
+  , description = A term \AgdaBound{x} is \AgdaBound{c}-\gls{algEq1} to some term \AgdaBound{y} if and only if there exists some value of type \AgdaField{CAS.\AgdaUnderscore{}≈\AgdaUnderscore{}} \AgdaBound{c} \AgdaBound{x} \AgdaBound{y}
+  }
+
+\newglossaryentry{algEq2}
+  { name = algebraically-equal\({}_2\)
+  , description = A mathematical expression \(x\) is \AgdaBound{c}-\gls{algEq2} to some mathematical expression \(y\) if and only if the \AgdaBound{c} CAS's representation of \(x\) is \AgdaBound{c}-algebraically-equal to the \AgdaBound{c} CAS's representation of \(y\)
+  }
+
+\newglossaryentry{algEq}
+  { name = algebraically-equal
+  , description = Any appropriate thing \(a\) is \AgdaBound{c}-\gls{algEq} to any appropriate thing \(b\) if and only if \(x\) is \AgdaBound{c}-\gls{algEq1} or \AgdaBound{c}-\gls{algEq2} to \(y\).  This term is vaguer than ``\AgdaBound{c}-\gls{algEq2}'' and ``\AgdaBound{c}-\gls{algEq1}'' and facilitates more concise communication
+  }
+
+\newglossaryentry{bogusWrt}
+  { name = bogus with regard to
+  , description = {For a given \AgdaRecord{CAS} record \AgdaBound{c}, some mathematical expression \(x\) is \gls{bogusWrt} \AgdaBound{c} if and only if there exists some value of type \AgdaField{CAS.IsBogus} \AgdaBound{x'}, where \AgdaBound{x'} represents \(x\)}
   }
 
 \clearpage{}
