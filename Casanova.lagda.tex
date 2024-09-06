@@ -2492,6 +2492,26 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
         LT x y
 \end{code}
 
+\section{The Properties of the Less-Than Relation}
+This section --- and module --- contains various proofs which pertain to \AgdaDatatype{LT}.
+
+\begin{code}
+    module Properties where
+\end{code}
+
+\subsection{Strict Partial Order}
+\AgdaFunction{strict-partial-order} proves that \AgdaDatatype{LT} is a strict partial order relation.
+
+\begin{code}
+      strict-partial-order : IsStrictPartialOrder AlgebraicEquality LT
+      strict-partial-order = record
+        { isEquivalence = AlgebraicEquality.equivalence
+        ; irrefl = {!!}
+        ; trans = {!!}
+        ; <-resp-≈ = {!!}
+        }
+\end{code}
+
 \section{Exporting Stuff}
 \AgdaDatatype{LessThan.LT} has all necessary properties for the \AgdaFunction{LessThan} function; accordion, \AgdaFunction{LessThan} is really just \AgdaDatatype{LessThan.LT}.
 
