@@ -2737,7 +2737,7 @@ CasanovaFly-Verified = record
 
 \newglossaryentry{algEq2}
   { name = algebraically-equal\({}_2\)
-  , description = A mathematical expression \(x\) is \AgdaBound{c}-\gls{algEq2} to some mathematical expression \(y\) if and only if the \AgdaBound{c} CAS's representation of \(x\) is \AgdaBound{c}-algebraically-equal to the \AgdaBound{c} CAS's representation of \(y\)
+  , description = A mathematical expression \(x\) is \AgdaBound{c}-\gls{algEq2} to some mathematical expression \(y\) if and only if the \AgdaBound{c} CAS's representation of \(x\) is \AgdaBound{c}-\gls{algEq1} to the \AgdaBound{c} CAS's representation of \(y\)
   }
 
 \newglossaryentry{algEq}
@@ -2747,7 +2747,7 @@ CasanovaFly-Verified = record
 
 \newglossaryentry{bogusWrt}
   { name = bogus with regard to
-  , description = {For a given \AgdaRecord{CAS} record \AgdaBound{c}, some mathematical expression \(x\) is \gls{bogusWrt} \AgdaBound{c} if and only if there exists some value of type \AgdaField{CAS.IsBogus} \AgdaBound{x'}, where \AgdaBound{x'} represents \(x\)}
+  , description = {For a given \AgdaRecord{CAS} record \AgdaBound{c}, some mathematical expression \(x\) is \gls{bogusWrt} \AgdaBound{c} if and only if there exists some value of type \AgdaField{CAS.IsBogus} \AgdaBound{c} \AgdaBound{x'}, where \AgdaBound{x'} represents \(x\)}
   }
 
 \clearpage{}
