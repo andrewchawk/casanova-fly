@@ -2556,7 +2556,7 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
 This chapter contains various proofs regarding the stuff which was defined in \fref{sec:casanovaFlyCore}.
 
 \section{\AgdaFunction{pfRewrite} Equality}
-\AgdaFunction{pfRewrite-basicEquality} proves that the statement in \fref{enum:pfRewriteEquality} is actually \emph{correct}.
+\AgdaFunction{pfRewrite-basicEquality} proves that the statement in \fref{enum:pfRewriteEquality} is actually \emph{correct}, i.e., \AgdaFunction{pfRewrite-basicEquality} proves that any value which is contained by \AgdaFunction{pfRewrite} \AgdaBound{e} is \AgdaBound{c}-\gls{algEq} to \AgdaBound{e}.
 
 \begin{code}
     pfRewrite-basicEquality :
