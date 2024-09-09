@@ -1741,13 +1741,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Lambda n1) Exponent = no λ ()
     s (Lambda n1) (Lambda n2) with ListProp.≡-dec Data.String._≟_ n1 n2
     ... | yes nEq = yes (cong Lambda nEq)
-    ... | no nNeq = no (nNeq ∘ equality-implies-name-equality)
-      where
-      equality-implies-name-equality :
-        {n1 n2 : List.List String} →
-        Lambda n1 ≡ Lambda n2 →
-        n1 ≡ n2
-      equality-implies-name-equality refl = refl
+    ... | no nNeq = no (nNeq ∘ (λ {refl → refl}))
     s (Lambda n1) Sin = no λ ()
     s (Lambda n1) Cos = no λ ()
     s (Lambda n1) Tan = no λ ()
@@ -1876,12 +1870,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Limit n1) Cot = no λ ()
     s (Limit n1) (Limit n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong Limit eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             Limit n1 ≡ Limit n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (Limit n1) (Derivative name) = no λ ()
     s (Limit n1) (Antiderivative name) = no λ ()
     s (Limit n1) (BoundedIntegral name) = no λ ()
@@ -1901,12 +1890,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Derivative n1) (Limit name) = no λ ()
     s (Derivative n1) (Derivative n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong Derivative eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             Derivative n1 ≡ Derivative n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (Derivative n1) (Antiderivative name) = no λ ()
     s (Derivative n1) (BoundedIntegral name) = no λ ()
     s (Derivative n1) (Compose g f eq) = no λ ()
@@ -1926,12 +1910,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Antiderivative n1) (Derivative name) = no λ ()
     s (Antiderivative n1) (Antiderivative n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong Antiderivative eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             Antiderivative n1 ≡ Antiderivative n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (Antiderivative n1) (BoundedIntegral name) = no λ ()
     s (Antiderivative n1) (Compose g f eq) = no λ ()
     s (BoundedIntegral n1) Abs = no λ ()
@@ -1951,12 +1930,7 @@ This function is used to determine whether or not the input arguments are struct
     s (BoundedIntegral n1) (Antiderivative name) = no λ ()
     s (BoundedIntegral n1) (BoundedIntegral n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong BoundedIntegral eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             BoundedIntegral n1 ≡ BoundedIntegral n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (BoundedIntegral n1) (Compose g f eq) = no λ ()
     s (Compose g f eq1) Abs = no λ ()
     s (Compose g f eq1) Negate = no λ ()
@@ -1984,23 +1958,8 @@ This function is used to determine whether or not the input arguments are struct
                f ≡ x →
                Compose g f eq1 ≡ Compose y x eq2
       compeq refl refl = {!!}
-    ... | no gIsNoty | _ = no (gIsNoty ∘ eq-implies-first-eq)
-      where
-      eq-implies-first-eq :
-        {f g x y : F} →
-        {eq1 : _} →
-        {eq2 : _} →
-        Compose g f eq1 ≡ Compose y x eq2 → g ≡ y
-      eq-implies-first-eq refl = refl
-    ... | _ | no fIsNotx = no (fIsNotx ∘ eq-implies-second-eq)
-      where
-      eq-implies-second-eq :
-        {f g x y : F} →
-        {eq1 : _} →
-        {eq2 : _} →
-        Compose g f eq1 ≡ Compose y x eq2 →
-        f ≡ x
-      eq-implies-second-eq refl = refl
+    ... | no gIsNoty | _ = no (gIsNoty ∘ (λ {refl → refl}))
+    ... | _ | no fIsNotx = no (fIsNotx ∘ (λ {refl → refl}))
 \end{code}
 
 \section{Decidable Structural Equality on \AgdaDatatype{ε}}
