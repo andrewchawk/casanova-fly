@@ -2631,10 +2631,15 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                            AlgebraicEquality y z →
                            AlgebraicEquality x z
             Transymmetry = Transitivity ∘ Symmetry
-            to-witness-is-ap = begin
-              to-witness isJust
-                ≡⟨ {!!} ⟩
-              Ap (Compose g f rightArity) y ∎
+            to-witness-is-ap = to-witness-is-input isJust
+              where
+              to-witness-is-input :
+                {a : Level} →
+                {A : Set a} →
+                {x : A} →
+                (isJust : Is-just (just x)) →
+                to-witness isJust ≡ x
+              to-witness-is-input (AnyMaybe.just x) = refl
       ... | x | ⟦ unimportantProof ⟧ = {!!} -- impossible
       main x isJust = {!!} -- also impossible
 
