@@ -2200,6 +2200,9 @@ Basically, according to \AgdaInductiveConstructor{SumIsAssociative}, \(a + \left
 \subsubsection{Product Associativity}
 Basically, according to \AgdaInductiveConstructor{ProductIsAssociative}, \(a \cdot \left(b \cdot c\right) = \left(a \cdot b\right) \cdot c\).
 
+\subsubsection{Composition}
+Thanks to \AgdaInductiveConstructor{Composition}, proving that \(g \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(\left(g \circ f\right)\ x\) is downright simple.
+
 \subsubsection{Symmetry}
 Basically, according to \AgdaInductiveConstructor{Symmetry}, if \(a = b\), then \(b = a\).
 
@@ -2226,6 +2229,11 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         {x1 x2 x3 : ε} →
         main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
              (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+      Composition : {g f : F} →
+                    {x : Vec ε (arity f)} →
+                    (eq : arity g ≡ 1) →
+                    main (Ap (Compose g f eq) x)
+                         (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
       Symmetry : {x y : ε} → main x y → main y x
       Transitivity : {x y z : ε} → main x y → main y z → main x z
       Eventuality :
@@ -2264,7 +2272,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
         (eq : arity g ≡ 1) →
         main (Ap (Compose g f eq) x)
              (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
-      composition-equality = {!!}
+      composition-equality g f x eq = Composition eq
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
