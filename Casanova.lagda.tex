@@ -2804,27 +2804,6 @@ CasanovaFly-Verified = record
   open CAS CasanovaFly-Base
   open InternalEqualityFunctions
 
-  mapMaybe-justness-implies-output-justness :
-    {a b : Level} →
-    {A : Set a} →
-    {B : Set b} →
-    (f : A → Maybe B) →
-    (x : List.List A) →
-    (e : A) →
-    Is-just (f e) →
-    e ∈ x →
-    Is-just (List.head (List.mapMaybe f x))
-  mapMaybe-justness-implies-output-justness
-    f List.[] e isJust ()
-  mapMaybe-justness-implies-output-justness
-    f (x List.∷ xs) e isJust (AnyList.Any.here p) with f x
-  ... | just fx = AnyMaybe.just _
-  ... | nothing = contradiction isJust {!!}
-  mapMaybe-justness-implies-output-justness
-    f (x List.∷ xs) e isJust (AnyList.Any.there t) with f x
-  ... | just fx = AnyMaybe.just _
-  ... | nothing = mapMaybe-justness-implies-output-justness f xs e isJust t
-
   sum-of-nats-is-nat-sum :
     (n1 n2 : ℕ) →
     equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
