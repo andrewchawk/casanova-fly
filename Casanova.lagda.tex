@@ -2826,12 +2826,7 @@ CasanovaFly-Verified = record
     bogus-at-some-iteration (e1 / e2)
   division-by-zero-is-bogus x y (iters , eq) with bogusBeforeIteration? (ℕ.suc iters) (x / y)
   ... | just (f , bogus) = Fin.toℕ f , bogus
-  ... | nothing = ℕ.suc iters , _ , sym inj1Equality
-    where
-    inj1Equality = begin
-      rEvaluate (ℕ.suc iters) (x / y)
-        ≡⟨ {!!} ⟩
-      inj₁ {!!} ∎
+  ... | nothing = {!!}
 
   structural-equality-implies-definite-equality :
     (e1 e2 : ε) →
