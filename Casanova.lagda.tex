@@ -142,6 +142,8 @@ import Data.Vec.Relation.Unary.Any as AnyVec
 import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
 import Data.List.Relation.Binary.Pointwise as PointwiseList
+import Data.Maybe.Relation.Unary.All as AllMaybe
+import Data.Unit
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -285,7 +287,7 @@ repeatExceptional = repeatExceptional.repeatExceptional
 
 \begin{itemize}
   \item If \AgdaBound{x} contains no repeating elements, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} is \AgdaInductiveConstructor{nothing}.
-  \item If \AgdaBound{x} has repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x}.
+  \item If \AgdaBound{x} has repeating values, then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x}.  A bit more formally, one can say that if \(v\) is some value which occurs at multiple positions in \AgdaBound{x}, and there exists no value \(w\) such that \(w\) occurs at multiple positions in \AgdaBound{x} and occupies a position which precedes the first index of \(v\), then \AgdaFunction{firstRepeatPosition} \AgdaBound{DEQ} \AgdaBound{x} contains the first index of \(v\) in \AgdaBound{x}.  Way more formally, one can refer to the definition in \fref{sec:firstRepeatPosition-isFirst}.\label{enum:firstRepeatPosition-isFirst}
 \end{itemize}
 
 \begin{code}
@@ -489,15 +491,24 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 \end{code}
 
 \subsubsection{The Proof of Equalling the Position of the First Repeating Value}
-\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.
+\AgdaFunction{pos-is-position-of-first-repeat} indicates that \AgdaFunction{firstRepeatPosition} \AgdaBound{x} contains the position of the first repeating value in \AgdaBound{x} if \AgdaBound{x} has such a value.  Equivalently, one can say that \AgdaFunction{pos-is-position-of-first-repeat} proves that \fref{enum:firstRepeatPosition-isFirst} actually applies.
 
 \begin{code}
     pos-is-position-of-first-repeat :
-      (x : List.List A) →
-      (i : Fin (List.length x)) →
-      UniqueList (List.take (Fin.toℕ i) x) →
-      List.lookup x i ∈ List.take (Fin.toℕ i) x →
-      pos x ≡ just i
+      (l : List.List A) →
+      (v : A) →
+      (vi1 vi2 : Fin (List.length l)) →
+      List.lookup l vi1 ≡ v →
+      List.lookup l vi2 ≡ v →
+      (vi1-is-first : (index : Fin (List.length l)) →
+                      index Data.Fin.< vi1 →
+                      List.lookup l index ≢ v) →
+      ¬ (Σ (A × Fin (List.length l) × Fin (List.length l))
+           (λ (w , wi1 , wi2) →
+                List.lookup l wi1 ≡ w
+              × List.lookup l wi2 ≡ w
+              × wi1 Data.Fin.< vi1)) →
+      pos l ≡ just vi1
     pos-is-position-of-first-repeat = {!!}
 \end{code}
 
@@ -521,7 +532,7 @@ firstRepeatPosition = firstRepeatPosition.firstRepeatPosition
 \end{code}
 
 \section{The Non-Repeating Subsequence Function}
-\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
+\AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is the longest initial non-repeating consecutive subsequence within \AgdaBound{x}.  Equivalently, one can say that \AgdaFunction{nonRepeatingPortion} \AgdaBound{DEQ} \AgdaBound{x} is equivalent to \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x}, where \AgdaBound{n} is such that \AgdaFunction{List.take} \AgdaBound{n} \AgdaBound{x} contains no two identical values.
 
 \begin{code}
 nonRepeatingPortion : {a : Level} →
@@ -1490,7 +1501,12 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Infinity} represents infinity.
   \item \AgdaInductiveConstructor{Variable} \AgdaBound{n} represents a variable whose name is \AgdaBound{n}.
   \item \AgdaInductiveConstructor{NumberRat} \AgdaBound{q} represents \AgdaBound{q}.
-  \item \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound {e} represents the result of applying \AgdaBound{f} to \AgdaBound{e}.
+  \item \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound {e} represents the result of applying \AgdaBound{f} to \AgdaBound{e}.  A touch more formally, one can say that \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x} represents \(\operatorname{uncurry}\ f\prime\ x\prime\), where the following statements apply:
+  \begin{enumerate}
+    \item \(\operatorname{uncurry}\) is the univeral uncurrying function
+    \item \(f\prime\) and \(x\prime\) are the things which are represented by \AgdaBound{f} and \AgdaBound{x}, respectively.
+  \end{enumerate}
+  A more formal explanation is possible but runs the risk of being obnoxious.
 \end{itemize}
 
 \begin{code}
@@ -1738,13 +1754,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Lambda n1) Exponent = no λ ()
     s (Lambda n1) (Lambda n2) with ListProp.≡-dec Data.String._≟_ n1 n2
     ... | yes nEq = yes (cong Lambda nEq)
-    ... | no nNeq = no (nNeq ∘ equality-implies-name-equality)
-      where
-      equality-implies-name-equality :
-        {n1 n2 : List.List String} →
-        Lambda n1 ≡ Lambda n2 →
-        n1 ≡ n2
-      equality-implies-name-equality refl = refl
+    ... | no nNeq = no (nNeq ∘ (λ {refl → refl}))
     s (Lambda n1) Sin = no λ ()
     s (Lambda n1) Cos = no λ ()
     s (Lambda n1) Tan = no λ ()
@@ -1873,12 +1883,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Limit n1) Cot = no λ ()
     s (Limit n1) (Limit n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong Limit eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             Limit n1 ≡ Limit n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (Limit n1) (Derivative name) = no λ ()
     s (Limit n1) (Antiderivative name) = no λ ()
     s (Limit n1) (BoundedIntegral name) = no λ ()
@@ -1898,12 +1903,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Derivative n1) (Limit name) = no λ ()
     s (Derivative n1) (Derivative n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong Derivative eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             Derivative n1 ≡ Derivative n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (Derivative n1) (Antiderivative name) = no λ ()
     s (Derivative n1) (BoundedIntegral name) = no λ ()
     s (Derivative n1) (Compose g f eq) = no λ ()
@@ -1923,12 +1923,7 @@ This function is used to determine whether or not the input arguments are struct
     s (Antiderivative n1) (Derivative name) = no λ ()
     s (Antiderivative n1) (Antiderivative n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong Antiderivative eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             Antiderivative n1 ≡ Antiderivative n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (Antiderivative n1) (BoundedIntegral name) = no λ ()
     s (Antiderivative n1) (Compose g f eq) = no λ ()
     s (BoundedIntegral n1) Abs = no λ ()
@@ -1948,12 +1943,7 @@ This function is used to determine whether or not the input arguments are struct
     s (BoundedIntegral n1) (Antiderivative name) = no λ ()
     s (BoundedIntegral n1) (BoundedIntegral n2) with n1 Data.String.≟ n2
     ... | yes eq = yes (cong BoundedIntegral eq)
-    ... | no neq = no (neq ∘ equality-implies-variable-equality n1 n2)
-      where
-      equality-implies-variable-equality : (n1 n2 : String) →
-             BoundedIntegral n1 ≡ BoundedIntegral n2 →
-             n1 ≡ n2
-      equality-implies-variable-equality n1 n2 refl = refl
+    ... | no neq = no (neq ∘ (λ {refl → refl}))
     s (BoundedIntegral n1) (Compose g f eq) = no λ ()
     s (Compose g f eq1) Abs = no λ ()
     s (Compose g f eq1) Negate = no λ ()
@@ -1981,23 +1971,8 @@ This function is used to determine whether or not the input arguments are struct
                f ≡ x →
                Compose g f eq1 ≡ Compose y x eq2
       compeq refl refl = {!!}
-    ... | no gIsNoty | _ = no (gIsNoty ∘ eq-implies-first-eq)
-      where
-      eq-implies-first-eq :
-        {f g x y : F} →
-        {eq1 : _} →
-        {eq2 : _} →
-        Compose g f eq1 ≡ Compose y x eq2 → g ≡ y
-      eq-implies-first-eq refl = refl
-    ... | _ | no fIsNotx = no (fIsNotx ∘ eq-implies-second-eq)
-      where
-      eq-implies-second-eq :
-        {f g x y : F} →
-        {eq1 : _} →
-        {eq2 : _} →
-        Compose g f eq1 ≡ Compose y x eq2 →
-        f ≡ x
-      eq-implies-second-eq refl = refl
+    ... | no gIsNoty | _ = no (gIsNoty ∘ (λ {refl → refl}))
+    ... | _ | no fIsNotx = no (fIsNotx ∘ (λ {refl → refl}))
 \end{code}
 
 \section{Decidable Structural Equality on \AgdaDatatype{ε}}
@@ -2172,13 +2147,6 @@ A value of type \AgdaDatatype{main} \AgdaBound{x} \AgdaBound{y} exists if and on
     data main : ε → ε → Set
 \end{code}
 
-\subsection{The Type of the Equivalence Proof}
-\AgdaFunction{equivalence} proves that \AgdaDatatype{main} is an equivalence relation.
-
-\begin{code}
-    equivalence : IsEquivalence main
-\end{code}
-
 \subsection{The Exceptional Equality Type}
 A value of type \AgdaFunction{main2} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} and \AgdaBound{y} \glspl{inj2contain} equal values.
 
@@ -2201,6 +2169,9 @@ Basically, according to \AgdaInductiveConstructor{SumIsAssociative}, \(a + \left
 
 \subsubsection{Product Associativity}
 Basically, according to \AgdaInductiveConstructor{ProductIsAssociative}, \(a \cdot \left(b \cdot c\right) = \left(a \cdot b\right) \cdot c\).
+
+\subsubsection{Composition}
+Thanks to \AgdaInductiveConstructor{Composition}, proving that \(g \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(\left(g \circ f\right)\ x\) is downright simple.
 
 \subsubsection{Symmetry}
 Basically, according to \AgdaInductiveConstructor{Symmetry}, if \(a = b\), then \(b = a\).
@@ -2233,6 +2204,11 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         {x1 x2 x3 : ε} →
         main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
              (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+      Composition : {g f : F} →
+                    {x : Vec ε (arity f)} →
+                    (eq : arity g ≡ 1) →
+                    main (Ap (Compose g f eq) x)
+                         (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
       Symmetry : {x y : ε} → main x y → main y x
       Transitivity : {x y z : ε} → main x y → main y z → main x z
       Eventuality :
@@ -2269,9 +2245,11 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         reflP = Data.List.Relation.Binary.Permutation.Setoid.refl
 \end{code}
 
-\subsection{Completing the Equivalence Proof}
+\subsection{The Equivalence Proof}
+\AgdaFunction{equivalence} proves that \AgdaDatatype{main} is an equivalence relation.
 
 \begin{code}
+    equivalence : IsEquivalence main
     equivalence = record
       { refl = EqualityImpliesAE refl
       ; sym = Symmetry
@@ -2295,7 +2273,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
         (eq : arity g ≡ 1) →
         main (Ap (Compose g f eq) x)
              (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
-      composition-equality = {!!}
+      composition-equality g f x eq = Composition eq
 \end{code}
 
 \subsection{Exporting and Defining the Global Algebraic Equality Function}
@@ -2524,6 +2502,26 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
         LT x y
 \end{code}
 
+\section{The Properties of the Less-Than Relation}
+This section --- and module --- contains various proofs which pertain to \AgdaDatatype{LT}.
+
+\begin{code}
+    module Properties where
+\end{code}
+
+\subsection{Strict Partial Order}
+\AgdaFunction{strict-partial-order} proves that \AgdaDatatype{LT} is a strict partial order relation.
+
+\begin{code}
+      strict-partial-order : IsStrictPartialOrder AlgebraicEquality LT
+      strict-partial-order = record
+        { isEquivalence = AlgebraicEquality.equivalence
+        ; irrefl = {!!}
+        ; trans = {!!}
+        ; <-resp-≈ = {!!}
+        }
+\end{code}
+
 \section{Exporting Stuff}
 \AgdaDatatype{LessThan.LT} has all necessary properties for the \AgdaFunction{LessThan} function; accordion, \AgdaFunction{LessThan} is really just \AgdaDatatype{LessThan.LT}.
 
@@ -2558,18 +2556,149 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
 \section{Purpose}
 This chapter contains various proofs regarding the stuff which was defined in \fref{sec:casanovaFlyCore}.
 
-\subsection{\AgdaFunction{pfRewrite} Equality}
-\AgdaFunction{pfRewrite-basicEquality} proves that the statement in \fref{enum:pfRewriteEquality} is actually \emph{correct}.
+\section{\AgdaFunction{pfRewrite} Equality}
+\AgdaFunction{pfRewrite-basicEquality} proves that the statement in \fref{enum:pfRewriteEquality} is actually \emph{correct}, i.e., \AgdaFunction{pfRewrite-basicEquality} proves that any value which is contained by \AgdaFunction{pfRewrite} \AgdaBound{e} is \AgdaBound{c}-\gls{algEq} to \AgdaBound{e}.
 
 \begin{code}
-  pfRewrite-basicEquality :
-    (e : ε) →
-    (isJust : Is-just (pfRewrite e)) →
-    AlgebraicEquality e (to-witness isJust)
-  pfRewrite-basicEquality (Ap f e) isJust = {!!}
-  pfRewrite-basicEquality x isJust = {!!} -- bogus
+    pfRewrite-basicEquality :
+      (e : ε) →
+      (isJust : Is-just (pfRewrite e)) →
+      AlgebraicEquality e (to-witness isJust)
+
+    module pfRewrite-basicEquality where
+      open pfRewrite hiding (main)
+      open AlgebraicEquality hiding (main)
+
+      lookup-cast :
+        {n : ℕ}
+        {a : Level} →
+        {A : Set a} →
+        (x : A) →
+        (eq : n ≡ 1) →
+        lookup (cast eq (cast (sym eq) [ x ])) Fin.zero ≡ x
+      lookup-cast x eq = cong (λ x → lookup x Fin.zero)
+                              (VecProp.cast-sym (sym eq) refl)
+
+      specific-equality :
+        (g f : F) →
+        (x : Vec ε (arity f))
+        (eq : arity g ≡ 1) →
+        _≡_ (pfRewrite (Ap g (Data.Vec.cast (sym eq) [ Ap f x ])))
+            (just (Ap (Compose g f eq) x))
+      specific-equality g f x eq = begin
+        pfRewrite (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
+          ≡⟨⟩
+        (decToMaybe (arity g Data.Nat.≟ 1) >>= helperFun)
+          ≡⟨ cong (_>>= helperFun) decToMaybe-is-just ⟩
+        (just eq >>= helperFun)
+          ≡⟨⟩
+        helper g (onlyElement (Data.Vec.cast (sym eq) [ Ap f x ]) eq) eq
+          ≡⟨ cong (λ x → helper g x eq) (lookup-cast (Ap f x) eq) ⟩
+        helper g (Ap f x) eq
+          ≡⟨⟩
+        just (Ap (Compose g f eq) x) ∎
+        where
+        helperFun =
+          λ eq → helper g
+                        (onlyElement (Data.Vec.cast (sym eq)
+                                                    [ Ap f x ])
+                                     eq)
+                        eq
+        decToMaybe-is-just : decToMaybe (arity g Data.Nat.≟ 1) ≡ just eq
+        decToMaybe-is-just = let question = arity g Data.Nat.≟ 1 in begin
+          decToMaybe (arity g Data.Nat.≟ 1)
+            ≡⟨ cong decToMaybe (proj₂ (dec-yes question eq)) ⟩
+          just (proj₁ (dec-yes question eq))
+            ≡⟨ cong just (≡-irrelevant (proj₁ (dec-yes question eq)) eq) ⟩
+          just eq ∎
+
+      main : (e : ε) →
+             (isJust : Is-just (pfRewrite e)) →
+             AlgebraicEquality e (to-witness isJust)
+      main (Ap g x) isJust with arity g Data.Nat.≟ 1
+      ... | no differentArity = {!!} -- impossible
+      ... | yes rightArity with Data.Vec.cast rightArity x
+                              | inspect (Data.Vec.cast rightArity) x
+      ... | Ap f y ∷ [] | ⟦ eq ⟧ =
+            Transymmetry (subst (λ e → AlgebraicEquality (Ap (Compose g f rightArity) y)
+                                                         (Ap g e))
+                                (VecProp.cast-sym rightArity eq)
+                                (composition-equality g f y rightArity))
+                         (EqualityImpliesAE (sym to-witness-is-ap))
+            where
+            open AlgebraicEquality.Properties
+            Transymmetry : {x y z : ε} →
+                           AlgebraicEquality y x →
+                           AlgebraicEquality y z →
+                           AlgebraicEquality x z
+            Transymmetry = Transitivity ∘ Symmetry
+            to-witness-is-ap = to-witness-is-input isJust
+              where
+              to-witness-is-input :
+                {a : Level} →
+                {A : Set a} →
+                {x : A} →
+                (isJust : Is-just (just x)) →
+                to-witness isJust ≡ x
+              to-witness-is-input (AnyMaybe.just x) = refl
+      ... | x | ⟦ unimportantProof ⟧ = {!!} -- impossible
+      main x isJust = {!!} -- also impossible
+
+    pfRewrite-basicEquality = pfRewrite-basicEquality.main
 \end{code}
 
+\subsection{The Justness Condition for \AgdaFunction{pfRewrite}}
+\AgdaFunction{pfRewrite-just-condition} proves that \AgdaFunction{pfRewrite} \AgdaBound{e} is a \AgdaInductiveConstructor{just} value only if \AgdaBound{e} is of the form ``\AgdaInductiveConstructor{Ap} \AgdaBound{g} \AgdaInductiveConstructor{[} \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x} \AgdaInductiveConstructor{]}''.
+
+\begin{code}
+    pfRewrite-just-condition :
+      (e : ε) →
+      Is-just (pfRewrite e) →
+      Σ (Σ F (λ f → arity f ≡ 1))
+        (λ (g , arity1) →
+           Σ (Σ F (Vec ε ∘ arity))
+             (λ (f , x) →
+                e ≡ Ap g (cast (sym arity1) [ Ap f x ])))
+    pfRewrite-just-condition = {!!}
+\end{code}
+
+\subsection{\AgdaFunction{pfRewrite} Nothingness}
+\AgdaFunction{pfRewrite-nothing} proves that if \AgdaBound{e} is \emph{not} of the form ``\AgdaInductiveConstructor{Ap} \AgdaBound{g} \AgdaInductiveConstructor{[} \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x} \AgdaInductiveConstructor{]}'', then \AgdaFunction{pfRewrite} \AgdaBound{e} is \AgdaInductiveConstructor{nothing}.
+
+\begin{code}
+    pfRewrite-nothing :
+      (e : ε) →
+      ¬ Σ (Σ F (λ f → arity f ≡ 1))
+          (λ (g , arityIs1) →
+             Σ (Σ F (Vec ε ∘ arity))
+               (λ (f , x) →
+                  e ≡ Ap g (Data.Vec.cast (sym arityIs1) [ Ap f x ]))) →
+      Is-nothing (pfRewrite e)
+
+    module pfRewrite-nothing where
+      not-just-only-if-nothing :
+        {a : Level} →
+        {A : Set a} →
+        {x : Maybe A} →
+        ¬ Is-just x →
+        Is-nothing x
+      not-just-only-if-nothing {x = nothing} tt = AllMaybe.nothing
+      not-just-only-if-nothing {x = just x} =
+        contradiction (AnyMaybe.just Data.Unit.tt)
+
+      main :
+        (e : ε) →
+        ¬ Σ (Σ F (λ f → arity f ≡ 1))
+            (λ (g , arityIs1) →
+               Σ (Σ F (Vec ε ∘ arity))
+                 (λ (f , x) →
+                    e ≡ Ap g (Data.Vec.cast (sym arityIs1) [ Ap f x ]))) →
+        Is-nothing (pfRewrite e)
+      main e N = not-just-only-if-nothing $ N ∘ pfRewrite-just-condition e
+
+    pfRewrite-nothing = pfRewrite-nothing.main
+\end{code}
+n
 \part{The Rest is F-L-Y}
 
 \chapter{Overview and Intent}
@@ -2677,27 +2806,6 @@ CasanovaFly-Verified = record
   open CAS CasanovaFly-Base
   open InternalEqualityFunctions
 
-  mapMaybe-justness-implies-output-justness :
-    {a b : Level} →
-    {A : Set a} →
-    {B : Set b} →
-    (f : A → Maybe B) →
-    (x : List.List A) →
-    (e : A) →
-    Is-just (f e) →
-    e ∈ x →
-    Σ B (λ y → List.head (List.mapMaybe f x) ≡ just y)
-  mapMaybe-justness-implies-output-justness
-    f List.[] e isJust ()
-  mapMaybe-justness-implies-output-justness
-    f (x List.∷ xs) e isJust (AnyList.Any.here p) with f x
-  ... | just fx = fx , refl
-  ... | nothing = contradiction isJust {!!}
-  mapMaybe-justness-implies-output-justness
-    f (x List.∷ xs) e isJust (AnyList.Any.there t) with f x
-  ... | just fx = fx , refl
-  ... | nothing = mapMaybe-justness-implies-output-justness f xs e isJust t
-
   sum-of-nats-is-nat-sum :
     (n1 n2 : ℕ) →
     equal-at-some-iteration (fromℕ n1 + fromℕ n2) (fromℕ (n1 Data.Nat.+ n2))
@@ -2720,12 +2828,7 @@ CasanovaFly-Verified = record
     bogus-at-some-iteration (e1 / e2)
   division-by-zero-is-bogus x y (iters , eq) with bogusBeforeIteration? (ℕ.suc iters) (x / y)
   ... | just (f , bogus) = Fin.toℕ f , bogus
-  ... | nothing = ℕ.suc iters , _ , sym inj1Equality
-    where
-    inj1Equality = begin
-      rEvaluate (ℕ.suc iters) (x / y)
-        ≡⟨ {!!} ⟩
-      inj₁ {!!} ∎
+  ... | nothing = {!!}
 
   structural-equality-implies-definite-equality :
     (e1 e2 : ε) →
@@ -2763,7 +2866,7 @@ CasanovaFly-Verified = record
 \newglossaryentry{inj2contain}
   { name = \AgdaInductiveConstructor{inj₂}-contains
   , plural = \AgdaInductiveConstructor{inj₂}-contain
-  , description = {For the scope of this paper, a value \AgdaBound{x} of type \AgdaBound{A} \AgdaOperator{\AgdaDatatype{⊎}} \AgdaBound{B} is said to \AgdaInductiveConstructor{inj₂}-contain a value \AgdaBound{y} of type \AgdaBound{B} if and only if \AgdaBound{x} is equal to \AgdaInductiveConstructor{inj₂} \AgdaBound{y}}
+  , description = {For the scope of this paper, a value \AgdaBound{x} of type \AgdaBound{A} \AgdaOperator{\AgdaDatatype{⊎}} \AgdaBound{B} is said to \glspl{inj2contain} a value \AgdaBound{y} of type \AgdaBound{B} if and only if \AgdaBound{x} is equal to \AgdaInductiveConstructor{inj₂} \AgdaBound{y}}
   }
 
 \newglossaryentry{algEq1}
@@ -2773,7 +2876,7 @@ CasanovaFly-Verified = record
 
 \newglossaryentry{algEq2}
   { name = algebraically-equal\({}_2\)
-  , description = A mathematical expression \(x\) is \AgdaBound{c}-\gls{algEq2} to some mathematical expression \(y\) if and only if the \AgdaBound{c} CAS's representation of \(x\) is \AgdaBound{c}-algebraically-equal to the \AgdaBound{c} CAS's representation of \(y\)
+  , description = A mathematical expression \(x\) is \AgdaBound{c}-\gls{algEq2} to some mathematical expression \(y\) if and only if the \AgdaBound{c} CAS's representation of \(x\) is \AgdaBound{c}-\gls{algEq1} to the \AgdaBound{c} CAS's representation of \(y\)
   }
 
 \newglossaryentry{algEq}
@@ -2783,7 +2886,7 @@ CasanovaFly-Verified = record
 
 \newglossaryentry{bogusWrt}
   { name = bogus with regard to
-  , description = {For a given \AgdaRecord{CAS} record \AgdaBound{c}, some mathematical expression \(x\) is \gls{bogusWrt} \AgdaBound{c} if and only if there exists some value of type \AgdaField{CAS.IsBogus} \AgdaBound{x'}, where \AgdaBound{x'} represents \(x\)}
+  , description = {For a given \AgdaRecord{CAS} record \AgdaBound{c}, some mathematical expression \(x\) is \gls{bogusWrt} \AgdaBound{c} if and only if there exists some value of type \AgdaField{CAS.IsBogus} \AgdaBound{c} \AgdaBound{x'}, where \AgdaBound{x'} represents \(x\)}
   }
 
 \clearpage{}
