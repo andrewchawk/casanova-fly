@@ -2586,26 +2586,10 @@ This chapter contains various proofs regarding the stuff which was defined in \f
             (just (Ap (Compose g f eq) x))
       specific-equality g f x eq = begin
         pfRewrite (Ap g (Data.Vec.cast (sym eq) [ Ap f x ]))
-          ≡⟨ refl ⟩
-        _>>=_ (decToMaybe (arity g Data.Nat.≟ 1))
-              (λ eq → helper g
-                             (onlyElement (Data.Vec.cast (sym eq)
-                                                         [ Ap f x ])
-                                          eq)
-                             eq)
-          ≡⟨ cong (Data.Maybe._>>= λ eq →
-                                     helper g
-                                            (onlyElement (Data.Vec.cast (sym eq)
-                                                                        [ Ap f x ])
-                                                         eq)
-                                            eq)
-                  decToMaybe-is-just ⟩
-        _>>=_ (just eq)
-              (λ eq →
-                 helper g (onlyElement (Data.Vec.cast (sym eq)
-                                                      [ Ap f x ])
-                                       eq)
-                          eq)
+          ≡⟨⟩
+        (decToMaybe (arity g Data.Nat.≟ 1) >>= helperFun)
+          ≡⟨ cong (_>>= helperFun) decToMaybe-is-just ⟩
+        (just eq >>= helperFun)
           ≡⟨⟩
         helper g (onlyElement (Data.Vec.cast (sym eq) [ Ap f x ]) eq) eq
           ≡⟨ cong (λ x → helper g x eq) (lookup-cast (Ap f x) eq) ⟩
@@ -2613,6 +2597,12 @@ This chapter contains various proofs regarding the stuff which was defined in \f
           ≡⟨⟩
         just (Ap (Compose g f eq) x) ∎
         where
+        helperFun =
+          λ eq → helper g
+                        (onlyElement (Data.Vec.cast (sym eq)
+                                                    [ Ap f x ])
+                                     eq)
+                        eq
         decToMaybe-is-just : decToMaybe (arity g Data.Nat.≟ 1) ≡ just eq
         decToMaybe-is-just = let question = arity g Data.Nat.≟ 1 in begin
           decToMaybe (arity g Data.Nat.≟ 1)
@@ -2633,10 +2623,7 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                                                          (Ap g e))
                                 (VecProp.cast-sym rightArity eq)
                                 (composition-equality g f y rightArity))
-                         (EqualityImpliesAE (sym (begin
-                           to-witness isJust
-                             ≡⟨ {!!} ⟩
-                           Ap (Compose g f rightArity) y ∎)))
+                         (EqualityImpliesAE (sym to-witness-is-ap))
             where
             open AlgebraicEquality.Properties
             Transymmetry : {x y z : ε} →
@@ -2644,6 +2631,10 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                            AlgebraicEquality y z →
                            AlgebraicEquality x z
             Transymmetry = Transitivity ∘ Symmetry
+            to-witness-is-ap = begin
+              to-witness isJust
+                ≡⟨ {!!} ⟩
+              Ap (Compose g f rightArity) y ∎
       ... | x | ⟦ unimportantProof ⟧ = {!!} -- impossible
       main x isJust = {!!} -- also impossible
 
