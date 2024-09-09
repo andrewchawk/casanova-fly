@@ -135,6 +135,7 @@ import Data.Vec.Relation.Unary.Any as AnyVec
 import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
 import Data.Maybe.Relation.Unary.All as AllMaybe
+import Data.Unit
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -2682,7 +2683,8 @@ This chapter contains various proofs regarding the stuff which was defined in \f
         ¬ Is-just x →
         Is-nothing x
       not-just-only-if-nothing {x = nothing} tt = AllMaybe.nothing
-      not-just-only-if-nothing {x = just x} tt = {!!}
+      not-just-only-if-nothing {x = just x} =
+        contradiction (AnyMaybe.just Data.Unit.tt)
 
       main :
         (e : ε) →
