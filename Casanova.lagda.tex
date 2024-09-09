@@ -1493,7 +1493,12 @@ The following statements hold:
   \item \AgdaInductiveConstructor{Infinity} represents infinity.
   \item \AgdaInductiveConstructor{Variable} \AgdaBound{n} represents a variable whose name is \AgdaBound{n}.
   \item \AgdaInductiveConstructor{NumberRat} \AgdaBound{q} represents \AgdaBound{q}.
-  \item \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound {e} represents the result of applying \AgdaBound{f} to \AgdaBound{e}.
+  \item \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound {e} represents the result of applying \AgdaBound{f} to \AgdaBound{e}.  A touch more formally, one can say that \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x} represents \(\operatorname{uncurry}\ f\prime\ x\prime\), where the following statements apply:
+  \begin{enumerate}
+    \item \(\operatorname{uncurry}\) is the univeral uncurrying function
+    \item \(f\prime\) and \(x\prime\) are the things which are represented by \AgdaBound{f} and \AgdaBound{x}, respectively.
+  \end{enumerate}
+  A more formal explanation is possible but runs the risk of being obnoxious.
 \end{itemize}
 
 \begin{code}
