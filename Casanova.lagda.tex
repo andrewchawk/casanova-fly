@@ -2813,16 +2813,16 @@ CasanovaFly-Verified = record
     (e : A) →
     Is-just (f e) →
     e ∈ x →
-    Σ B (λ y → List.head (List.mapMaybe f x) ≡ just y)
+    Is-just (List.head (List.mapMaybe f x))
   mapMaybe-justness-implies-output-justness
     f List.[] e isJust ()
   mapMaybe-justness-implies-output-justness
     f (x List.∷ xs) e isJust (AnyList.Any.here p) with f x
-  ... | just fx = fx , refl
+  ... | just fx = AnyMaybe.just _
   ... | nothing = contradiction isJust {!!}
   mapMaybe-justness-implies-output-justness
     f (x List.∷ xs) e isJust (AnyList.Any.there t) with f x
-  ... | just fx = fx , refl
+  ... | just fx = AnyMaybe.just _
   ... | nothing = mapMaybe-justness-implies-output-justness f xs e isJust t
 
   sum-of-nats-is-nat-sum :
