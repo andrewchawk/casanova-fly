@@ -134,6 +134,7 @@ import Data.Vec.Properties as VecProp
 import Data.Vec.Relation.Unary.Any as AnyVec
 import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
+import Data.Maybe.Relation.Unary.All as AllMaybe
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -2641,6 +2642,57 @@ This chapter contains various proofs regarding the stuff which was defined in \f
     pfRewrite-basicEquality = pfRewrite-basicEquality.main
 \end{code}
 
+\subsection{The Justness Condition for \AgdaFunction{pfRewrite}}
+\AgdaFunction{pfRewrite-just-condition} proves that \AgdaFunction{pfRewrite} \AgdaBound{e} is a \AgdaInductiveConstructor{just} value only if \AgdaBound{e} is of the form ``\AgdaInductiveConstructor{Ap} \AgdaBound{g} \AgdaInductiveConstructor{[} \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x} \AgdaInductiveConstructor{]}''.
+
+\begin{code}
+    pfRewrite-just-condition :
+      (e : ε) →
+      Is-just (pfRewrite e) →
+      Σ (Σ F (λ f → arity f ≡ 1))
+        (λ (g , arity1) →
+           Σ (Σ F (Vec ε ∘ arity))
+             (λ (f , x) →
+                e ≡ Ap g (cast (sym arity1) [ Ap f x ])))
+    pfRewrite-just-condition = {!!}
+\end{code}
+
+\subsection{\AgdaFunction{pfRewrite} Nothingness}
+\AgdaFunction{pfRewrite-nothing} proves that if \AgdaBound{e} is \emph{not} of the form ``\AgdaInductiveConstructor{Ap} \AgdaBound{g} \AgdaInductiveConstructor{[} \AgdaInductiveConstructor{Ap} \AgdaBound{f} \AgdaBound{x} \AgdaInductiveConstructor{]}'', then \AgdaFunction{pfRewrite} \AgdaBound{e} is \AgdaInductiveConstructor{nothing}.
+
+\begin{code}
+    pfRewrite-nothing :
+      (e : ε) →
+      ¬ Σ (Σ F (λ f → arity f ≡ 1))
+          (λ (g , arityIs1) →
+             Σ (Σ F (Vec ε ∘ arity))
+               (λ (f , x) →
+                  e ≡ Ap g (Data.Vec.cast (sym arityIs1) [ Ap f x ]))) →
+      Is-nothing (pfRewrite e)
+
+    module pfRewrite-nothing where
+      not-just-only-if-nothing :
+        {a : Level} →
+        {A : Set a} →
+        {x : Maybe A} →
+        ¬ Is-just x →
+        Is-nothing x
+      not-just-only-if-nothing {x = nothing} tt = AllMaybe.nothing
+      not-just-only-if-nothing {x = just x} tt = {!!}
+
+      main :
+        (e : ε) →
+        ¬ Σ (Σ F (λ f → arity f ≡ 1))
+            (λ (g , arityIs1) →
+               Σ (Σ F (Vec ε ∘ arity))
+                 (λ (f , x) →
+                    e ≡ Ap g (Data.Vec.cast (sym arityIs1) [ Ap f x ]))) →
+        Is-nothing (pfRewrite e)
+      main e N = not-just-only-if-nothing $ N ∘ pfRewrite-just-condition e
+
+    pfRewrite-nothing = pfRewrite-nothing.main
+\end{code}
+n
 \part{The Rest is F-L-Y}
 
 \chapter{Overview and Intent}
