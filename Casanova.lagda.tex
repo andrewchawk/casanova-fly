@@ -631,6 +631,39 @@ module nonRepeatingPortion-Properties
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
+\section{The Generic Tree Type}
+
+\subsection{The Core Type}
+\AgdaDatatype{Tree} is a basic tree datatype.
+
+\begin{code}
+data Tree {a : Level} (A : Set a) : Set a
+  where
+  Node : A → Tree A
+  NodeWithChildren : A → List.List (Tree A) → Tree A
+\end{code}
+
+\subsection{The Map Function}
+For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the following statements apply:
+
+\begin{enumerate}
+  \item If \AgdaBound{j} is some value of type \AgdaFunction{Is-just} \AgdaSymbol(\AgdaBound{f} \AgdaBound{n}\AgdaSymbol), then \AgdaInductiveConstructor{NodeWithChildren} \AgdaBound{n} \AgdaSymbol(\AgdaFunction{to-witness} \AgdaBound{j}\AgdaSymbol) replaces \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{x}.\label{enum:treeMap-just}
+  \item If \AgdaBound{f} \AgdaBound{n} is \AgdaInductiveConstructor{nothing}, then \AgdaInductiveConstructor{Node} \AgdaBound{n} is not changed in \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{x}.\label{enum:treeMap-nothing}
+\end{enumerate}
+
+\begin{code}
+{-# TERMINATING #-}
+treeMap : {a : Level} →
+          {A : Set a} →
+          (A → Maybe (List.List (Tree A))) →
+          Tree A →
+          Tree A
+treeMap f o@(Node x) =
+  fromMaybe o (Data.Maybe.map (NodeWithChildren x) (f x))
+treeMap f (NodeWithChildren n x) =
+  NodeWithChildren n (List.map (treeMap f) x)
+\end{code}
+
 \part{Formal Definitions for Computer Algebra Systems}
 
 \chapter{The Type of Mostly-Unverified Computer Algebra Systems}
@@ -2453,6 +2486,31 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
 
   checkAlgebraicEquality = checkAlgebraicEquality.main
+\end{code}
+
+\section{The Tree-Based Evaluation Function}
+\AgdaFunction{treeEvaluate} is a function\footnote{You don't repeat.} which, given an iteration bound \AgdaBound{i} and an expression \AgdaBound{e}, returns a tree which represents all paths to all evaluation results which can be achieved within \AgdaBound{i} iterations.
+
+\begin{code}
+  treeEvaluate : ℕ → ε → Tree (Maybe (Exceptional ε))
+  module treeEvaluate where
+    addMaybe : List.List (Tree (Maybe (Exceptional ε))) →
+               Maybe (List.List (Tree (Maybe (Exceptional ε))))
+    addMaybe x = {!!}
+
+    tryRules : ε → Maybe (List.List (Tree (Maybe (Exceptional ε))))
+    tryRules e =
+      addMaybe
+        (List.map
+          (Node ∘ (_$ e))
+          (Data.Vec.toList exceptionallyEvaluate.functions))
+
+    main : ℕ → ε → Tree (Maybe (Exceptional ε))
+    main 0 e = Node (just (inj₂ e))
+    main (ℕ.suc n) e =
+      treeMap (_>>= [_,_] (const nothing) tryRules) (main n e)
+
+  treeEvaluate = treeEvaluate.main
 \end{code}
 
 \chapter{The Less-Than Type}
