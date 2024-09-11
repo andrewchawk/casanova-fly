@@ -2382,8 +2382,18 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
       ∷ (λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
              valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
            ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ Quotient x y coprime ∷ [])) →
+             valid (Quotient (Ap (Limit n) (b ∷ [ x ]))
+                             (Ap (Limit n) (b ∷ [ y ]))
+                             coprime)
+           ; _ → nothing})
       ∷ (λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
              valid (Ap Product (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ])]))
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n1) (c ∷ Ap Exponent (Variable n2 ∷ NumberNatP x copr ∷ []) ∷ [])) →
+             if (n1 Data.String.== n2) ∧ (0 Data.Nat.<ᵇ x)
+                then valid (Ap Exponent (c ∷ [ NumberNat x ]))
+                else nothing
            ; _ → nothing})
       ∷ (λ { (Ap (Lambda names) (body ∷ expressions)) →
              valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
