@@ -122,6 +122,7 @@ open import Relation.Binary.PropositionalEquality.WithK
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
+import Data.Integer.Show as IntShow
 import Data.Sum.Properties
 import Data.List.Relation.Unary.All as AllList
 import Data.List.Relation.Unary.All.Properties as AllListProp
@@ -2509,6 +2510,113 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       {list : Vec ε (arity f)} →
       AnyVec.Any (IsReferencedIn name) list →
       IsReferencedIn name (Ap f list)
+\end{code}
+
+\chapter{Printing Functions}
+
+\section{The Non-Currying Printing Function}
+\AgdaFunction{uglyPrint} is the printing function which does not explicitly do currying and, accordingly, outputs stuff which strikes the author as being pretty randid.  Some people, however, prefer the ``\(f\left(x\right)\)'' notation over the ``\(f\ x\)'' notation.  The author does not understand these people but aims to at least occasionally please.
+
+\begin{code}
+  {-# TERMINATING #-}
+  uglyPrint : ε → String
+  uglyPrint Infinity = "\\infty"
+  uglyPrint (Variable x) = "\\mathit{" Data.String.++ x Data.String.++"}"
+  uglyPrint (NumberRat r) =
+    if isYes (ℚ.denominator r Data.Integer.≟ Data.Integer.1ℤ)
+       then IntShow.show (ℚ.numerator r)
+       else               "\\frac{"
+           Data.String.++ IntShow.show (ℚ.numerator r)
+           Data.String.++ "}{"
+           Data.String.++ IntShow.show (ℚ.denominator r)
+           Data.String.++ "}"
+  uglyPrint (Quotient x y z) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\frac{"
+      ∷ uglyPrint x
+      ∷ "}{"
+      ∷ uglyPrint y
+      ∷ [ "}" ]))
+  uglyPrint (Ap Sum (x ∷ y ∷ [])) =
+    uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
+  uglyPrint (Ap Product (x ∷ y ∷ [])) =
+    uglyPrint x Data.String.++ " \\cdot " Data.String.++ uglyPrint y
+  uglyPrint (Ap Exponent (x ∷ y ∷ [])) =
+                   "\\left("
+    Data.String.++ uglyPrint x
+    Data.String.++ "\\right) ^ {"
+    Data.String.++ uglyPrint y
+    Data.String.++ "}"
+  uglyPrint (Ap (Lambda x) (body ∷ args)) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\left(\\lambda\\ "
+      ∷ Data.String.intersperse
+          "\\ "
+          (List.map (uglyPrint ∘ Variable) x)
+      ∷ " \\rightarrow "
+      ∷ uglyPrint body
+      ∷ "\\right)\\ "
+      ∷ [ Data.String.intersperse
+            "\\ "
+            (List.map
+              (λ x → Data.String.concat (Data.Vec.toList
+                       ( "\\left("
+                       ∷ uglyPrint x
+                       ∷ [ "\\right)" ])))
+              (Data.Vec.toList args))]))
+  uglyPrint (Ap (Limit x) (bound ∷ expression ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\lim_{"
+      ∷ uglyPrint (Variable x)
+      ∷ " \\rightarrow "
+      ∷ uglyPrint bound
+      ∷ "} \\left("
+      ∷ uglyPrint expression
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (Derivative name) (x ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\derivative{"
+      ∷ uglyPrint (Variable name)
+      ∷ "} \\left("
+      ∷ uglyPrint x
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (Antiderivative name) (x ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\int_{"
+      ∷ uglyPrint (Variable name)
+      ∷ "} \\left("
+      ∷ uglyPrint x
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (BoundedIntegral name) (b1 ∷ b2 ∷ x ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\int_{"
+      ∷ uglyPrint (Variable name)
+      ∷ " = "
+      ∷ uglyPrint b1
+      ∷ "}^{"
+      ∷ uglyPrint b2
+      ∷ "} \\left("
+      ∷ uglyPrint x
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (Compose g f arityEquality) x) =
+    -- hack
+    uglyPrint (Ap g (Data.Vec.cast (sym arityEquality) [ Ap f x ]))
+  uglyPrint (Ap Abs (x ∷ [])) =
+    "\\left| " Data.String.++ uglyPrint x Data.String.++ "\\right|"
+  uglyPrint (Ap Negate (x ∷ [])) =
+    "- \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Sin (x ∷ [])) =
+    "\\sin \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Cos (x ∷ [])) =
+    "\\cos \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Tan (x ∷ [])) =
+    "\\cos \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Csc (x ∷ [])) =
+    "\\csc \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Sec (x ∷ [])) =
+    "\\sec \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Cot (x ∷ [])) =
+    "\\cot \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
 \end{code}
 
 \chapter{The Associated Proofs}
