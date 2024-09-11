@@ -2390,15 +2390,23 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
            ; _ → nothing})
       ∷ freeDerivativesFromPoints
       ∷ basicDerivativeChainRuleFunction
-      ∷ (λ { (Ap f x) → [_,_] bust
-                              (valid ∘ Ap f)
-                              (condenseExceptionList (Data.Vec.map main x))
+      ∷ (λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
            ; _ → nothing})
       ∷ []
       )
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
+      updateFirst : {n : ℕ} → Vec ε n → Exceptional (Vec ε n)
+      updateFirst [] = inj₂ []
+      updateFirst (x ∷ xs) with
+        Data.Sum.Properties.≡-dec
+          Data.String._≟_
+          structuralEqualityOnε
+          (inj₂ x)
+          (main x)
+      ... | yes eq = [_,_]′ inj₁ (λ xs → inj₂ (x ∷ xs)) (updateFirst xs)
+      ... | no neq = [_,_]′ inj₁ (λ x → inj₂ (x ∷ xs)) (main x)
       freeDerivativesFromPoints : ε → Maybe (Exceptional ε)
       freeDerivativesFromPoints =
         λ { (Ap (Derivative n) (x ∷ [])) →
