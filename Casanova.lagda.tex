@@ -2562,13 +2562,6 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       ∷ "}{"
       ∷ uglyPrint y
       ∷ [ "}" ]))
-  uglyPrint (Ap Sum (x ∷ Ap Negate (y ∷ []) ∷ [])) =
-    Data.String.concat (Data.Vec.toList
-      ( "\\left("
-      ∷ uglyPrint x
-      ∷ "\\right) - \\left("
-      ∷ uglyPrint y
-      ∷ [ "\\right)" ]))
   uglyPrint (Ap Sum (x ∷ y ∷ [])) =
     uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
   uglyPrint (Ap Product (x ∷ y ∷ [])) =
@@ -2640,8 +2633,6 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
     uglyPrint (Ap g (Data.Vec.cast (sym arityEquality) [ Ap f x ]))
   uglyPrint (Ap Abs (x ∷ [])) =
     "\\left| " Data.String.++ uglyPrint x Data.String.++ "\\right|"
-  uglyPrint (Ap Negate (NumberRat r ∷ [])) =
-    "-" Data.String.++ uglyPrint (NumberRat r)
   uglyPrint (Ap Negate (x ∷ [])) =
     "- \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
   uglyPrint (Ap Sin (x ∷ [])) =
