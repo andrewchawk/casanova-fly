@@ -2493,17 +2493,13 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
 \begin{code}
   treeEvaluate : ℕ → ε → Tree (Maybe (Exceptional ε))
-  module treeEvaluate where
-    addMaybe : List.List (Tree (Maybe (Exceptional ε))) →
-               Maybe (List.List (Tree (Maybe (Exceptional ε))))
-    addMaybe x = {!!}
 
+  module treeEvaluate where
     tryRules : ε → Maybe (List.List (Tree (Maybe (Exceptional ε))))
-    tryRules e =
-      addMaybe
-        (List.map
-          (Node ∘ (_$ e))
-          (Data.Vec.toList exceptionallyEvaluate.functions))
+    tryRules e with List.catMaybes (List.map (_$ e) funcs)
+      where funcs = Data.Vec.toList exceptionallyEvaluate.functions
+    ... | List.[] = nothing
+    ... | o@(x List.∷ xs) = just (List.map (Node ∘ just) o)
 
     main : ℕ → ε → Tree (Maybe (Exceptional ε))
     main 0 e = Node (just (inj₂ e))
