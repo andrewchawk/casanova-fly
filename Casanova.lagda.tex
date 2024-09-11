@@ -654,6 +654,13 @@ data IsSubtree {a : Level} {A : Set a} : Tree A → Tree A → Set a
     {n : A} →
     {children : List.List (Tree A)} →
     IsSubtree (Node n) (NodeWithChildren n children)
+  ChildrenAreSubtrees :
+    {n : A} →
+    {children1 children2 : List.List (Tree A)} →
+    List.length children1 ≡ List.length children2 →
+    AllList.All (uncurry IsSubtree) (List.zip children1 children2) →
+    IsSubtree (NodeWithChildren n children1)
+              (NodeWithChildren n children2)
 \end{code}
 
 \subsection{The Map Function}
@@ -675,6 +682,31 @@ treeMap f o@(Node x) =
   fromMaybe o (Data.Maybe.map (NodeWithChildren x) (f x))
 treeMap f (NodeWithChildren n x) =
   NodeWithChildren n (List.map (treeMap f) x)
+\end{code}
+
+\subsection{Properties of Trees and Related Functions}
+This subsection constitutes a module.  More specifically, this subsection constitutes a module regarding the properties of things which are related to \AgdaDatatype{Tree}, e.g., \AgdaFunction{treeMap}.
+
+\begin{code}
+module TreeProperties where
+\end{code}
+
+\subsubsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
+Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree} proves that \AgdaBound{t} is a subtree of \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{t} for all relevant \AgdaBound{f} and \AgdaBound{t}.
+
+\begin{code}
+  treeMap-creates-supertree :
+    {a : Level} →
+    {A : Set a} →
+    (f : A → Maybe (List.List (Tree A))) →
+    (t : Tree A) →
+    IsSubtree t (treeMap f t)
+  treeMap-creates-supertree f (Node n) with f n
+  ... | just newChildren = SubtreeChildAddition
+  ... | nothing = SubtreeReflexivity
+  treeMap-creates-supertree f (NodeWithChildren n x) =
+    ChildrenAreSubtrees (sym (ListProp.length-map (treeMap f) x))
+                        {!!}
 \end{code}
 
 \part{Formal Definitions for Computer Algebra Systems}
