@@ -2368,6 +2368,23 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
                                    ∷ [ NumberNat 2 ]) ])
                else nothing
            ; _ → nothing})
+      ∷ (λ { (Ap (Limit n1) (b ∷ Variable n2 ∷ [])) →
+             if n1 Data.String.== n2
+                then valid b
+                else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ e ∷ [])) →
+             if isYes (IsConstant? e) then valid e else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ (Ap Sum (x ∷ y ∷ [])) ∷ [])) →
+             valid (Ap Sum (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ]) ]))
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
+             valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
+             valid (Ap Product (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ])]))
+           ; _ → nothing})
       ∷ (λ { (Ap (Lambda names) (body ∷ expressions)) →
              valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
            ; _ → nothing})
