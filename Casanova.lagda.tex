@@ -643,6 +643,19 @@ data Tree {a : Level} (A : Set a) : Set a
   NodeWithChildren : A → List.List (Tree A) → Tree A
 \end{code}
 
+\subsection{The Subtree Relation}
+A value of type \AgdaDatatype{IsSubtree} \AgdaBound{t1} \AgdaBound{t2} exists if and only if \AgdaBound{t1} is a subtree of \AgdaBound{t2}.
+
+\begin{code}
+data IsSubtree {a : Level} {A : Set a} : Tree A → Tree A → Set a
+  where
+  SubtreeReflexivity : {t : Tree A} → IsSubtree t t
+  SubtreeChildAddition :
+    {n : A} →
+    {children : List.List (Tree A)} →
+    IsSubtree (Node n) (NodeWithChildren n children)
+\end{code}
+
 \subsection{The Map Function}
 For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the following statements apply:
 
