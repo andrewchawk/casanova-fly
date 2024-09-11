@@ -2496,8 +2496,12 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
   module treeEvaluate where
     tryRules : ε → Maybe (List.List (Tree (Maybe (Exceptional ε))))
-    tryRules e with List.catMaybes (List.map (_$ e) funcs)
-      where funcs = Data.Vec.toList exceptionallyEvaluate.functions
+    tryRules e with (List.filter (new? (inj₂ e)) ∘ List.catMaybes) (List.map (_$ e) funcs)
+      where
+      funcs = Data.Vec.toList exceptionallyEvaluate.functions
+      new? : (e1 e2 : Exceptional ε) → Dec _
+      new? e1 e2 = true Data.Bool.≟ isNo (eq e1 e2)
+        where eq = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
     ... | List.[] = nothing
     ... | o@(x List.∷ xs) = just (List.map (Node ∘ just) o)
 
