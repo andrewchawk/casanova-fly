@@ -2568,6 +2568,17 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
   treeEvaluate = treeEvaluate.main
 \end{code}
 
+\subsection{The Lightning Function}
+\AgdaFunction{lightning} returns a single path to a single evaluated form.
+
+\AgdaFunction{lightning} is so named because the overall functionality reminds the author of the path-of-least-resistance behavior which is exhibited by lightning upon the hitting of a tree; the electricity traces the most direct path to the ground from the hit branch --- or leaf ---, much like \AgdaFunction{lightning} traces the most direct path from the root node, i.e., the expression which has been evaluated, to the most suitable leaf node, i.e., the result of the evaluation.
+
+\begin{code}
+  lightning : Tree (Maybe (Exceptional ε)) →
+              List.List (Maybe (Exceptional ε))
+  lightning = {!!}
+\end{code}
+
 \chapter{The Less-Than Type}
 A value of type \AgdaFunction{LessThan} \AgdaBound{x} \AgdaBound{y} exists if and only if \AgdaBound{x} is less than \AgdaBound{y}.
 
