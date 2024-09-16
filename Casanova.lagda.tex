@@ -684,6 +684,34 @@ treeMap f (NodeWithChildren n x) =
   NodeWithChildren n (List.map (treeMap f) x)
 \end{code}
 
+\subsection{Lookup Functions and Associated Types}
+
+\subsection{The Location Type}\label{sec:TreeLocationDefinition}
+A value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents the location of a subtree of \AgdaBound{t}.  Equivalently but possibly a bit more intuitively, one can say that a value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents a series of instructions for navigating to a particular subtree of \AgdaBound{t}.
+
+The author finds that \AgdaFunction{TreeLocation} is best understood in conjunction with \AgdaFunction{lookupTree}, which is defined in \fref{sec:lookupTreeDefinition}.
+
+\begin{code}
+{-# TERMINATING #-}
+TreeLocation : {a : Level} → {A : Set a} → Tree A → Set
+TreeLocation (Node n) = ⊤
+TreeLocation (NodeWithChildren n x) =
+  Maybe (Σ (Fin (List.length x)) (λ i → TreeLocation (List.lookup x i)))
+\end{code}
+
+\subsection{The Lookup Function}\label{sec:lookupTreeDefinition}
+\AgdaFunction{lookupTree} \AgdaBound{t} \AgdaBound{location} is the subtree of \AgdaBound{t} to which \AgdaBound{location} points.
+
+The author thinks that \AgdaFunction{lookupTree} is best understood in conjunction with \AgdaFunction{TreeLocation}, which is defined in \fref{sec:TreeLocationDefinition}.
+
+\begin{code}
+lookupTree : {a : Level} → {A : Set a} → (t : Tree A) → TreeLocation t → Tree A
+lookupTree (Node n) tt = Node n
+lookupTree o@(NodeWithChildren n x) nothing = o
+lookupTree (NodeWithChildren n x) (just (m , m2)) =
+  lookupTree (List.lookup x m) m2
+\end{code}
+
 \subsection{Properties of Trees and Related Functions}
 This subsection constitutes a module.  More specifically, this subsection constitutes a module regarding the properties of things which are related to \AgdaDatatype{Tree}, e.g., \AgdaFunction{treeMap}.
 
