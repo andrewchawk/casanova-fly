@@ -632,35 +632,40 @@ module nonRepeatingPortion-Properties
 \end{code}
 
 \section{The Generic Tree Type}
+With the exception of the final ``\AgdaKeyword{open}'' bit, this section constitutes a module.
+
+\begin{code}
+module Tree where
+\end{code}
 
 \subsection{The Core Type}
 \AgdaDatatype{Tree} is a basic tree datatype.
 
 \begin{code}
-data Tree {a : Level} (A : Set a) : Set a
-  where
-  Node : A → Tree A
-  NodeWithChildren : A → List.List (Tree A) → Tree A
+  data Tree {a : Level} (A : Set a) : Set a
+    where
+    Node : A → Tree A
+    NodeWithChildren : A → List.List (Tree A) → Tree A
 \end{code}
 
 \subsection{The Subtree Relation}
 A value of type \AgdaDatatype{IsSubtree} \AgdaBound{t1} \AgdaBound{t2} exists if and only if \AgdaBound{t1} is a subtree of \AgdaBound{t2}.
 
 \begin{code}
-data IsSubtree {a : Level} {A : Set a} : Tree A → Tree A → Set a
-  where
-  SubtreeReflexivity : {t : Tree A} → IsSubtree t t
-  SubtreeChildAddition :
-    {n : A} →
-    {children : List.List (Tree A)} →
-    IsSubtree (Node n) (NodeWithChildren n children)
-  ChildrenAreSubtrees :
-    {n : A} →
-    {children1 children2 : List.List (Tree A)} →
-    List.length children1 ≡ List.length children2 →
-    AllList.All (uncurry IsSubtree) (List.zip children1 children2) →
-    IsSubtree (NodeWithChildren n children1)
-              (NodeWithChildren n children2)
+  data IsSubtree {a : Level} {A : Set a} : Tree A → Tree A → Set a
+    where
+    SubtreeReflexivity : {t : Tree A} → IsSubtree t t
+    SubtreeChildAddition :
+      {n : A} →
+      {children : List.List (Tree A)} →
+      IsSubtree (Node n) (NodeWithChildren n children)
+    ChildrenAreSubtrees :
+      {n : A} →
+      {children1 children2 : List.List (Tree A)} →
+      List.length children1 ≡ List.length children2 →
+      AllList.All (uncurry IsSubtree) (List.zip children1 children2) →
+      IsSubtree (NodeWithChildren n children1)
+                (NodeWithChildren n children2)
 \end{code}
 
 \subsection{The Map Function}
@@ -672,16 +677,16 @@ For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the fo
 \end{enumerate}
 
 \begin{code}
-{-# TERMINATING #-}
-treeMap : {a : Level} →
-          {A : Set a} →
-          (A → Maybe (List.List (Tree A))) →
-          Tree A →
-          Tree A
-treeMap f o@(Node x) =
-  fromMaybe o (Data.Maybe.map (NodeWithChildren x) (f x))
-treeMap f (NodeWithChildren n x) =
-  NodeWithChildren n (List.map (treeMap f) x)
+  {-# TERMINATING #-}
+  treeMap : {a : Level} →
+            {A : Set a} →
+            (A → Maybe (List.List (Tree A))) →
+            Tree A →
+            Tree A
+  treeMap f o@(Node x) =
+    fromMaybe o (Data.Maybe.map (NodeWithChildren x) (f x))
+  treeMap f (NodeWithChildren n x) =
+    NodeWithChildren n (List.map (treeMap f) x)
 \end{code}
 
 \subsection{Lookup Functions and Associated Types}
@@ -692,11 +697,11 @@ A value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents the locatio
 The author finds that \AgdaFunction{TreeLocation} is best understood in conjunction with \AgdaFunction{lookupTree}, which is defined in \fref{sec:lookupTreeDefinition}.
 
 \begin{code}
-{-# TERMINATING #-}
-TreeLocation : {a : Level} → {A : Set a} → Tree A → Set
-TreeLocation (Node n) = ⊤
-TreeLocation (NodeWithChildren n x) =
-  Maybe (Σ (Fin (List.length x)) (λ i → TreeLocation (List.lookup x i)))
+  {-# TERMINATING #-}
+  TreeLocation : {a : Level} → {A : Set a} → Tree A → Set
+  TreeLocation (Node n) = ⊤
+  TreeLocation (NodeWithChildren n x) =
+    Maybe (Σ (Fin (List.length x)) (λ i → TreeLocation (List.lookup x i)))
 \end{code}
 
 \subsection{The Lookup Function}\label{sec:lookupTreeDefinition}
@@ -705,48 +710,61 @@ TreeLocation (NodeWithChildren n x) =
 The author thinks that \AgdaFunction{lookupTree} is best understood in conjunction with \AgdaFunction{TreeLocation}, which is defined in \fref{sec:TreeLocationDefinition}.
 
 \begin{code}
-lookupTree : {a : Level} → {A : Set a} → (t : Tree A) → TreeLocation t → Tree A
-lookupTree (Node n) tt = Node n
-lookupTree o@(NodeWithChildren n x) nothing = o
-lookupTree (NodeWithChildren n x) (just (m , m2)) =
-  lookupTree (List.lookup x m) m2
+  lookupTree : {a : Level} → {A : Set a} → (t : Tree A) → TreeLocation t → Tree A
+  lookupTree (Node n) tt = Node n
+  lookupTree o@(NodeWithChildren n x) nothing = o
+  lookupTree (NodeWithChildren n x) (just (m , m2)) =
+    lookupTree (List.lookup x m) m2
 \end{code}
 
 \subsection{Properties of Trees and Related Functions}
 This subsection constitutes a module.  More specifically, this subsection constitutes a module regarding the properties of things which are related to \AgdaDatatype{Tree}, e.g., \AgdaFunction{treeMap}.
 
 \begin{code}
-module TreeProperties where
+  module Properties where
 \end{code}
 
 \subsubsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
 Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree} proves that \AgdaBound{t} is a subtree of \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{t} for all relevant \AgdaBound{f} and \AgdaBound{t}.
 
 \begin{code}
-  {-# TERMINATING #-}
-  treeMap-creates-supertree :
-    {a : Level} →
-    {A : Set a} →
-    (f : A → Maybe (List.List (Tree A))) →
-    (t : Tree A) →
-    IsSubtree t (treeMap f t)
-  treeMap-creates-supertree f (Node n) with f n
-  ... | just newChildren = SubtreeChildAddition
-  ... | nothing = SubtreeReflexivity
-  treeMap-creates-supertree f (NodeWithChildren n x) =
-    ChildrenAreSubtrees (sym (ListProp.length-map (treeMap f) x))
-                        (universality-implies-all (treeMap-creates-supertree f))
-    where
-    universality-implies-all : {a b : Level} →
-          {A : Set a} →
-          {B : A → A → Set b} →
-          {f : A → A} →
-          ((x : A) → B x (f x)) →
-          {list : List.List A} →
-          AllList.All (uncurry B) (List.zip list (List.map f list))
-    universality-implies-all universalProof {List.[]} = AllList.[]
-    universality-implies-all universalProof {x List.∷ xs} =
-      universalProof x AllList.∷ universality-implies-all universalProof {xs}
+    {-# TERMINATING #-}
+    treeMap-creates-supertree :
+      {a : Level} →
+      {A : Set a} →
+      (f : A → Maybe (List.List (Tree A))) →
+      (t : Tree A) →
+      IsSubtree t (treeMap f t)
+    treeMap-creates-supertree f (Node n) with f n
+    ... | just newChildren = SubtreeChildAddition
+    ... | nothing = SubtreeReflexivity
+    treeMap-creates-supertree f (NodeWithChildren n x) =
+      ChildrenAreSubtrees (sym (ListProp.length-map (treeMap f) x))
+                          (universality-implies-all (treeMap-creates-supertree f))
+      where
+      universality-implies-all : {a b : Level} →
+            {A : Set a} →
+            {B : A → A → Set b} →
+            {f : A → A} →
+            ((x : A) → B x (f x)) →
+            {list : List.List A} →
+            AllList.All (uncurry B) (List.zip list (List.map f list))
+      universality-implies-all universalProof {List.[]} = AllList.[]
+      universality-implies-all universalProof {x List.∷ xs} =
+        universalProof x AllList.∷ universality-implies-all universalProof {xs}
+\end{code}
+
+\subsection{Exporting Particularly Useful Functions and Such}
+To prevent the excessive usage of the relevant name qualifier, the author has chosen to permit the unqualified use of certain \AgdaDatatype{Tree}-related identifiers.
+
+\begin{code}
+open Tree
+  using
+    ( Tree
+    ; treeMap
+    ; Node
+    ; NodeWithChildren
+    )
 \end{code}
 
 \part{Formal Definitions for Computer Algebra Systems}
