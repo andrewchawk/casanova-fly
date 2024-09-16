@@ -767,6 +767,78 @@ open Tree
     )
 \end{code}
 
+\section{The Generalized Sorting Function}
+\AgdaFunction{sortOn} is a generalized sorting function.
+
+Informally, one can say that \AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{f} \AgdaBound{list} sorts, in ascending order, \AgdaFunction{List.map} \AgdaBound{f} \AgdaBound{list}, replaces the values in this \AgdaFunction{List.map} list with the original \AgdaBound{list} values, and returns the result.
+
+More formally, one can say that \AgdaFunction{sortOn} is such that the following statements apply for all relevant \AgdaBound{i1}, \AgdaBound{i2}, \AgdaBound{list}, and \AgdaBound{f}:
+
+\begin{enumerate}
+  \item \(i_1 \leq i_2\) if and only if \AgdaFunction{List.lookup} \AgdaSymbol(\AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{list}\AgdaSymbol) \AgdaBound{i1} is less than or equal to \AgdaFunction{List.lookup} \AgdaSymbol(\AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{list}\AgdaSymbol) \AgdaBound{i2}, where \(i_1\) and \(i_2\) are the values which are represented by \AgdaBound{i1} and \AgdaBound{i2}, respectively.\label{enum:sortOn-ordering}
+  \item \AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{list} is a permutation of \AgdaBound{list}.\label{enum:sortOn-permutation}
+\end{enumerate}
+
+\begin{code}
+module sortOn where
+\end{code}
+
+\subsection{The Definition Proper}
+\AgdaFunction{main} will become the actual \AgdaFunction{sortOn} function.
+
+\begin{code}
+  main : {a b eqLevel orderLevel : Level} →
+         {A : Set a} →
+         {B : Set b} →
+         {orderRelation : B → B → Set orderLevel} →
+         {eqRelation : B → B → Set eqLevel} →
+         IsDecTotalOrder eqRelation orderRelation →
+         (A → B) →
+         (List.List A → List.List A)
+  main = {!!}
+\end{code}
+
+\subsection{Properties of the Function}
+This submodule contains proofs of the various properties of \AgdaFunction{sortOn}.
+
+\begin{code}
+  module Properties {a b eqLevel orderLevel : Level}
+                    {A : Set a}
+                    {B : Set b}
+                    {orderRelation : B → B → Set orderLevel}
+                    {eqRelation : B → B → Set eqLevel}
+                    (totalOrder : IsDecTotalOrder eqRelation orderRelation)
+                    (f : A → B) where
+\end{code}
+
+\subsubsection{Proper Ordering}
+\AgdaFunction{is-ordered} proves that \fref{enum:sortOn-ordering} is actually relevant.
+
+\begin{code}
+    is-ordered :
+      (list : List.List A) →
+      (i1 i2 : Fin (List.length (main totalOrder f list))) →
+      i1 Data.Fin.≤ i2 →
+      (orderRelation on (f ∘ List.lookup (main totalOrder f list))) i1 i2 ⊎
+      (eqRelation on (f ∘ List.lookup (main totalOrder f list))) i1 i2
+    is-ordered = {!!}
+\end{code}
+
+\subsubsection{Permutation Status}
+\AgdaFunction{generates-permutation} proves that \fref{enum:sortOn-permutation} correctly describes \AgdaFunction{sortOn}.
+
+\begin{code}
+    generates-permutation : (list : List.List A) → list ↭ main totalOrder f list
+    generates-permutation = {!!}
+\end{code}
+
+\subsection{Exporting the Function}
+This subsection marks the end of the \AgdaFunction{sortOn} module.  Anyway, to prevent excessive verbosity, the author has defined yet another abbreviated identifier.
+
+\begin{code}
+sortOn = sortOn.main
+\end{code}
+
 \part{Formal Definitions for Computer Algebra Systems}
 
 \chapter{The Type of Mostly-Unverified Computer Algebra Systems}
@@ -2641,8 +2713,6 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
               List.List (Maybe (Exceptional ε))
 
   module lightning where
-    sortBySnd : {a : Level} → {A : Set a} → List.List (A × ℕ) → List.List A
-    sortBySnd = {!!}
 
     badness : Maybe (Exceptional ε) → ℕ
     badness = {!!}
@@ -2656,7 +2726,8 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
     bestValueTree list = contents (Data.Maybe.to-witness isJust)
       where
       isJust :
-        Is-just (List.head (sortBySnd (List.map (λ x → x , treeBadness x) list)))
+        (Is-just ∘ List.head)
+          (sortOn Data.Nat.Properties.≤-isDecTotalOrder treeBadness list)
       isJust = {!!}
       contents : Tree (Maybe (Exceptional ε)) → List.List (Maybe (Exceptional ε))
       contents (Node n) = List.[ n ]
