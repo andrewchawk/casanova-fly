@@ -695,6 +695,7 @@ module TreeProperties where
 Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree} proves that \AgdaBound{t} is a subtree of \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{t} for all relevant \AgdaBound{f} and \AgdaBound{t}.
 
 \begin{code}
+  {-# TERMINATING #-}
   treeMap-creates-supertree :
     {a : Level} →
     {A : Set a} →
@@ -706,7 +707,18 @@ Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree}
   ... | nothing = SubtreeReflexivity
   treeMap-creates-supertree f (NodeWithChildren n x) =
     ChildrenAreSubtrees (sym (ListProp.length-map (treeMap f) x))
-                        {!!}
+                        (universality-implies-all (treeMap-creates-supertree f))
+    where
+    universality-implies-all : {a b : Level} →
+          {A : Set a} →
+          {B : A → A → Set b} →
+          {f : A → A} →
+          ((x : A) → B x (f x)) →
+          {list : List.List A} →
+          AllList.All (uncurry B) (List.zip list (List.map f list))
+    universality-implies-all universalProof {List.[]} = AllList.[]
+    universality-implies-all universalProof {x List.∷ xs} =
+      universalProof x AllList.∷ universality-implies-all universalProof {xs}
 \end{code}
 
 \part{Formal Definitions for Computer Algebra Systems}
