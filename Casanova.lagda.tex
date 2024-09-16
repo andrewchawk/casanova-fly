@@ -2639,7 +2639,35 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 \begin{code}
   lightning : Tree (Maybe (Exceptional ε)) →
               List.List (Maybe (Exceptional ε))
-  lightning = {!!}
+
+  module lightning where
+    sortBySnd : {a : Level} → {A : Set a} → List.List (A × ℕ) → List.List A
+    sortBySnd = {!!}
+
+    badness : Maybe (Exceptional ε) → ℕ
+    badness = {!!}
+
+    treeBadness : Tree (Maybe (Exceptional ε)) → ℕ
+    treeBadness (Node n) = badness n
+    treeBadness (NodeWithChildren n x) = {!!}
+
+    bestValueTree : List.List (Tree (Maybe (Exceptional ε))) →
+                    List.List (Maybe (Exceptional ε))
+    bestValueTree list = contents (Data.Maybe.to-witness isJust)
+      where
+      isJust :
+        Is-just (List.head (sortBySnd (List.map (λ x → x , treeBadness x) list)))
+      isJust = {!!}
+      contents : Tree (Maybe (Exceptional ε)) → List.List (Maybe (Exceptional ε))
+      contents (Node n) = List.[ n ]
+      contents (NodeWithChildren n x) = n List.∷ bestValueTree x
+
+    main : Tree (Maybe (Exceptional ε)) →
+           List.List (Maybe (Exceptional ε))
+    main = bestValueTree ∘ List.[_]
+
+  {-# TERMINATING #-}
+  lightning = lightning.main
 \end{code}
 
 \chapter{The Less-Than Type}
