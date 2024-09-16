@@ -792,6 +792,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a limit function,
   \item a bounded integral function,
   \item a variable substitution function,
+  \item a factoring function,
   \item a function which converts the input into the additive inverse of the input,
   \item a lambda expression function,
   \item a variable-is-used type,
@@ -849,6 +850,9 @@ A compliant CAS also has a function which performs the specified number of non-r
 
 \subsection{The Bounded Bogosity Check Function}
 \AgdaField{CAS.bogusBeforeIteration?} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains an appropriate value if and only if such a value exists.\footnote{In other words, the author so kindly suggests reading type definitions instead of expecting spoonfeeding.}  \emph{Gee}, \emph{that} explanation is the bee's knees!
+
+\section{The Expression-Factoring Function}
+If and only if such a value is found, then \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains \AgdaBound{v}, where \AgdaBound{e} is \AgdaBound{c}-\gls{algEq} to the product of \AgdaBound{v}.  If and only if no such value can be found, then \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is \AgdaInductiveConstructor{nothing}.
 
 \section{Representational Functions}
 
@@ -1011,6 +1015,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     limit : String → ε → ε → ε
     boundedIntegral : String → ε → ε → ε → ε
     substituteVariables : List.List (String × ε) → ε → ε
+    factor : (n : ℕ) → ε → Maybe (Vec ε n)
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
     IsInfinite : ε → Set a
@@ -2722,7 +2727,7 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
 \chapter{Printing Functions}
 
 \section{The Non-Currying Printing Function}
-\AgdaFunction{uglyPrint} is the printing function which does not explicitly do currying and, accordingly, outputs stuff which strikes the author as being pretty randid.  Some people, however, prefer the ``\(f\left(x\right)\)'' notation over the ``\(f\ x\)'' notation.  The author does not understand these people but aims to at least occasionally please.
+\AgdaFunction{uglyPrint} is the printing function which does not explicitly do currying and, accordingly, outputs stuff which strikes the author as being pretty rancid.  Some people, however, prefer the ``\(f\left(x\right)\)'' notation over the ``\(f\ x\)'' notation.  The author does not understand these people but aims to at least occasionally please.
 
 \begin{code}
   {-# TERMINATING #-}
@@ -3024,6 +3029,7 @@ CasanovaFly-Base = record
   ; limit = λ n b e → Ap (Limit n) (b ∷ [ e ])
   ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
   ; substituteVariables = varSubstM
+  ; factor = {!!}
   ; IsNameOfVariableIn = IsReferencedIn
   ; IsReal = {!!}
   ; IsInfinite = {!!}
