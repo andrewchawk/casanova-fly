@@ -2565,11 +2565,12 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
   uglyPrint (NumberRat r) =
     if isYes (ℚ.denominator r Data.Integer.≟ Data.Integer.1ℤ)
        then IntShow.show (ℚ.numerator r)
-       else               "\\frac{"
-           Data.String.++ IntShow.show (ℚ.numerator r)
-           Data.String.++ "}{"
-           Data.String.++ IntShow.show (ℚ.denominator r)
-           Data.String.++ "}"
+       else Data.String.concat (Data.Vec.toList
+              ( "\\frac{"
+              ∷ IntShow.show (ℚ.numerator r)
+              ∷ "}{"
+              ∷ IntShow.show (ℚ.denominator r)
+              ∷ [ "}" ]))
   uglyPrint (Quotient x y z) =
     Data.String.concat (Data.Vec.toList
       ( "\\frac{"
@@ -2587,11 +2588,12 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       ∷ uglyPrint y
       ∷ [ "\\right)" ]))
   uglyPrint (Ap Exponent (x ∷ y ∷ [])) =
-                   "\\left("
-    Data.String.++ uglyPrint x
-    Data.String.++ "\\right) ^ {"
-    Data.String.++ uglyPrint y
-    Data.String.++ "}"
+    Data.String.concat (Data.Vec.toList
+      ( "\\left("
+      ∷ uglyPrint x
+      ∷ "\\right) ^ {"
+      ∷ uglyPrint y
+      ∷ [ "}" ]))
   uglyPrint (Ap (Lambda x) (body ∷ args)) =
     Data.String.concat (Data.Vec.toList
       ( "\\left(\\lambda\\ "
