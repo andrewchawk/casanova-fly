@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+title: 'Casanova Fly: A Formally-Verified Computer Algebra System'
+authors:
+  - given-names: Andrew
+    family-names: Hawk
+    email: andrewchawk@protonmail.com
+    orcid: 'https://orcid.org/0009-0000-3101-3304'
+repository-code: 'https://github.com/andrewchawk/casanova-fly'
+abstract: >-
+  This paper answers questions like "what is a computer
+  algebra system", "what constitutes a formally-verified
+  computer algebra system", and "what is an example of such
+  a formally-verified computer algebra system".
+license: Unlicense

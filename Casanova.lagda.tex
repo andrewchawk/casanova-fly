@@ -129,6 +129,7 @@ open import Data.List.Relation.Binary.Permutation.Setoid
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
+import Data.Integer.Show as IntShow
 import Data.Sum.Properties
 import Data.List.Relation.Unary.All as AllList
 import Data.List.Relation.Unary.All.Properties as AllListProp
@@ -663,6 +664,7 @@ Fundamentally, a computer algebra system for an expression type \(\epsilon\) can
   \item a limit function,
   \item a bounded integral function,
   \item a variable substitution function,
+  \item a factoring function,
   \item a function which converts the input into the additive inverse of the input,
   \item a lambda expression function,
   \item a variable-is-used type,
@@ -720,6 +722,9 @@ A compliant CAS also has a function which performs the specified number of non-r
 
 \subsection{The Bounded Bogosity Check Function}
 \AgdaField{CAS.bogusBeforeIteration?} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains an appropriate value if and only if such a value exists.\footnote{In other words, the author so kindly suggests reading type definitions instead of expecting spoonfeeding.}  \emph{Gee}, \emph{that} explanation is the bee's knees!
+
+\section{The Expression-Factoring Function}
+If and only if such a value is found, then \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains \AgdaBound{v}, where \AgdaBound{e} is \AgdaBound{c}-\gls{algEq} to the product of \AgdaBound{v}.  If and only if no such value can be found, then \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is \AgdaInductiveConstructor{nothing}.
 
 \section{Representational Functions}
 
@@ -882,6 +887,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     limit : String → ε → ε → ε
     boundedIntegral : String → ε → ε → ε → ε
     substituteVariables : List.List (String × ε) → ε → ε
+    factor : (n : ℕ) → ε → Maybe (Vec ε n)
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
     IsInfinite : ε → Set a
@@ -1125,7 +1131,7 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 \AgdaField{VCAS.limit-of-products-is-product} \AgdaBound{v} proves that the \AgdaBound{v} CAS can correctly determine that \(\lim_{x \rightarrow y} \left(v \cdot w\right)\) is algebraically equivalent to \(\left(\lim_{x \rightarrow y} v\right) \cdot \lim_{x \rightarrow y} w\).
 
 \subsection{The Non-Bogus Limit Field}
-\AgdaField{VCAS.limit-of-non-bogus-expression} \AgdaBound{v} proves that if \(f y\) is not \gls{bogusWrt} \AgdaBound{c}, then \(\lim_{x \rightarrow y} \left(f x\right)\) is \AgdaBound{c}-\gls{algEq} \(f y\).
+\AgdaField{VCAS.limit-of-non-bogus-expression} \AgdaBound{v} proves that if \(f\ y\) is not \gls{bogusWrt} \AgdaBound{c}, then \(\lim_{x \rightarrow y} \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(f\ y\).
 
 \section{Lambda Correctness Proofs}
 
@@ -2408,20 +2414,55 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
                                    ∷ [ NumberNat 2 ]) ])
                else nothing
            ; _ → nothing})
+      ∷ (λ { (Ap (Limit n1) (b ∷ Variable n2 ∷ [])) →
+             if n1 Data.String.== n2
+                then valid b
+                else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ e ∷ [])) →
+             if isYes (IsConstant? e) then valid e else nothing
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ (Ap Sum (x ∷ y ∷ [])) ∷ [])) →
+             valid (Ap Sum (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ]) ]))
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
+             valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ Quotient x y coprime ∷ [])) →
+             valid (Quotient (Ap (Limit n) (b ∷ [ x ]))
+                             (Ap (Limit n) (b ∷ [ y ]))
+                             coprime)
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
+             valid (Ap Product (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ])]))
+           ; _ → nothing})
+      ∷ (λ { (Ap (Limit n1) (c ∷ Ap Exponent (Variable n2 ∷ NumberNatP x copr ∷ []) ∷ [])) →
+             if (n1 Data.String.== n2) ∧ (0 Data.Nat.<ᵇ x)
+                then valid (Ap Exponent (c ∷ [ NumberNat x ]))
+                else nothing
+           ; _ → nothing})
       ∷ (λ { (Ap (Lambda names) (body ∷ expressions)) →
              valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
            ; _ → nothing})
       ∷ freeDerivativesFromPoints
       ∷ basicDerivativeChainRuleFunction
-      ∷ (λ { (Ap f x) → [_,_] bust
-                              (valid ∘ Ap f)
-                              (condenseExceptionList (Data.Vec.map main x))
+      ∷ (λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
            ; _ → nothing})
       ∷ []
       )
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
+      updateFirst : {n : ℕ} → Vec ε n → Exceptional (Vec ε n)
+      updateFirst [] = inj₂ []
+      updateFirst (x ∷ xs) with
+        Data.Sum.Properties.≡-dec
+          Data.String._≟_
+          structuralEqualityOnε
+          (inj₂ x)
+          (main x)
+      ... | yes eq = [_,_]′ inj₁ (λ xs → inj₂ (x ∷ xs)) (updateFirst xs)
+      ... | no neq = [_,_]′ inj₁ (λ x → inj₂ (x ∷ xs)) (main x)
       freeDerivativesFromPoints : ε → Maybe (Exceptional ε)
       freeDerivativesFromPoints =
         λ { (Ap (Derivative n) (x ∷ [])) →
@@ -2550,6 +2591,118 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       {list : Vec ε (arity f)} →
       AnyVec.Any (IsReferencedIn name) list →
       IsReferencedIn name (Ap f list)
+\end{code}
+
+\chapter{Printing Functions}
+
+\section{The Non-Currying Printing Function}
+\AgdaFunction{uglyPrint} is the printing function which does not explicitly do currying and, accordingly, outputs stuff which strikes the author as being pretty rancid.  Some people, however, prefer the ``\(f\left(x\right)\)'' notation over the ``\(f\ x\)'' notation.  The author does not understand these people but aims to at least occasionally please.
+
+\begin{code}
+  {-# TERMINATING #-}
+  uglyPrint : ε → String
+  uglyPrint Infinity = "\\infty"
+  uglyPrint (Variable x) = "\\mathit{" Data.String.++ x Data.String.++"}"
+  uglyPrint (NumberRat r) =
+    if isYes (ℚ.denominator r Data.Integer.≟ Data.Integer.1ℤ)
+       then IntShow.show (ℚ.numerator r)
+       else               "\\frac{"
+           Data.String.++ IntShow.show (ℚ.numerator r)
+           Data.String.++ "}{"
+           Data.String.++ IntShow.show (ℚ.denominator r)
+           Data.String.++ "}"
+  uglyPrint (Quotient x y z) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\frac{"
+      ∷ uglyPrint x
+      ∷ "}{"
+      ∷ uglyPrint y
+      ∷ [ "}" ]))
+  uglyPrint (Ap Sum (x ∷ y ∷ [])) =
+    uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
+  uglyPrint (Ap Product (x ∷ y ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\left("
+      ∷ uglyPrint x
+      ∷ "\\right) \\cdot \\left("
+      ∷ uglyPrint y
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap Exponent (x ∷ y ∷ [])) =
+                   "\\left("
+    Data.String.++ uglyPrint x
+    Data.String.++ "\\right) ^ {"
+    Data.String.++ uglyPrint y
+    Data.String.++ "}"
+  uglyPrint (Ap (Lambda x) (body ∷ args)) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\left(\\lambda\\ "
+      ∷ Data.String.intersperse
+          "\\ "
+          (List.map (uglyPrint ∘ Variable) x)
+      ∷ " \\rightarrow "
+      ∷ uglyPrint body
+      ∷ "\\right)\\ "
+      ∷ [ Data.String.intersperse
+            "\\ "
+            (List.map
+              (λ x → Data.String.concat (Data.Vec.toList
+                       ( "\\left("
+                       ∷ uglyPrint x
+                       ∷ [ "\\right)" ])))
+              (Data.Vec.toList args))]))
+  uglyPrint (Ap (Limit x) (bound ∷ expression ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\lim_{"
+      ∷ uglyPrint (Variable x)
+      ∷ " \\rightarrow "
+      ∷ uglyPrint bound
+      ∷ "} \\left("
+      ∷ uglyPrint expression
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (Derivative name) (x ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\derivative{"
+      ∷ uglyPrint (Variable name)
+      ∷ "} \\left("
+      ∷ uglyPrint x
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (Antiderivative name) (x ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\int_{"
+      ∷ uglyPrint (Variable name)
+      ∷ "} \\left("
+      ∷ uglyPrint x
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (BoundedIntegral name) (b1 ∷ b2 ∷ x ∷ [])) =
+    Data.String.concat (Data.Vec.toList
+      ( "\\int_{"
+      ∷ uglyPrint (Variable name)
+      ∷ " = "
+      ∷ uglyPrint b1
+      ∷ "}^{"
+      ∷ uglyPrint b2
+      ∷ "} \\left("
+      ∷ uglyPrint x
+      ∷ [ "\\right)" ]))
+  uglyPrint (Ap (Compose g f arityEquality) x) =
+    -- hack
+    uglyPrint (Ap g (Data.Vec.cast (sym arityEquality) [ Ap f x ]))
+  uglyPrint (Ap Abs (x ∷ [])) =
+    "\\left| " Data.String.++ uglyPrint x Data.String.++ "\\right|"
+  uglyPrint (Ap Negate (x ∷ [])) =
+    "- \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Sin (x ∷ [])) =
+    "\\sin \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Cos (x ∷ [])) =
+    "\\cos \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Tan (x ∷ [])) =
+    "\\cos \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Csc (x ∷ [])) =
+    "\\csc \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Sec (x ∷ [])) =
+    "\\sec \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
+  uglyPrint (Ap Cot (x ∷ [])) =
+    "\\cot \\left(" Data.String.++ uglyPrint x Data.String.++ "\\right)"
 \end{code}
 
 \chapter{The Associated Proofs}
@@ -2745,6 +2898,7 @@ CasanovaFly-Base = record
   ; limit = λ n b e → Ap (Limit n) (b ∷ [ e ])
   ; boundedIntegral = λ name b1 b2 e → Ap (BoundedIntegral name) (b1 ∷ b2 ∷ [ e ])
   ; substituteVariables = varSubstM
+  ; factor = {!!}
   ; IsNameOfVariableIn = IsReferencedIn
   ; IsReal = {!!}
   ; IsInfinite = {!!}
