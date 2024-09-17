@@ -1571,6 +1571,15 @@ The following statements hold:
   isCommutative (Compose g f eq) x = false
 \end{code}
 
+\section{The Associativity-Determining Function}
+
+\begin{code}
+  isAssociative : (f : F) → arity f ≡ 2 → Bool
+  isAssociative Sum refl = true
+  isAssociative Product refl = true
+  isAssociative f eq = false
+\end{code}
+
 \section{The Variable Substitution Function}\label{sec:varSubstM-def}
 \AgdaFunction{varSubstM} is the multi-variable substitution function.  In \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e}, any variable in \AgdaBound{e} which also has an entry in \AgdaBound{l} will be replaced by the corresponding \AgdaDatatype{ε} entry in \AgdaBound{l}.  More formally, one can say that \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e} is a derivative of \AgdaBound{e} such that for any given variable \AgdaBound{x} in \AgdaBound{e}, if a value \AgdaBound{i} exists such that \AgdaField{proj₁} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol) is \AgdaBound{x}, then \AgdaBound{x} is replaced by \AgdaField{proj₂} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol).
 
@@ -2170,11 +2179,8 @@ According to \AgdaInductiveConstructor{EqualityImpliesAE}, two \AgdaDatatype{ε}
 \subsubsection{Commutativity}
 Basically, according to \AgdaInductiveConstructor{Commutativity}, if \AgdaBound{a} is a permutation of \AgdaBound{b} and \AgdaBound{f} is commutative, then \AgdaBound{f} \AgdaBound{a} is algebraically equivalent to \AgdaBound{f} \AgdaBound{b}.
 
-\subsubsection{Sum Associativity}
-Basically, according to \AgdaInductiveConstructor{SumIsAssociative}, \(a + \left(b + c\right) = \left(a + b\right) + c\).
-
-\subsubsection{Product Associativity}
-Basically, according to \AgdaInductiveConstructor{ProductIsAssociative}, \(a \cdot \left(b \cdot c\right) = \left(a \cdot b\right) \cdot c\).
+\subsubsection{Associativity}
+Basically, according to \AgdaInductiveConstructor{Associativity}, if \AgdaBound{f} is associative and is of arity 2, then \(f\prime x \left(f y z\right) = f \left(f\prime x y\right) z\), where ``\(f'\)'' denotes the function which is represented by \AgdaBound{f}.
 
 \subsubsection{Composition}
 Thanks to \AgdaInductiveConstructor{Composition}, proving that \(g \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(\left(g \circ f\right)\ x\) is downright simple.
@@ -2202,14 +2208,13 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
                             (Data.Vec.toList x)
                             (Data.Vec.toList y) →
         main (Ap f x) (Ap f y)
-      SumIsAssociative :
-        {x1 x2 x3 : ε} →
-        main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
-             (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
-      ProductIsAssociative :
-        {x1 x2 x3 : ε} →
-        main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
-             (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+      Associativity :
+        {f : F} →
+        {x y z : ε} →
+        {eq : arity f ≡ 2} →
+        true ≡ isAssociative f eq →
+        main (Ap f (cast (sym eq) (x ∷ [ Ap f (cast (sym eq) (y ∷ [ z ]))])))
+             (Ap f (cast (sym eq) (Ap f (cast (sym eq) (x ∷ [ y ])) ∷ [ z ])))
       Composition : {g f : F} →
                     {x : Vec ε (arity f)} →
                     (eq : arity g ≡ 1) →
@@ -2226,7 +2231,7 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
 \end{code}
 
 \subsubsection{Some Useful Shorthands}
-A short summary is as follows: \AgdaFunction{ProductCommutes} and \AgdaFunction{SumCommutes} prove that commutative equality applies to multiplication and addition, respectively.
+A short summary is as follows: \AgdaFunction{ProductCommutes} and \AgdaFunction{SumCommutes} prove that commutative equality applies to multiplication and addition, respectively.  \AgdaFunction{SumIsAssociative} and \AgdaFunction{ProductIsAssociative} prove that associative equality applies to addition and multiplication, respectively.
 
 \begin{code}
     SumCommutes :
@@ -2254,6 +2259,18 @@ A short summary is as follows: \AgdaFunction{ProductCommutes} and \AgdaFunction{
         where
         swapP = Data.List.Relation.Binary.Permutation.Setoid.swap
         reflP = Data.List.Relation.Binary.Permutation.Setoid.refl
+
+    SumIsAssociative :
+      {x1 x2 x3 : ε} →
+      main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
+           (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+    SumIsAssociative = Associativity refl
+
+    ProductIsAssociative :
+      {x1 x2 x3 : ε} →
+      main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
+           (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+    ProductIsAssociative = Associativity refl
 \end{code}
 
 \subsection{The Equivalence Proof}
