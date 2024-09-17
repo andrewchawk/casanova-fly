@@ -1062,13 +1062,13 @@ Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the 
 
 \section{Variable Correctness Proofs}
 
-\subsection{The Proof which Indicates that Values of Different Names are Not ``Definitely Equal''}
+\subsection{The Proof which Indicates that Variables of Different Names are Not ``Definitely Equal''}
 Any two given variables are not necessarily equal.  Accordingly, \AgdaField{VCAS.differently-named-variables-are-not-definitely-equal} \AgdaBound{c} indicates that within the \AgdaBound{c} CAS, given any two \AgdaBound{c} variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \(x\) is not definitely equal to \(y\).
 
 \section{Addition Correctness Proofs}
 
 \subsection{The Natural Number Sum Field}
-Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural numbers should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  To prevent such incorrect implementations, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proofs which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
+Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system \(C\), for natural numbers \(i\) and \(j\), \(C\)'s representation of \(i + j\) should be \(C\)-\gls{algEq} to \(C\)'s sum of \(C\)'s representation of \(i\) and \(C\)'s representation of \(j\).  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  To prevent such incorrect implementations, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proofs which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
 
 \subsection{The Non-Bogus Sum Field}
 \AgdaField{VCAS.sum-is-not-bogus} indicates that for any given non-bogus values \AgdaBound{e1} and \AgdaBound{e2}, the sum of \AgdaBound{e1} and \AgdaBound{e2} is not bogus.
