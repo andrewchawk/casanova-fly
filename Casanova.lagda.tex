@@ -631,6 +631,66 @@ module nonRepeatingPortion-Properties
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
+\chapter{Some Functions}
+
+\section{The Natural Number Bifactoring Function}
+\AgdaFunction{bifactorNat} is the natural number bifactoring function, i.e., \AgdaFunction{bifactorNat} \AgdaBound{n} is the list of all natural number pairs \(p\) such that the product of the parts of \(p\) is equal to \AgdaBound{n}.
+
+To facilitate proofs of correctness, with the exception of the final definition, this whole section constitutes a module.
+
+\begin{code}
+module bifactorNat where
+\end{code}
+
+\subsection{The Main Function}\label{sec:bifactorNat-main}
+\AgdaFunction{main} will eventually become \AgdaFunction{bifactorNat}.
+
+\begin{code}
+  main : ℕ → List.List (ℕ × ℕ)
+  main n = List.filter (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
+                       (List.cartesianProduct (List.upTo (ℕ.suc n))
+                                              (List.upTo (ℕ.suc n)))
+\end{code}
+
+\subsection{Properties}
+This section contains proofs regarding the main function and constitutes a module.
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\subsubsection{The Proof of Containment of Only Factor Pairs}
+A smidge informally, one can say that \AgdaFunction{each-element-is-factor-pair} proves that \AgdaFunction{main} \AgdaBound{n} contains only pairs of elements whose product is equal to \AgdaBound{n}.  A bit more formally, one can say that the function proves that for any \AgdaBound{f1} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{f2} in \AgdaFunction{main} \AgdaBound{n}, \(f_1 \cdot f_2 = n\prime\), where \(f_1\), \(f_2\), and \(n\prime\) are the values which are represented by \AgdaBound{f1}, \AgdaBound{f2}, and \AgdaBound{n}, respectively.
+
+\begin{code}
+    each-element-is-factor-pair :
+      (n : ℕ) →
+      AllList.All (λ (f1 , f2) → f1 Data.Nat.* f2 ≡ n) (main n)
+    each-element-is-factor-pair n =
+      AllListProp.all-filter
+        (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
+        (List.cartesianProduct (List.upTo (ℕ.suc n))
+                               (List.upTo (ℕ.suc n)))
+\end{code}
+
+\subsubsection{The Containment Proof}
+One can more or less paraphrase the name to say that \AgdaFunction{each-factor-pair-is-in-list} proves that each factor pair for \AgdaBound{n} is an element of \AgdaFunction{main} \AgdaBound{n}.
+
+\begin{code}
+    each-factor-pair-is-in-list :
+      (n f1 f2 : ℕ) →
+      f1 Data.Nat.* f2 ≡ n →
+      (f1 , f2) ∈ main n
+    each-factor-pair-is-in-list = {!!}
+\end{code}
+
+\subsection{Exporting the Function}
+As indicated in \fref{se:bifactorNat-main}, the author has decided to provide the ``\AgdaFunction{bifactorNat}'' alias for \AgdaFunction{bifactorNat.main}.
+
+\begin{code}
+bifactorNat = bifactorNat.main
+\end{code}
+
 \part{Formal Definitions for Computer Algebra Systems}
 
 \chapter{The Type of Mostly-Unverified Computer Algebra Systems}
