@@ -716,7 +716,7 @@ A compliant CAS also has a function which performs the specified number of non-r
 \AgdaField{CAS.bogusBeforeIteration?} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains an appropriate value if and only if such a value exists.\footnote{In other words, the author so kindly suggests reading type definitions instead of expecting spoonfeeding.}  \emph{Gee}, \emph{that} explanation is the bee's knees!
 
 \section{The Expression-Factoring Function}
-\AgdaFunction{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is a list of all nontrivial \AgdaBound{n}-vectors whose products are \AgdaBound{c}-\gls{injEq} to \AgdaBound{e}.
+\AgdaFunction{CAS.factor} \AgdaBound{c} \AgdaBound{e} is a list of every value whose product is \AgdaBound{c}-\gls{algEq} to \AgdaBound{e}.
 
 \section{Representational Functions}
 
@@ -879,7 +879,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     limit : String → ε → ε → ε
     boundedIntegral : String → ε → ε → ε → ε
     substituteVariables : List.List (String × ε) → ε → ε
-    factor : (n : ℕ) → ε → List.List (Vec ε n)
+    factor : ε → List.List (List.List ε)
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
     IsInfinite : ε → Set a
@@ -1196,7 +1196,10 @@ We ain't done yet, folks!  Additional fields include the basic trigonometric der
 \AgdaField{VCAS.natural-number-less-than} \AgdaBound{v} proves that for any two natural numbers \(m\) and \(n\), if \(m < n\), then the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(m\) is less than the \AgdaBound{v} CAS's representation of \(n\).
 
 \section{The Factoring Correctness Proof}
-\AgdaField{VCAS.factor-input-is-product-of-output} \AgdaBound{v} proves that for every value \(x\) in \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e}, the product of \(x\) is \gls{algEq} to \AgdaBound{e}.
+\AgdaField{VCAS.factor-input-is-product-of-output} \AgdaBound{v} proves that for every value \(x\) in \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{e}, the product of \(x\) is \gls{algEq} to \AgdaBound{e}, where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
+
+\section{The Factor List Containment Proof}
+\AgdaField{VCAS.factor-input-is-product-of-output} \AgdaBound{v} proves that if the product of some list \(l\) is \AgdaBound{c}-\gls{algEq} to \AgdaBound{e}, then \(l\) is in \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{e}, where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
 
 \section{The Definition Proper}
 
@@ -1388,9 +1391,13 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
           (bogus-at-some-iteration (negation product))
 
     factor-input-is-product-of-output :
-      (n : ℕ) →
       (e : ε) →
-      AllList.All (λ x → e ≈ Data.Vec.foldr _ _*_ (fromℕ 1) x) (factor n e)
+      AllList.All (λ x → e ≈ List.foldr _*_ (fromℕ 1) x) (factor e)
+    factor-list-contains-all-factor-lists :
+      (e : ε) →
+      (l : List.List ε) →
+      e ≈ List.foldr _*_ (fromℕ 1) l →
+      l ∈ factor e
 
     natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
@@ -2930,6 +2937,7 @@ CasanovaFly-Verified = record
   ; tangent-is-bogus-at-quarter-tau = {!!}
   ; natural-less-than = {!!}
   ; factor-input-is-product-of-output = {!!}
+  ; factor-list-contains-all-factor-lists = {!!}
   }
   where
   open CAS CasanovaFly-Base
