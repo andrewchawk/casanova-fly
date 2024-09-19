@@ -2592,6 +2592,11 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
     data LT where
       LT-Rational :
         {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
+      Transitivity : {x y z : ε} → LT x y → LT y z → LT x z
+      Substitution : {x y x2 y2 : ε} →
+                     AlgebraicEquality x x2 →
+                     AlgebraicEquality y y2 →
+                     LT x y → LT x2 y2
       Eventuality :
         {x y : ε} →
         (itx ity : ℕ) →
@@ -2615,8 +2620,9 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       strict-partial-order = record
         { isEquivalence = AlgebraicEquality.equivalence
         ; irrefl = {!!}
-        ; trans = {!!}
-        ; <-resp-≈ = {!!}
+        ; trans = LT.Transitivity
+        ; <-resp-≈ = (λ x → LT.Substitution (AlgebraicEquality.EqualityImpliesAE refl) x)
+                   , (λ x → LT.Substitution x (AlgebraicEquality.EqualityImpliesAE refl))
         }
 \end{code}
 
