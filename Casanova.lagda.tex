@@ -668,6 +668,18 @@ A value of type \AgdaDatatype{IsSubtree} \AgdaBound{t1} \AgdaBound{t2} exists if
                 (NodeWithChildren n children2)
 \end{code}
 
+\subsection{The Decomposition Function}
+A bit informally, one can say that \AgdaFunction{decompose} \AgdaBound{tree} is the list of paths from the root node of \AgdaBound{tree} to all terminal nodes of \AgdaBound{tree}.
+
+\begin{code}
+  {-# TERMINATING #-}
+  decompose : {a : Level} → {A : Set a} → Tree A → List.List (List.List A)
+  decompose (Node n) = List.[ List.[ n ] ]
+  decompose (NodeWithChildren n List.[]) = List.[ List.[ n ] ]
+  decompose (NodeWithChildren n x) =
+    List.concat (List.map (List.map (List._∷_ n) ∘ decompose) x)
+\end{code}
+
 \subsection{The Map Function}
 For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the following statements apply:
 
@@ -2775,8 +2787,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
     main : ℕ → ε → Tree (Maybe (Exceptional ε))
     main 0 e = Node (just (inj₂ e))
-    main (ℕ.suc n) e =
-      treeMap (_>>= [_,_] (const nothing) tryRules) (main n e)
+    main (ℕ.suc n) e = treeMap (_>>= [_,_] (const nothing) tryRules) (main n e)
 
   treeEvaluate = treeEvaluate.main
 \end{code}
@@ -2791,29 +2802,25 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
               List.List (Maybe (Exceptional ε))
 
   module lightning where
-
     badness : Maybe (Exceptional ε) → ℕ
-    badness = {!!}
+    badness nothing = 100000000000000000000000000000 -- Something is busted.
+    badness (just (inj₁ errorCode)) = badness nothing Data.Nat./ 10
+    badness (just (inj₂ (NumberRat r))) = 0
+    badness (just (inj₂ (Variable name))) = 0
+    badness (just (inj₂ Infinity)) = 0
+    badness (just (inj₂ (Ap f x))) = {!!}
 
-    treeBadness : Tree (Maybe (Exceptional ε)) → ℕ
-    treeBadness (Node n) = badness n
-    treeBadness (NodeWithChildren n x) = {!!}
-
-    bestValueTree : List.List (Tree (Maybe (Exceptional ε))) →
-                    List.List (Maybe (Exceptional ε))
-    bestValueTree list = contents (Data.Maybe.to-witness isJust)
-      where
-      isJust :
-        (Is-just ∘ List.head)
-          (sortOn Data.Nat.Properties.≤-isDecTotalOrder treeBadness list)
-      isJust = {!!}
-      contents : Tree (Maybe (Exceptional ε)) → List.List (Maybe (Exceptional ε))
-      contents (Node n) = List.[ n ]
-      contents (NodeWithChildren n x) = n List.∷ bestValueTree x
+    listBadness : List.List (Maybe (Exceptional ε)) → ℕ
+    listBadness (x List.∷ List.[]) = badness x
+    listBadness List.[] = 10000000000000000000000000 -- Something is incredibly broken.
+    listBadness (x List.∷ xs) = ℕ.suc (listBadness xs)
 
     main : Tree (Maybe (Exceptional ε)) →
            List.List (Maybe (Exceptional ε))
-    main = bestValueTree ∘ List.[_]
+    main x = to-witness {m = List.head (sortOn Data.Nat.Properties.≤-isDecTotalOrder
+                                               listBadness
+                                               (Tree.decompose x))}
+                        {!!}
 
   {-# TERMINATING #-}
   lightning = lightning.main
