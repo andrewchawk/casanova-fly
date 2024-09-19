@@ -697,6 +697,9 @@ One can more or less paraphrase the name to say that \AgdaFunction{each-factor-p
       f1 Data.Nat.* f2 ≡ n →
       (f1 , f2) ∈ main n
     each-factor-pair-is-in-list = {!!}
+    -- Basically, every possible factor pair is in the pre-filtered list,
+    -- and only the non-factor elements are removed in the filtering
+    -- process; therefore, every factor pair is in the filtered list.
 \end{code}
 
 \subsection{Exporting the Function}
