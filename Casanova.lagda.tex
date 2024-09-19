@@ -865,14 +865,30 @@ To facilitate proofs of correctness, with the exception of the final definition,
 module bifactorNat where
 \end{code}
 
+\subsection{The Possible Factor List Function}
+\AgdaFunction{possibleFactors} \AgdaBound{n} is a list of all possible factors of \AgdaBound{n}, i.e., natural numbers which are less than or equal to \(\sqrt{n\prime}\), where \(n\prime\) is the number which is represented by \AgdaBound{n}.
+
+\begin{code}
+  possibleFactors : ℕ → List.List ℕ
+  possibleFactors n = List.filter (λ fac → fac Data.Nat.≤? n Data.Nat.^ 2)
+                                  (List.upTo (ℕ.suc n))
+\end{code}
+
+\subsection{The Pair List Function}
+\AgdaFunction{pairList} \AgdaBound{n} is a list of all possible factor pairs of \AgdaBound{n}, i.e., 2-tuples whose product might be equal to \AgdaBound{n}.
+
+\begin{code}
+  pairList : ℕ → List.List (ℕ × ℕ)
+  pairList n = List.cartesianProduct (possibleFactors n) (possibleFactors n)
+\end{code}
+
 \subsection{The Main Function}\label{sec:bifactorNat-main}
 \AgdaFunction{main} will eventually become \AgdaFunction{bifactorNat}.
 
 \begin{code}
   main : ℕ → List.List (ℕ × ℕ)
   main n = List.filter (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
-                       (List.cartesianProduct (List.upTo (ℕ.suc n))
-                                              (List.upTo (ℕ.suc n)))
+                       (pairList n)
 \end{code}
 
 \subsection{Properties}
@@ -892,8 +908,7 @@ A smidge informally, one can say that \AgdaFunction{each-element-is-factor-pair}
     each-element-is-factor-pair n =
       AllListProp.all-filter
         (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
-        (List.cartesianProduct (List.upTo (ℕ.suc n))
-                               (List.upTo (ℕ.suc n)))
+        (pairList n)
 \end{code}
 
 \subsubsection{The Containment Proof}
@@ -905,10 +920,13 @@ One can more or less paraphrase the name to say that \AgdaFunction{each-factor-p
       f1 Data.Nat.* f2 ≡ n →
       (f1 , f2) ∈ main n
     each-factor-pair-is-in-list = {!!}
+    -- Basically, every possible factor pair is in the pre-filtered list,
+    -- and only the non-factor elements are removed in the filtering
+    -- process; therefore, every factor pair is in the filtered list.
 \end{code}
 
 \subsection{Exporting the Function}
-As indicated in \fref{se:bifactorNat-main}, the author has decided to provide the ``\AgdaFunction{bifactorNat}'' alias for \AgdaFunction{bifactorNat.main}.
+As indicated in \fref{sec:bifactorNat-main}, the author has decided to provide the ``\AgdaFunction{bifactorNat}'' alias for \AgdaFunction{bifactorNat.main}.
 
 \begin{code}
 bifactorNat = bifactorNat.main
@@ -2855,6 +2873,11 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
     data LT where
       LT-Rational :
         {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
+      Transitivity : {x y z : ε} → LT x y → LT y z → LT x z
+      Substitution : {x y x2 y2 : ε} →
+                     AlgebraicEquality x x2 →
+                     AlgebraicEquality y y2 →
+                     LT x y → LT x2 y2
       Eventuality :
         {x y : ε} →
         (itx ity : ℕ) →
@@ -2878,8 +2901,9 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       strict-partial-order = record
         { isEquivalence = AlgebraicEquality.equivalence
         ; irrefl = {!!}
-        ; trans = {!!}
-        ; <-resp-≈ = {!!}
+        ; trans = LT.Transitivity
+        ; <-resp-≈ = (λ x → LT.Substitution (AlgebraicEquality.EqualityImpliesAE refl) x)
+                   , (λ x → LT.Substitution x (AlgebraicEquality.EqualityImpliesAE refl))
         }
 \end{code}
 
