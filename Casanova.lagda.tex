@@ -642,14 +642,30 @@ To facilitate proofs of correctness, with the exception of the final definition,
 module bifactorNat where
 \end{code}
 
+\subsection{The Possible Factor List Function}
+\AgdaFunction{possibleFactors} \AgdaBound{n} is a list of all possible factors of \AgdaBound{n}, i.e., natural numbers which are less than or equal to \(\sqrt{n\prime}\), where \(n\prime\) is the number which is represented by \AgdaBound{n}.
+
+\begin{code}
+  possibleFactors : ℕ → List.List ℕ
+  possibleFactors n = List.filter (λ fac → fac Data.Nat.≤? n Data.Nat.^ 2)
+                                  (List.upTo (ℕ.suc n))
+\end{code}
+
+\subsection{The Pair List Function}
+\AgdaFunction{pairList} \AgdaBound{n} is a list of all possible factor pairs of \AgdaBound{n}, i.e., 2-tuples whose product might be equal to \AgdaBound{n}.
+
+\begin{code}
+  pairList : ℕ → List.List (ℕ × ℕ)
+  pairList n = List.cartesianProduct (possibleFactors n) (possibleFactors n)
+\end{code}
+
 \subsection{The Main Function}\label{sec:bifactorNat-main}
 \AgdaFunction{main} will eventually become \AgdaFunction{bifactorNat}.
 
 \begin{code}
   main : ℕ → List.List (ℕ × ℕ)
   main n = List.filter (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
-                       (List.cartesianProduct (List.upTo (ℕ.suc n))
-                                              (List.upTo (ℕ.suc n)))
+                       (pairList n)
 \end{code}
 
 \subsection{Properties}
@@ -669,8 +685,7 @@ A smidge informally, one can say that \AgdaFunction{each-element-is-factor-pair}
     each-element-is-factor-pair n =
       AllListProp.all-filter
         (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
-        (List.cartesianProduct (List.upTo (ℕ.suc n))
-                               (List.upTo (ℕ.suc n)))
+        (pairList n)
 \end{code}
 
 \subsubsection{The Containment Proof}
