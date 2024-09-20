@@ -632,14 +632,14 @@ module nonRepeatingPortion-Properties
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
-\section{The Generic Tree Type}
+\chapter{The Generic Tree Type}
 With the exception of the final ``\AgdaKeyword{open}'' bit, this section constitutes a module.
 
 \begin{code}
 module Tree where
 \end{code}
 
-\subsection{The Core Type}
+\section{The Core Type}
 \AgdaDatatype{Tree} is a basic tree datatype.
 
 \begin{code}
@@ -649,7 +649,7 @@ module Tree where
     NodeWithChildren : A → List.List (Tree A) → Tree A
 \end{code}
 
-\subsection{The Subtree Relation}
+\section{The Subtree Relation}
 A value of type \AgdaDatatype{IsSubtree} \AgdaBound{t1} \AgdaBound{t2} exists if and only if \AgdaBound{t1} is a subtree of \AgdaBound{t2}.
 
 \begin{code}
@@ -669,7 +669,7 @@ A value of type \AgdaDatatype{IsSubtree} \AgdaBound{t1} \AgdaBound{t2} exists if
                 (NodeWithChildren n children2)
 \end{code}
 
-\subsection{The Decomposition Function}
+\section{The Decomposition Function}
 A bit informally, one can say that \AgdaFunction{decompose} \AgdaBound{tree} is the list of paths from the root node of \AgdaBound{tree} to all terminal nodes of \AgdaBound{tree}.
 
 \begin{code}
@@ -681,7 +681,7 @@ A bit informally, one can say that \AgdaFunction{decompose} \AgdaBound{tree} is 
     List.concat (List.map (List.map (List._∷_ n) ∘ decompose) x)
 \end{code}
 
-\subsection{The Map Function}
+\section{The Map Function}
 For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the following statements apply:
 
 \begin{enumerate}
@@ -702,9 +702,9 @@ For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the fo
     NodeWithChildren n (List.map (treeMap f) x)
 \end{code}
 
-\subsection{Lookup Functions and Associated Types}
+\section{Lookup Functions and Associated Types}
 
-\subsection{The Location Type}\label{sec:TreeLocationDefinition}
+\section{The Location Type}\label{sec:TreeLocationDefinition}
 A value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents the location of a subtree of \AgdaBound{t}.  Equivalently but possibly a bit more intuitively, one can say that a value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents a series of instructions for navigating to a particular subtree of \AgdaBound{t}.
 
 The author finds that \AgdaFunction{TreeLocation} is best understood in conjunction with \AgdaFunction{lookupTree}, which is defined in \fref{sec:lookupTreeDefinition}.
@@ -717,7 +717,7 @@ The author finds that \AgdaFunction{TreeLocation} is best understood in conjunct
     Maybe (Σ (Fin (List.length x)) (λ i → TreeLocation (List.lookup x i)))
 \end{code}
 
-\subsection{The Lookup Function}\label{sec:lookupTreeDefinition}
+\section{The Lookup Function}\label{sec:lookupTreeDefinition}
 \AgdaFunction{lookupTree} \AgdaBound{t} \AgdaBound{location} is the subtree of \AgdaBound{t} to which \AgdaBound{location} points.
 
 The author thinks that \AgdaFunction{lookupTree} is best understood in conjunction with \AgdaFunction{TreeLocation}, which is defined in \fref{sec:TreeLocationDefinition}.
@@ -730,17 +730,14 @@ The author thinks that \AgdaFunction{lookupTree} is best understood in conjuncti
     lookupTree (List.lookup x m) m2
 \end{code}
 
-\subsection{Properties of Trees and Related Functions}
+\section{Properties of Trees and Related Functions}
 This subsection constitutes a module.  More specifically, this subsection constitutes a module regarding the properties of things which are related to \AgdaDatatype{Tree}, e.g., \AgdaFunction{treeMap}.
-
-\subsection{Properties}
-This section contains proofs regarding the main function and constitutes a module.
 
 \begin{code}
   module Properties where
 \end{code}
 
-\subsubsection{The Proof of the Non-Zero Length of Decompositions}
+\subsection{The Proof of the Non-Zero Length of Decompositions}
 Basically, \AgdaFunction{decompose-length-is-greater-than-zero} proves that the decomposition of any \AgdaDatatype{Tree} is of a length which is greater than zero.
 
 \begin{code}
@@ -755,7 +752,7 @@ Basically, \AgdaFunction{decompose-length-is-greater-than-zero} proves that the 
       {!!}
 \end{code}
 
-\subsubsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
+\subsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
 Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree} proves that \AgdaBound{t} is a subtree of \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{t} for all relevant \AgdaBound{f} and \AgdaBound{t}.
 
 \begin{code}
@@ -785,7 +782,7 @@ Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree}
         universalProof x AllList.∷ universality-implies-all universalProof {xs}
 \end{code}
 
-\subsection{Exporting Particularly Useful Functions and Such}
+\section{Exporting Particularly Useful Functions and Such}
 To prevent the excessive use of the relevant name qualifier, the author has chosen to permit the unqualified use of certain \AgdaDatatype{Tree}-related identifiers.
 
 \begin{code}
@@ -797,6 +794,8 @@ open Tree
     ; NodeWithChildren
     )
 \end{code}
+
+\chapter{Some Functions}
 
 \section{The Generalized Sorting Function}
 \AgdaFunction{sortOn} is a generalized sorting function.
@@ -879,8 +878,6 @@ This subsection marks the end of the \AgdaFunction{sortOn} module.  Anyway, to p
 \begin{code}
 sortOn = sortOn.main
 \end{code}
-
-\chapter{Some Functions}
 
 \section{The Natural Number Bifactoring Function}
 \AgdaFunction{bifactorNat} is the natural number bifactoring function, i.e., \AgdaFunction{bifactorNat} \AgdaBound{n} is the list of all natural number pairs \(p\) such that the product of the parts of \(p\) is equal to \AgdaBound{n}.
