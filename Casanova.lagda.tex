@@ -138,6 +138,8 @@ import Data.List.Properties as ListProp
 import Data.Maybe.Relation.Unary.All as AllMaybe
 import Data.Unit
 import Data.List.Sort.MergeSort as ListMergeSort
+import Data.List.Relation.Binary.Permutation.Propositional.Properties
+  as PermutationListProperties
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -810,36 +812,43 @@ More formally, one can say that \AgdaFunction{sortOn} is such that the following
 \end{enumerate}
 
 \begin{code}
-module sortOn where
+module sortOn {a b eqLevel orderLevel : Level}
+              {A : Set a}
+              (totalOrder : DecTotalOrder b eqLevel orderLevel)
+              (f : A → DecTotalOrder.Carrier totalOrder) where
+\end{code}
+
+\subsection{The Total Order on \AgdaBound{A}}
+\AgdaFunction{newTotalOrder} is the total order on \AgdaBound{A} which is used for sorting.
+
+\begin{code}
+  newTotalOrder : DecTotalOrder a eqLevel orderLevel
+  newTotalOrder = record
+    { Carrier = A
+    ; _≈_ = DecTotalOrder._≈_ totalOrder on f
+    ; _≤_ = DecTotalOrder._≤_ totalOrder on f
+    ; isDecTotalOrder = record
+      { isTotalOrder = {!!}
+      ; _≟_ = λ x y → IsDecTotalOrder._≟_ oldId (f x) (f y)
+      ; _≤?_ = λ x y → IsDecTotalOrder._≤?_ oldId (f x) (f y)
+      }
+    }
+    where oldId = DecTotalOrder.isDecTotalOrder totalOrder
 \end{code}
 
 \subsection{The Definition Proper}
 \AgdaFunction{main} will become the actual \AgdaFunction{sortOn} function.
 
 \begin{code}
-  main : {a b eqLevel orderLevel : Level} →
-         {A : Set a} →
-         (totalOrder : DecTotalOrder b eqLevel orderLevel) →
-         (A → DecTotalOrder.Carrier totalOrder) →
-         (List.List A → List.List A)
-  main total f = ListMergeSort.sort total2
-    where
-    total2 = record
-      { Carrier = _
-      ; _≈_ = DecTotalOrder._≈_ total on f
-      ; _≤_ = DecTotalOrder._≤_ total on f
-      ; isDecTotalOrder = {!!}
-      }
+  main : List.List A → List.List A
+  main = ListMergeSort.sort newTotalOrder
 \end{code}
 
 \subsection{Properties of the Function}
 This submodule contains proofs of the various properties of \AgdaFunction{sortOn}.
 
 \begin{code}
-  module Properties {a b eqLevel orderLevel : Level}
-                    {A : Set a}
-                    (totalOrder : DecTotalOrder b eqLevel orderLevel)
-                    (f : A → DecTotalOrder.Carrier totalOrder) where
+  module Properties where
 \end{code}
 
 \subsubsection{Proper Ordering}
@@ -848,28 +857,27 @@ This submodule contains proofs of the various properties of \AgdaFunction{sortOn
 \begin{code}
     is-ordered :
       (list : List.List A) →
-      (i1 i2 : Fin (List.length (main totalOrder f list))) →
+      (i1 i2 : Fin (List.length (main list))) →
       i1 Data.Fin.≤ i2 →
-      (DecTotalOrder._≤_ totalOrder on (f ∘ List.lookup (main totalOrder f list))) i1 i2 ⊎
-      (DecTotalOrder._≈_ totalOrder on (f ∘ List.lookup (main totalOrder f list))) i1 i2
+      (DecTotalOrder._≤_ totalOrder on (f ∘ List.lookup (main list))) i1 i2 ⊎
+      (DecTotalOrder._≈_ totalOrder on (f ∘ List.lookup (main list))) i1 i2
     is-ordered = {!!}
-\end{code}
-
-\subsubsection{Length}
-One can simply say that \AgdaFunction{same-length} proves that sorting a list yields a list whose length is the length of the input list.
-
-\begin{code}
-    same-length : (list : List.List A) →
-                  List.length list ≡ List.length (main totalOrder f list)
-    same-length = {!!}
 \end{code}
 
 \subsubsection{Permutation Status}
 \AgdaFunction{generates-permutation} proves that \fref{enum:sortOn-permutation} correctly describes \AgdaFunction{sortOn}.
 
 \begin{code}
-    generates-permutation : (list : List.List A) → list ↭ main totalOrder f list
-    generates-permutation = {!!}
+    generates-permutation : (list : List.List A) → list ↭ main list
+    generates-permutation = PermutationList.↭-sym ∘ ListMergeSort.sort-↭ newTotalOrder
+\end{code}
+
+\subsubsection{Length}
+One can simply say that \AgdaFunction{same-length} proves that sorting a list yields a list whose length is the length of the input list.
+
+\begin{code}
+    same-length : (list : List.List A) → List.length list ≡ List.length (main list)
+    same-length = PermutationListProperties.↭-length ∘ generates-permutation
 \end{code}
 
 \subsection{Exporting the Function}
