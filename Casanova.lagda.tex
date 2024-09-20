@@ -2851,18 +2851,18 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
               List.List (Maybe (Exceptional ε))
 
   module lightning where
-    badness : Maybe (Exceptional ε) → ℕ
-    badness nothing = 100000000000000000000000000000 -- Something is busted.
-    badness (just (inj₁ errorCode)) = badness nothing Data.Nat./ 10
-    badness (just (inj₂ (NumberRat r))) = 0
-    badness (just (inj₂ (Variable name))) = 0
-    badness (just (inj₂ Infinity)) = 0
-    badness (just (inj₂ (Ap f x))) = {!!}
+    complexity : Maybe (Exceptional ε) → ℕ
+    complexity nothing = 100000000000000000000000000000 -- Something is busted.
+    complexity (just (inj₁ errorCode)) = complexity nothing Data.Nat./ 10
+    complexity (just (inj₂ (NumberRat r))) = 0
+    complexity (just (inj₂ (Variable name))) = 0
+    complexity (just (inj₂ Infinity)) = 0
+    complexity (just (inj₂ (Ap f x))) = {!!}
 
-    listBadness : List.List (Maybe (Exceptional ε)) → ℕ
-    listBadness (x List.∷ List.[]) = badness x
-    listBadness List.[] = 10000000000000000000000000 -- Something is incredibly broken.
-    listBadness (x List.∷ xs) = ℕ.suc (listBadness xs)
+    listComplexity : List.List (Maybe (Exceptional ε)) → ℕ
+    listComplexity (x List.∷ List.[]) = complexity x
+    listComplexity List.[] = 10000000000000000000000000 -- Something is incredibly broken.
+    listComplexity (x List.∷ xs) = ℕ.suc (listComplexity xs)
 
     main : Tree (Maybe (Exceptional ε)) →
            List.List (Maybe (Exceptional ε))
@@ -2872,12 +2872,12 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
                           (subst (Data.Nat._> 0)
                                  (sortOn.Properties.same-length
                                     Data.Nat.Properties.≤-decTotalOrder
-                                    listBadness
+                                    listComplexity
                                     (Tree.decompose x))
                                  (Tree.Properties.decompose-length-is-greater-than-zero x)))
       where
       sortedList = sortOn Data.Nat.Properties.≤-decTotalOrder
-                          listBadness
+                          listComplexity
                           (Tree.decompose x)
       head-of-non-empty-list-is-just :
         {a : Level} →
