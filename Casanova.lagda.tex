@@ -2852,7 +2852,8 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
   module lightning where
     complexity : Maybe (Exceptional ε) → ℕ
-    complexity nothing = 100000000000000000000000000000 -- Something is busted.
+    complexity nothing = 100000000000000000000000000000 -- This value is not actually complex
+                                                        -- but should never occur.
     complexity (just (inj₁ errorCode)) = complexity nothing Data.Nat./ 10
     complexity (just (inj₂ (NumberRat r))) = 0
     complexity (just (inj₂ (Variable name))) = 0
@@ -2861,7 +2862,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
     listComplexity : List.List (Maybe (Exceptional ε)) → ℕ
     listComplexity (x List.∷ List.[]) = complexity x
-    listComplexity List.[] = 10000000000000000000000000 -- Something is incredibly broken.
+    listComplexity List.[] = complexity nothing -- Something is incredibly broken.
     listComplexity (x List.∷ xs) = ℕ.suc (listComplexity xs)
 
     main : Tree (Maybe (Exceptional ε)) →
