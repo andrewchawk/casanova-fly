@@ -2821,10 +2821,10 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 \AgdaFunction{treeEvaluate} is a function\footnote{You don't repeat.} which, given an iteration bound \AgdaBound{i} and an expression \AgdaBound{e}, returns a tree which represents all paths to all evaluation results which can be achieved within \AgdaBound{i} iterations.
 
 \begin{code}
-  treeEvaluate : ℕ → ε → Tree (Maybe (Exceptional ε))
+  treeEvaluate : ℕ → ε → Tree (Exceptional ε)
 
   module treeEvaluate where
-    tryRules : ε → Maybe (List.List (Tree (Maybe (Exceptional ε))))
+    tryRules : ε → Maybe (List.List (Tree (Exceptional ε)))
     tryRules e with (List.filter (new? (inj₂ e)) ∘ List.catMaybes) (List.map (_$ e) funcs)
       where
       funcs = Data.Vec.toList exceptionallyEvaluate.functions
@@ -2832,11 +2832,11 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
       new? e1 e2 = true Data.Bool.≟ isNo (eq e1 e2)
         where eq = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
     ... | List.[] = nothing
-    ... | o@(x List.∷ xs) = just (List.map (Node ∘ just) o)
+    ... | o@(x List.∷ xs) = just (List.map Node o)
 
-    main : ℕ → ε → Tree (Maybe (Exceptional ε))
-    main 0 e = Node (just (inj₂ e))
-    main (ℕ.suc n) e = treeMap (_>>= [_,_] (const nothing) tryRules) (main n e)
+    main : ℕ → ε → Tree (Exceptional ε)
+    main 0 e = Node (inj₂ e)
+    main (ℕ.suc n) e = treeMap ([_,_] (const nothing) tryRules) (main n e)
 
   treeEvaluate = treeEvaluate.main
 \end{code}
@@ -2847,26 +2847,25 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 \AgdaFunction{lightning} is so named because the overall functionality reminds the author of the path-of-least-resistance behavior which is exhibited by lightning upon the hitting of a tree; the electricity traces the most direct path to the ground from the hit branch --- or leaf ---, much like \AgdaFunction{lightning} traces the most direct path from the root node, i.e., the expression which has been evaluated, to the most suitable leaf node, i.e., the result of the evaluation.
 
 \begin{code}
-  lightning : Tree (Maybe (Exceptional ε)) →
-              List.List (Maybe (Exceptional ε))
+  lightning : Tree (Exceptional ε) →
+              List.List (Exceptional ε)
 
   module lightning where
-    complexity : Maybe (Exceptional ε) → ℕ
-    complexity nothing = 100000000000000000000000000000 -- This value is not actually complex
-                                                        -- but should never occur.
-    complexity (just (inj₁ errorCode)) = complexity nothing Data.Nat./ 10
-    complexity (just (inj₂ (NumberRat r))) = 0
-    complexity (just (inj₂ (Variable name))) = 0
-    complexity (just (inj₂ Infinity)) = 0
-    complexity (just (inj₂ (Ap f x))) = {!!}
+    sComplexity : ε → ℕ
+    sComplexity (NumberRat r) = 0
+    sComplexity (Variable name) = 0
+    sComplexity Infinity = 0
+    sComplexity (Ap f x) = {!!}
 
-    listComplexity : List.List (Maybe (Exceptional ε)) → ℕ
+    complexity : Exceptional ε → ℕ
+    complexity = [_,_] (const 10000000000000) sComplexity
+
+    listComplexity : List.List (Exceptional ε) → ℕ
     listComplexity (x List.∷ List.[]) = complexity x
-    listComplexity List.[] = complexity nothing -- Something is incredibly broken.
+    listComplexity List.[] = complexity (inj₁ "idiot value")
     listComplexity (x List.∷ xs) = ℕ.suc (listComplexity xs)
 
-    main : Tree (Maybe (Exceptional ε)) →
-           List.List (Maybe (Exceptional ε))
+    main : Tree (Exceptional ε) → List.List (Exceptional ε)
     main x = to-witness {m = List.head sortedList}
                         (head-of-non-empty-list-is-just
                           sortedList
