@@ -137,6 +137,7 @@ import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
 import Data.Maybe.Relation.Unary.All as AllMaybe
 import Data.Unit
+import Data.List.Sort.MergeSort as ListMergeSort
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -739,6 +740,21 @@ This section contains proofs regarding the main function and constitutes a modul
   module Properties where
 \end{code}
 
+\subsubsection{The Proof of the Non-Zero Length of Decompositions}
+Basically, \AgdaFunction{decompose-length-is-greater-than-zero} proves that the decomposition of any \AgdaDatatype{Tree} is of a length which is greater than zero.
+
+\begin{code}
+    decompose-length-is-greater-than-zero :
+      {a : Level} →
+      {A : Set a} →
+      (tree : Tree A) →
+      List.length (decompose tree) Data.Nat.> 0
+    decompose-length-is-greater-than-zero (Node n) =
+      Data.Nat.s≤s Data.Nat.z≤n
+    decompose-length-is-greater-than-zero (NodeWithChildren n x) =
+      {!!}
+\end{code}
+
 \subsubsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
 Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree} proves that \AgdaBound{t} is a subtree of \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{t} for all relevant \AgdaBound{f} and \AgdaBound{t}.
 
@@ -804,13 +820,17 @@ module sortOn where
 \begin{code}
   main : {a b eqLevel orderLevel : Level} →
          {A : Set a} →
-         {B : Set b} →
-         {orderRelation : B → B → Set orderLevel} →
-         {eqRelation : B → B → Set eqLevel} →
-         IsDecTotalOrder eqRelation orderRelation →
-         (A → B) →
+         (totalOrder : DecTotalOrder b eqLevel orderLevel) →
+         (A → DecTotalOrder.Carrier totalOrder) →
          (List.List A → List.List A)
-  main = {!!}
+  main total f = ListMergeSort.sort total2
+    where
+    total2 = record
+      { Carrier = _
+      ; _≈_ = DecTotalOrder._≈_ total on f
+      ; _≤_ = DecTotalOrder._≤_ total on f
+      ; isDecTotalOrder = {!!}
+      }
 \end{code}
 
 \subsection{Properties of the Function}
@@ -819,11 +839,8 @@ This submodule contains proofs of the various properties of \AgdaFunction{sortOn
 \begin{code}
   module Properties {a b eqLevel orderLevel : Level}
                     {A : Set a}
-                    {B : Set b}
-                    {orderRelation : B → B → Set orderLevel}
-                    {eqRelation : B → B → Set eqLevel}
-                    (totalOrder : IsDecTotalOrder eqRelation orderRelation)
-                    (f : A → B) where
+                    (totalOrder : DecTotalOrder b eqLevel orderLevel)
+                    (f : A → DecTotalOrder.Carrier totalOrder) where
 \end{code}
 
 \subsubsection{Proper Ordering}
@@ -834,9 +851,18 @@ This submodule contains proofs of the various properties of \AgdaFunction{sortOn
       (list : List.List A) →
       (i1 i2 : Fin (List.length (main totalOrder f list))) →
       i1 Data.Fin.≤ i2 →
-      (orderRelation on (f ∘ List.lookup (main totalOrder f list))) i1 i2 ⊎
-      (eqRelation on (f ∘ List.lookup (main totalOrder f list))) i1 i2
+      (DecTotalOrder._≤_ totalOrder on (f ∘ List.lookup (main totalOrder f list))) i1 i2 ⊎
+      (DecTotalOrder._≈_ totalOrder on (f ∘ List.lookup (main totalOrder f list))) i1 i2
     is-ordered = {!!}
+\end{code}
+
+\subsubsection{Length}
+One can simply say that \AgdaFunction{same-length} proves that sorting a list yields a list whose length is the length of the input list.
+
+\begin{code}
+    same-length : (list : List.List A) →
+                  List.length list ≡ List.length (main totalOrder f list)
+    same-length = {!!}
 \end{code}
 
 \subsubsection{Permutation Status}
@@ -2835,10 +2861,27 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
     main : Tree (Maybe (Exceptional ε)) →
            List.List (Maybe (Exceptional ε))
-    main x = to-witness {m = List.head (sortOn Data.Nat.Properties.≤-isDecTotalOrder
-                                               listBadness
-                                               (Tree.decompose x))}
-                        {!!}
+    main x = to-witness {m = List.head sortedList}
+                        (head-of-non-empty-list-is-just
+                          sortedList
+                          (subst (Data.Nat._> 0)
+                                 (sortOn.Properties.same-length
+                                    Data.Nat.Properties.≤-decTotalOrder
+                                    listBadness
+                                    (Tree.decompose x))
+                                 (Tree.Properties.decompose-length-is-greater-than-zero x)))
+      where
+      sortedList = sortOn Data.Nat.Properties.≤-decTotalOrder
+                          listBadness
+                          (Tree.decompose x)
+      head-of-non-empty-list-is-just :
+        {a : Level} →
+        {A : Set a} →
+        (x : List.List A) →
+        List.length x Data.Nat.> 0 →
+        Is-just (List.head x)
+      head-of-non-empty-list-is-just (x List.∷ xs) (Data.Nat.s≤s s) =
+        AnyMaybe.just Data.Unit.tt
 
   {-# TERMINATING #-}
   lightning = lightning.main
