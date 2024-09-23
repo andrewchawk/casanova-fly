@@ -743,6 +743,7 @@ This subsection constitutes a module.  More specifically, this subsection consti
 Basically, \AgdaFunction{decompose-length-is-greater-than-zero} proves that the decomposition of any \AgdaDatatype{Tree} is of a length which is greater than zero.
 
 \begin{code}
+    {-# TERMINATING #-}
     decompose-length-is-greater-than-zero :
       {a : Level} →
       {A : Set a} →
@@ -750,8 +751,43 @@ Basically, \AgdaFunction{decompose-length-is-greater-than-zero} proves that the 
       List.length (decompose tree) Data.Nat.> 0
     decompose-length-is-greater-than-zero (Node n) =
       Data.Nat.s≤s Data.Nat.z≤n
-    decompose-length-is-greater-than-zero (NodeWithChildren n x) =
-      {!!}
+    decompose-length-is-greater-than-zero (NodeWithChildren n List.[]) =
+      Data.Nat.s≤s Data.Nat.z≤n
+    decompose-length-is-greater-than-zero tree@(NodeWithChildren n (x List.∷ xs)) =
+      list-concat-length-is-greater-than-zero
+        {x = List.map (List.map (List._∷_ n) ∘ decompose) (x List.∷ xs)}
+        (subst (λ l → l Data.Nat.> 0)
+               (sym (ListProp.length-map _ (x List.∷ xs)))
+               (Data.Nat.s≤s Data.Nat.z≤n))
+        (universality-implies-all (λ y → subst (λ l → l Data.Nat.> 0)
+                                               (sym (ListProp.length-map _ (decompose y)))
+                                               (decompose-length-is-greater-than-zero y))
+                                  {list = x List.∷ xs})
+      where
+      universality-implies-all : {a b c : Level} →
+            {A : Set a} →
+            {B : Set b} →
+            {C : B → Set c} →
+            {f : A → B} →
+            ((x : A) → C (f x)) →
+            {list : List.List A} →
+            AllList.All C (List.map f list)
+      universality-implies-all universalProof {List.[]} = AllList.[]
+      universality-implies-all universalProof {x List.∷ xs} =
+        universalProof x AllList.∷ universality-implies-all universalProof {xs}
+      list-concat-length-is-greater-than-zero :
+        {a : Level} →
+        {A : Set a} →
+        {x : List.List (List.List A)} →
+        List.length x Data.Nat.> 0 →
+        AllList.All (λ element → List.length element Data.Nat.> 0) x →
+        List.length (List.concat x) Data.Nat.> 0
+      list-concat-length-is-greater-than-zero {x = List.[]} greater allGreater =
+        contradiction greater λ ()
+      list-concat-length-is-greater-than-zero {x = List.[] List.∷ list} greater allGreater =
+        contradiction allGreater (AllListProp.Any¬⇒¬All (AnyList.here λ ()))
+      list-concat-length-is-greater-than-zero {x = (x List.∷ xs) List.∷ list} greater allGreater =
+        Data.Nat.s≤s Data.Nat.z≤n
 \end{code}
 
 \subsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
@@ -2855,7 +2891,16 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
     sComplexity (NumberRat r) = 0
     sComplexity (Variable name) = 0
     sComplexity Infinity = 0
-    sComplexity (Ap f x) = {!!}
+    sComplexity (Ap f x) =
+      if isYes (AllVec.all? isVariable x)
+         then 0 -- This bit is pretty hacky; a + a is less simple than 2 * a,
+                -- but this "then" part indicates that the expressions are
+                -- *equally* complex.
+         else sum (Data.Vec.map sComplexity x)
+        where
+        isVariable : (e : ε) → Dec (Σ String (λ name → e ≡ Variable name))
+        isVariable (Variable name) = yes (name , refl)
+        isVariable other = no {!!}
 
     complexity : Exceptional ε → ℕ
     complexity = [_,_] (const 10000000000000) sComplexity
