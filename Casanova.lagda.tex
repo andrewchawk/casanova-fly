@@ -137,6 +137,9 @@ import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
 import Data.Maybe.Relation.Unary.All as AllMaybe
 import Data.Unit
+import Data.List.Sort.MergeSort as ListMergeSort
+import Data.List.Relation.Binary.Permutation.Propositional.Properties
+  as PermutationListProperties
 \end{code}
 
 \chapter{Useful Abbreviations and Ilk}
@@ -631,7 +634,294 @@ module nonRepeatingPortion-Properties
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
+\chapter{The Generic Tree Type}
+With the exception of the final ``\AgdaKeyword{open}'' bit, this section constitutes a module.
+
+\begin{code}
+module Tree where
+\end{code}
+
+\section{The Core Type}
+\AgdaDatatype{Tree} is a basic tree datatype.
+
+\begin{code}
+  data Tree {a : Level} (A : Set a) : Set a
+    where
+    Node : A → Tree A
+    NodeWithChildren : A → List.List (Tree A) → Tree A
+\end{code}
+
+\section{The Subtree Relation}
+A value of type \AgdaDatatype{IsSubtree} \AgdaBound{t1} \AgdaBound{t2} exists if and only if \AgdaBound{t1} is a subtree of \AgdaBound{t2}.
+
+\begin{code}
+  data IsSubtree {a : Level} {A : Set a} : Tree A → Tree A → Set a
+    where
+    SubtreeReflexivity : {t : Tree A} → IsSubtree t t
+    SubtreeChildAddition :
+      {n : A} →
+      {children : List.List (Tree A)} →
+      IsSubtree (Node n) (NodeWithChildren n children)
+    ChildrenAreSubtrees :
+      {n : A} →
+      {children1 children2 : List.List (Tree A)} →
+      List.length children1 ≡ List.length children2 →
+      AllList.All (uncurry IsSubtree) (List.zip children1 children2) →
+      IsSubtree (NodeWithChildren n children1)
+                (NodeWithChildren n children2)
+\end{code}
+
+\section{The Decomposition Function}
+A bit informally, one can say that \AgdaFunction{decompose} \AgdaBound{tree} is the list of paths from the root node of \AgdaBound{tree} to all terminal nodes of \AgdaBound{tree}.
+
+\begin{code}
+  {-# TERMINATING #-}
+  decompose : {a : Level} → {A : Set a} → Tree A → List.List (List.List A)
+  decompose (Node n) = List.[ List.[ n ] ]
+  decompose (NodeWithChildren n List.[]) = List.[ List.[ n ] ]
+  decompose (NodeWithChildren n x) =
+    List.concat (List.map (List.map (List._∷_ n) ∘ decompose) x)
+\end{code}
+
+\section{The Map Function}
+For every \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaBound{x}, the following statements apply:
+
+\begin{enumerate}
+  \item If \AgdaBound{j} is some value of type \AgdaFunction{Is-just} \AgdaSymbol(\AgdaBound{f} \AgdaBound{n}\AgdaSymbol), then \AgdaInductiveConstructor{NodeWithChildren} \AgdaBound{n} \AgdaSymbol(\AgdaFunction{to-witness} \AgdaBound{j}\AgdaSymbol) replaces \AgdaInductiveConstructor{Node} \AgdaBound{n} in \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{x}.\label{enum:treeMap-just}
+  \item If \AgdaBound{f} \AgdaBound{n} is \AgdaInductiveConstructor{nothing}, then \AgdaInductiveConstructor{Node} \AgdaBound{n} is not changed in \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{x}.\label{enum:treeMap-nothing}
+\end{enumerate}
+
+\begin{code}
+  {-# TERMINATING #-}
+  treeMap : {a : Level} →
+            {A : Set a} →
+            (A → Maybe (List.List (Tree A))) →
+            Tree A →
+            Tree A
+  treeMap f o@(Node x) =
+    fromMaybe o (Data.Maybe.map (NodeWithChildren x) (f x))
+  treeMap f (NodeWithChildren n x) =
+    NodeWithChildren n (List.map (treeMap f) x)
+\end{code}
+
+\section{Lookup Functions and Associated Types}
+
+\section{The Location Type}\label{sec:TreeLocationDefinition}
+A value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents the location of a subtree of \AgdaBound{t}.  Equivalently but possibly a bit more intuitively, one can say that a value of type \AgdaFunction{TreeLocation} \AgdaBound{t} represents a series of instructions for navigating to a particular subtree of \AgdaBound{t}.
+
+The author finds that \AgdaFunction{TreeLocation} is best understood in conjunction with \AgdaFunction{lookupTree}, which is defined in \fref{sec:lookupTreeDefinition}.
+
+\begin{code}
+  {-# TERMINATING #-}
+  TreeLocation : {a : Level} → {A : Set a} → Tree A → Set
+  TreeLocation (Node n) = ⊤
+  TreeLocation (NodeWithChildren n x) =
+    Maybe (Σ (Fin (List.length x)) (λ i → TreeLocation (List.lookup x i)))
+\end{code}
+
+\section{The Lookup Function}\label{sec:lookupTreeDefinition}
+\AgdaFunction{lookupTree} \AgdaBound{t} \AgdaBound{location} is the subtree of \AgdaBound{t} to which \AgdaBound{location} points.
+
+The author thinks that \AgdaFunction{lookupTree} is best understood in conjunction with \AgdaFunction{TreeLocation}, which is defined in \fref{sec:TreeLocationDefinition}.
+
+\begin{code}
+  lookupTree : {a : Level} → {A : Set a} → (t : Tree A) → TreeLocation t → Tree A
+  lookupTree (Node n) tt = Node n
+  lookupTree o@(NodeWithChildren n x) nothing = o
+  lookupTree (NodeWithChildren n x) (just (m , m2)) =
+    lookupTree (List.lookup x m) m2
+\end{code}
+
+\section{Properties of Trees and Related Functions}
+This subsection constitutes a module.  More specifically, this subsection constitutes a module regarding the properties of things which are related to \AgdaDatatype{Tree}, e.g., \AgdaFunction{treeMap}.
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\subsection{The Proof of the Non-Zero Length of Decompositions}
+Basically, \AgdaFunction{decompose-length-is-greater-than-zero} proves that the decomposition of any \AgdaDatatype{Tree} is of a length which is greater than zero.
+
+\begin{code}
+    {-# TERMINATING #-}
+    decompose-length-is-greater-than-zero :
+      {a : Level} →
+      {A : Set a} →
+      (tree : Tree A) →
+      List.length (decompose tree) Data.Nat.> 0
+    decompose-length-is-greater-than-zero (Node n) =
+      Data.Nat.s≤s Data.Nat.z≤n
+    decompose-length-is-greater-than-zero (NodeWithChildren n List.[]) =
+      Data.Nat.s≤s Data.Nat.z≤n
+    decompose-length-is-greater-than-zero tree@(NodeWithChildren n (x List.∷ xs)) =
+      list-concat-length-is-greater-than-zero
+        {x = List.map (List.map (List._∷_ n) ∘ decompose) (x List.∷ xs)}
+        (subst (λ l → l Data.Nat.> 0)
+               (sym (ListProp.length-map _ (x List.∷ xs)))
+               (Data.Nat.s≤s Data.Nat.z≤n))
+        (universality-implies-all (λ y → subst (λ l → l Data.Nat.> 0)
+                                               (sym (ListProp.length-map _ (decompose y)))
+                                               (decompose-length-is-greater-than-zero y))
+                                  {list = x List.∷ xs})
+      where
+      universality-implies-all : {a b c : Level} →
+            {A : Set a} →
+            {B : Set b} →
+            {C : B → Set c} →
+            {f : A → B} →
+            ((x : A) → C (f x)) →
+            {list : List.List A} →
+            AllList.All C (List.map f list)
+      universality-implies-all universalProof {List.[]} = AllList.[]
+      universality-implies-all universalProof {x List.∷ xs} =
+        universalProof x AllList.∷ universality-implies-all universalProof {xs}
+      list-concat-length-is-greater-than-zero :
+        {a : Level} →
+        {A : Set a} →
+        {x : List.List (List.List A)} →
+        List.length x Data.Nat.> 0 →
+        AllList.All (λ element → List.length element Data.Nat.> 0) x →
+        List.length (List.concat x) Data.Nat.> 0
+      list-concat-length-is-greater-than-zero {x = List.[]} greater allGreater =
+        contradiction greater λ ()
+      list-concat-length-is-greater-than-zero {x = List.[] List.∷ list} greater allGreater =
+        contradiction allGreater (AllListProp.Any¬⇒¬All (AnyList.here λ ()))
+      list-concat-length-is-greater-than-zero {x = (x List.∷ xs) List.∷ list} greater allGreater =
+        Data.Nat.s≤s Data.Nat.z≤n
+\end{code}
+
+\subsection{The Proof of \AgdaFunction{treeMap}'s Generation of Supertrees}
+Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree} proves that \AgdaBound{t} is a subtree of \AgdaFunction{treeMap} \AgdaBound{f} \AgdaBound{t} for all relevant \AgdaBound{f} and \AgdaBound{t}.
+
+\begin{code}
+    {-# TERMINATING #-}
+    treeMap-creates-supertree :
+      {a : Level} →
+      {A : Set a} →
+      (f : A → Maybe (List.List (Tree A))) →
+      (t : Tree A) →
+      IsSubtree t (treeMap f t)
+    treeMap-creates-supertree f (Node n) with f n
+    ... | just newChildren = SubtreeChildAddition
+    ... | nothing = SubtreeReflexivity
+    treeMap-creates-supertree f (NodeWithChildren n x) =
+      ChildrenAreSubtrees (sym (ListProp.length-map (treeMap f) x))
+                          (universality-implies-all (treeMap-creates-supertree f))
+      where
+      universality-implies-all : {a b : Level} →
+            {A : Set a} →
+            {B : A → A → Set b} →
+            {f : A → A} →
+            ((x : A) → B x (f x)) →
+            {list : List.List A} →
+            AllList.All (uncurry B) (List.zip list (List.map f list))
+      universality-implies-all universalProof {List.[]} = AllList.[]
+      universality-implies-all universalProof {x List.∷ xs} =
+        universalProof x AllList.∷ universality-implies-all universalProof {xs}
+\end{code}
+
+\section{Exporting Particularly Useful Functions and Such}
+To prevent the excessive use of the relevant name qualifier, the author has chosen to permit the unqualified use of certain \AgdaDatatype{Tree}-related identifiers.
+
+\begin{code}
+open Tree
+  using
+    ( Tree
+    ; treeMap
+    ; Node
+    ; NodeWithChildren
+    )
+\end{code}
+
 \chapter{Some Functions}
+
+\section{The Generalized Sorting Function}
+\AgdaFunction{sortOn} is a generalized sorting function.
+
+Informally, one can say that \AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{f} \AgdaBound{list} sorts, in ascending order, \AgdaFunction{List.map} \AgdaBound{f} \AgdaBound{list}, replaces the values in this \AgdaFunction{List.map} list with the original \AgdaBound{list} values, and returns the result.
+
+More formally, one can say that \AgdaFunction{sortOn} is such that the following statements apply for all relevant \AgdaBound{i1}, \AgdaBound{i2}, \AgdaBound{list}, and \AgdaBound{f}:
+
+\begin{enumerate}
+  \item \(i_1 \leq i_2\) if and only if \AgdaFunction{List.lookup} \AgdaSymbol(\AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{list}\AgdaSymbol) \AgdaBound{i1} is less than or equal to \AgdaFunction{List.lookup} \AgdaSymbol(\AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{list}\AgdaSymbol) \AgdaBound{i2}, where \(i_1\) and \(i_2\) are the values which are represented by \AgdaBound{i1} and \AgdaBound{i2}, respectively.\label{enum:sortOn-ordering}
+  \item \AgdaFunction{sortOn} \AgdaBound{totalOrder} \AgdaBound{list} is a permutation of \AgdaBound{list}.\label{enum:sortOn-permutation}
+\end{enumerate}
+
+\begin{code}
+module sortOn {a b eqLevel orderLevel : Level}
+              {A : Set a}
+              (totalOrder : DecTotalOrder b eqLevel orderLevel)
+              (f : A → DecTotalOrder.Carrier totalOrder) where
+\end{code}
+
+\subsection{The Total Order on \AgdaBound{A}}
+\AgdaFunction{newTotalOrder} is the total order on \AgdaBound{A} which is used for sorting.
+
+\begin{code}
+  newTotalOrder : DecTotalOrder a eqLevel orderLevel
+  newTotalOrder = record
+    { Carrier = A
+    ; _≈_ = DecTotalOrder._≈_ totalOrder on f
+    ; _≤_ = DecTotalOrder._≤_ totalOrder on f
+    ; isDecTotalOrder = record
+      { isTotalOrder = {!!}
+      ; _≟_ = λ x y → IsDecTotalOrder._≟_ oldId (f x) (f y)
+      ; _≤?_ = λ x y → IsDecTotalOrder._≤?_ oldId (f x) (f y)
+      }
+    }
+    where oldId = DecTotalOrder.isDecTotalOrder totalOrder
+\end{code}
+
+\subsection{The Definition Proper}
+\AgdaFunction{main} will become the actual \AgdaFunction{sortOn} function.
+
+\begin{code}
+  main : List.List A → List.List A
+  main = ListMergeSort.sort newTotalOrder
+\end{code}
+
+\subsection{Properties of the Function}
+This submodule contains proofs of the various properties of \AgdaFunction{sortOn}.
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\subsubsection{Proper Ordering}
+\AgdaFunction{is-ordered} proves that \fref{enum:sortOn-ordering} is actually relevant.
+
+\begin{code}
+    is-ordered :
+      (list : List.List A) →
+      (i1 i2 : Fin (List.length (main list))) →
+      i1 Data.Fin.≤ i2 →
+      (DecTotalOrder._≤_ totalOrder on (f ∘ List.lookup (main list))) i1 i2 ⊎
+      (DecTotalOrder._≈_ totalOrder on (f ∘ List.lookup (main list))) i1 i2
+    is-ordered = {!!}
+\end{code}
+
+\subsubsection{Permutation Status}
+\AgdaFunction{generates-permutation} proves that \fref{enum:sortOn-permutation} correctly describes \AgdaFunction{sortOn}.
+
+\begin{code}
+    generates-permutation : (list : List.List A) → list ↭ main list
+    generates-permutation = PermutationList.↭-sym ∘ ListMergeSort.sort-↭ newTotalOrder
+\end{code}
+
+\subsubsection{Length}
+One can simply say that \AgdaFunction{same-length} proves that sorting a list yields a list whose length is the length of the input list.
+
+\begin{code}
+    same-length : (list : List.List A) → List.length list ≡ List.length (main list)
+    same-length = PermutationListProperties.↭-length ∘ generates-permutation
+\end{code}
+
+\subsection{Exporting the Function}
+This subsection marks the end of the \AgdaFunction{sortOn} module.  Anyway, to prevent excessive verbosity, the author has defined yet another abbreviated identifier.
+
+\begin{code}
+sortOn = sortOn.main
+\end{code}
 
 \section{The Natural Number Bifactoring Function}
 \AgdaFunction{bifactorNat} is the natural number bifactoring function, i.e., \AgdaFunction{bifactorNat} \AgdaBound{n} is the list of all natural number pairs \(p\) such that the product of the parts of \(p\) is equal to \AgdaBound{n}.
@@ -2573,6 +2863,90 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
     main iterations = with-dec iterations ∘₂ structuralEqualityOnε
 
   checkAlgebraicEquality = checkAlgebraicEquality.main
+\end{code}
+
+\section{The Tree-Based Evaluation Function}
+\AgdaFunction{treeEvaluate} is a function\footnote{You don't repeat.} which, given an iteration bound \AgdaBound{i} and an expression \AgdaBound{e}, returns a tree which represents all paths to all evaluation results which can be achieved within \AgdaBound{i} iterations.
+
+\begin{code}
+  treeEvaluate : ℕ → ε → Tree (Exceptional ε)
+
+  module treeEvaluate where
+    tryRules : ε → Maybe (List.List (Tree (Exceptional ε)))
+    tryRules e with (List.filter (new? (inj₂ e)) ∘ List.catMaybes) (List.map (_$ e) funcs)
+      where
+      funcs = Data.Vec.toList exceptionallyEvaluate.functions
+      new? : (e1 e2 : Exceptional ε) → Dec _
+      new? e1 e2 = true Data.Bool.≟ isNo (eq e1 e2)
+        where eq = Data.Sum.Properties.≡-dec Data.String._≟_ structuralEqualityOnε
+    ... | List.[] = nothing
+    ... | o@(x List.∷ xs) = just (List.map Node o)
+
+    main : ℕ → ε → Tree (Exceptional ε)
+    main 0 e = Node (inj₂ e)
+    main (ℕ.suc n) e = treeMap ([_,_] (const nothing) tryRules) (main n e)
+
+  treeEvaluate = treeEvaluate.main
+\end{code}
+
+\subsection{The Lightning Function}
+\AgdaFunction{lightning} returns a single path to a single evaluated form.
+
+\AgdaFunction{lightning} is so named because the overall functionality reminds the author of the path-of-least-resistance behavior which is exhibited by lightning upon the hitting of a tree; the electricity traces the most direct path to the ground from the hit branch --- or leaf ---, much like \AgdaFunction{lightning} traces the most direct path from the root node, i.e., the expression which has been evaluated, to the most suitable leaf node, i.e., the result of the evaluation.
+
+\begin{code}
+  lightning : Tree (Exceptional ε) →
+              List.List (Exceptional ε)
+
+  module lightning where
+    sComplexity : ε → ℕ
+    sComplexity (NumberRat r) = 0
+    sComplexity (Variable name) = 0
+    sComplexity Infinity = 0
+    sComplexity (Ap f x) =
+      if isYes (AllVec.all? isVariable x)
+         then 0 -- This bit is pretty hacky; a + a is less simple than 2 * a,
+                -- but this "then" part indicates that the expressions are
+                -- *equally* complex.
+         else sum (Data.Vec.map sComplexity x)
+        where
+        isVariable : (e : ε) → Dec (Σ String (λ name → e ≡ Variable name))
+        isVariable (Variable name) = yes (name , refl)
+        isVariable other = no {!!}
+
+    complexity : Exceptional ε → ℕ
+    complexity = [_,_] (const 10000000000000) sComplexity
+
+    listComplexity : List.List (Exceptional ε) → ℕ
+    listComplexity (x List.∷ List.[]) = complexity x
+    listComplexity List.[] = complexity (inj₁ "idiot value")
+    listComplexity (x List.∷ xs) = ℕ.suc (listComplexity xs)
+
+    main : Tree (Exceptional ε) → List.List (Exceptional ε)
+    main x = to-witness {m = List.head sortedList}
+                        (head-of-non-empty-list-is-just
+                          sortedList
+                          (subst (Data.Nat._> 0)
+                                 (sortOn.Properties.same-length
+                                    Data.Nat.Properties.≤-decTotalOrder
+                                    listComplexity
+                                    (Tree.decompose x))
+                                 (Tree.Properties.decompose-length-is-greater-than-zero x)))
+      where
+      sortedList = sortOn Data.Nat.Properties.≤-decTotalOrder
+                          listComplexity
+                          (Tree.decompose x)
+      head-of-non-empty-list-is-just :
+        {a : Level} →
+        {A : Set a} →
+        (x : List.List A) →
+        List.length x Data.Nat.> 0 →
+        Is-just (List.head x)
+      head-of-non-empty-list-is-just (x List.∷ xs) (Data.Nat.s≤s s) =
+        AnyMaybe.just Data.Unit.tt
+
+  {-# TERMINATING #-}
+  lightning = lightning.main
 \end{code}
 
 \chapter{The Less-Than Type}
