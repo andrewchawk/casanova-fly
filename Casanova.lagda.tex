@@ -639,6 +639,84 @@ module nonRepeatingPortion-Properties
   new-values-are-appended x (xs1 List.∷ xs) notElement = {!!}
 \end{code}
 
+\chapter{Some Functions}
+
+\section{The Natural Number Bifactoring Function}
+\AgdaFunction{bifactorNat} is the natural number bifactoring function, i.e., \AgdaFunction{bifactorNat} \AgdaBound{n} is the list of all natural number pairs \(p\) such that the product of the parts of \(p\) is equal to \AgdaBound{n}.
+
+To facilitate proofs of correctness, with the exception of the final definition, this whole section constitutes a module.
+
+\begin{code}
+module bifactorNat where
+\end{code}
+
+\subsection{The Possible Factor List Function}
+\AgdaFunction{possibleFactors} \AgdaBound{n} is a list of all possible factors of \AgdaBound{n}, i.e., natural numbers which are less than or equal to \(\sqrt{n\prime}\), where \(n\prime\) is the number which is represented by \AgdaBound{n}.
+
+\begin{code}
+  possibleFactors : ℕ → List.List ℕ
+  possibleFactors n = List.filter (λ fac → fac Data.Nat.≤? n Data.Nat.^ 2)
+                                  (List.upTo (ℕ.suc n))
+\end{code}
+
+\subsection{The Pair List Function}
+\AgdaFunction{pairList} \AgdaBound{n} is a list of all possible factor pairs of \AgdaBound{n}, i.e., 2-tuples whose product might be equal to \AgdaBound{n}.
+
+\begin{code}
+  pairList : ℕ → List.List (ℕ × ℕ)
+  pairList n = List.cartesianProduct (possibleFactors n) (possibleFactors n)
+\end{code}
+
+\subsection{The Main Function}\label{sec:bifactorNat-main}
+\AgdaFunction{main} will eventually become \AgdaFunction{bifactorNat}.
+
+\begin{code}
+  main : ℕ → List.List (ℕ × ℕ)
+  main n = List.filter (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
+                       (pairList n)
+\end{code}
+
+\subsection{Properties}
+This section contains proofs regarding the main function and constitutes a module.
+
+\begin{code}
+  module Properties where
+\end{code}
+
+\subsubsection{The Proof of Containment of Only Factor Pairs}
+A smidge informally, one can say that \AgdaFunction{each-element-is-factor-pair} proves that \AgdaFunction{main} \AgdaBound{n} contains only pairs of elements whose product is equal to \AgdaBound{n}.  A bit more formally, one can say that the function proves that for any \AgdaBound{f1} \AgdaOperator{\AgdaInductiveConstructor{,}} \AgdaBound{f2} in \AgdaFunction{main} \AgdaBound{n}, \(f_1 \cdot f_2 = n\prime\), where \(f_1\), \(f_2\), and \(n\prime\) are the values which are represented by \AgdaBound{f1}, \AgdaBound{f2}, and \AgdaBound{n}, respectively.
+
+\begin{code}
+    each-element-is-factor-pair :
+      (n : ℕ) →
+      AllList.All (λ (f1 , f2) → f1 Data.Nat.* f2 ≡ n) (main n)
+    each-element-is-factor-pair n =
+      AllListProp.all-filter
+        (λ (f1 , f2) → f1 Data.Nat.* f2 Data.Nat.≟ n)
+        (pairList n)
+\end{code}
+
+\subsubsection{The Containment Proof}
+One can more or less paraphrase the name to say that \AgdaFunction{each-factor-pair-is-in-list} proves that each factor pair for \AgdaBound{n} is an element of \AgdaFunction{main} \AgdaBound{n}.
+
+\begin{code}
+    each-factor-pair-is-in-list :
+      (n f1 f2 : ℕ) →
+      f1 Data.Nat.* f2 ≡ n →
+      (f1 , f2) ∈ main n
+    each-factor-pair-is-in-list = {!!}
+    -- Basically, every possible factor pair is in the pre-filtered list,
+    -- and only the non-factor elements are removed in the filtering
+    -- process; therefore, every factor pair is in the filtered list.
+\end{code}
+
+\subsection{Exporting the Function}
+As indicated in \fref{sec:bifactorNat-main}, the author has decided to provide the ``\AgdaFunction{bifactorNat}'' alias for \AgdaFunction{bifactorNat.main}.
+
+\begin{code}
+bifactorNat = bifactorNat.main
+\end{code}
+
 \part{Formal Definitions for Computer Algebra Systems}
 
 \chapter{The Type of Mostly-Unverified Computer Algebra Systems}
@@ -724,7 +802,7 @@ A compliant CAS also has a function which performs the specified number of non-r
 \AgdaField{CAS.bogusBeforeIteration?} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains an appropriate value if and only if such a value exists.\footnote{In other words, the author so kindly suggests reading type definitions instead of expecting spoonfeeding.}  \emph{Gee}, \emph{that} explanation is the bee's knees!
 
 \section{The Expression-Factoring Function}
-If and only if such a value is found, then \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} contains \AgdaBound{v}, where \AgdaBound{e} is \AgdaBound{c}-\gls{algEq} to the product of \AgdaBound{v}.  If and only if no such value can be found, then \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{n} \AgdaBound{e} is \AgdaInductiveConstructor{nothing}.
+\AgdaFunction{CAS.factor} \AgdaBound{c} \AgdaBound{e} is a list of every value whose product is \AgdaBound{c}-\gls{algEq} to \AgdaBound{e}.
 
 \section{Representational Functions}
 
@@ -887,7 +965,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
     limit : String → ε → ε → ε
     boundedIntegral : String → ε → ε → ε → ε
     substituteVariables : List.List (String × ε) → ε → ε
-    factor : (n : ℕ) → ε → Maybe (Vec ε n)
+    factor : ε → List.List (List.List ε)
     IsNameOfVariableIn : String → ε → Set
     IsReal : ε → Set
     IsInfinite : ε → Set a
@@ -1055,8 +1133,9 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(- x\right)\) and \(- \lim_{x \rightarrow y} x\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a \cdot b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) \cdot \lim_{x \rightarrow y} b\),
  \item a proof which indicates that \(f x\) is equal to \(\lim_{y \rightarrow x} \left(f y\right)\) if \(f x\) is non-bogus,
- \item a proof of the equality between \(x\) and \(- \left(- x\right)\), and
- \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}.
+ \item a proof of the equality between \(x\) and \(- \left(- x\right)\),
+ \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}, and
+ \item a proof of the correctness of the factoring function.
 \end{itemize}
 
 \section{General Proofs regarding Equality}
@@ -1069,13 +1148,13 @@ Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the 
 
 \section{Variable Correctness Proofs}
 
-\subsection{The Proof which Indicates that Values of Different Names are Not ``Definitely Equal''}
+\subsection{The Proof which Indicates that Variables of Different Names are Not ``Definitely Equal''}
 Any two given variables are not necessarily equal.  Accordingly, \AgdaField{VCAS.differently-named-variables-are-not-definitely-equal} \AgdaBound{c} indicates that within the \AgdaBound{c} CAS, given any two \AgdaBound{c} variables \(x\) and \(y\), if the name of \(x\) differs from the name of \(y\), then \(x\) is not definitely equal to \(y\).
 
 \section{Addition Correctness Proofs}
 
 \subsection{The Natural Number Sum Field}
-Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system, the sum of two natural numbers should be the sum of the same two natural numbers.  However, as indicated by \AgdaField{CAS.fromℕ}, many computer algebra systems do not just work with natural numbers; accordingly, natural number arithmetic may accidentally be implemented incorrectly.  To prevent such incorrect implementations, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proofs which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
+Another aspect of a good computer algebra system is the correct calculation of sums of natural numbers.  Intuition dictates that in a good computer algebra system \(C\), for natural numbers \(i\) and \(j\), \(C\)'s representation of \(i + j\) should be \(C\)-\gls{algEq} to \(C\)'s sum of \(C\)'s representation of \(i\) and \(C\)'s representation of \(j\).  Pretty much anything can be botched; accordingly, to prevent such incorrect implementations, correct calculation of natural number sums is ensured through \AgdaField{sum-of-nats-is-nat-sum} values, which are proofs which indicate that the corresponding computer algebra systems' natural number addition functions are defined correctly.
 
 \subsection{The Non-Bogus Sum Field}
 \AgdaField{VCAS.sum-is-not-bogus} indicates that for any given non-bogus values \AgdaBound{e1} and \AgdaBound{e2}, the sum of \AgdaBound{e1} and \AgdaBound{e2} is not bogus.
@@ -1132,6 +1211,9 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 
 \subsection{The Non-Bogus Limit Field}
 \AgdaField{VCAS.limit-of-non-bogus-expression} \AgdaBound{v} proves that if \(f\ y\) is not \gls{bogusWrt} \AgdaBound{c}, then \(\lim_{x \rightarrow y} \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(f\ y\).
+
+\subsection{The L'H\^opital's Rule Proof Field}
+\AgdaField{VCAS.lHopital} \AgdaBound{v} proves that L'H\^opital's rule applies to the \AgdaBound{v} CAS.
 
 \section{Lambda Correctness Proofs}
 
@@ -1199,9 +1281,14 @@ We ain't done yet, folks!  Additional fields include the basic trigonometric der
 \subsection{The Repeated Negation Proof}
 \AgdaField{VCAS.repeated-negation-cancelation} \AgdaBound{v} proves that the \AgdaBound{v} CAS recognizes that for all expressions \(x\), \(- \left(- x\right) = x\).
 
-
 \section{The Natural Number Less-Than Proof}
 \AgdaField{VCAS.natural-number-less-than} \AgdaBound{v} proves that for any two natural numbers \(m\) and \(n\), if \(m < n\), then the \AgdaBound{v} CAS can determine that the \AgdaBound{v} CAS's representation of \(m\) is less than the \AgdaBound{v} CAS's representation of \(n\).
+
+\section{The Factoring Correctness Proof}
+\AgdaField{VCAS.factor-input-is-product-of-output} \AgdaBound{v} proves that for every value \(x\) in \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{e}, the product of \(x\) is \gls{algEq} to \AgdaBound{e}, where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
+
+\section{The Factor List Containment Proof}
+\AgdaField{VCAS.factor-input-is-product-of-output} \AgdaBound{v} proves that if the product of some list \(l\) is \AgdaBound{c}-\gls{algEq} to \AgdaBound{e}, then \(l\) is in \AgdaField{CAS.factor} \AgdaBound{c} \AgdaBound{e}, where \AgdaBound{v} is a value of type \AgdaRecord{VCAS} \AgdaBound{c}.
 
 \section{The Definition Proper}
 
@@ -1386,11 +1473,29 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       equal-at-some-iteration (limit name bound e)
                               (substituteVariables List.[ name , bound ] e)
 
+    lHopital :
+      (name : String) →
+      (bound e1 e2 : ε) →
+      equal-at-some-iteration (limit name bound (e1 / e2))
+                              (limit name bound (_/_ (substituteVariables List.[ name , bound ]
+                                                                          (derivative name e1))
+                                                     (substituteVariables List.[ name , bound ]
+                                                                          (derivative name e2))))
+
     tangent-is-bogus-at-quarter-tau :
       (n : ℕ) →
       let product = τ * (fromℕ n + (fromℕ 1 / fromℕ 4)) in
       _×_ (bogus-at-some-iteration product)
           (bogus-at-some-iteration (negation product))
+
+    factor-input-is-product-of-output :
+      (e : ε) →
+      AllList.All (λ x → e ≈ List.foldr _*_ (fromℕ 1) x) (factor e)
+    factor-list-contains-all-factor-lists :
+      (e : ε) →
+      (l : List.List ε) →
+      e ≈ List.foldr _*_ (fromℕ 1) l →
+      l ∈ factor e
 
     natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
@@ -2557,6 +2662,11 @@ Some thing is a value of type \AgdaFunction{LT2} \AgdaBound{x} \AgdaBound{y} if 
     data LT where
       LT-Rational :
         {x y : ℚ} → x ℚ.< y → LT (NumberRat x) (NumberRat y)
+      Transitivity : {x y z : ε} → LT x y → LT y z → LT x z
+      Substitution : {x y x2 y2 : ε} →
+                     AlgebraicEquality x x2 →
+                     AlgebraicEquality y y2 →
+                     LT x y → LT x2 y2
       Eventuality :
         {x y : ε} →
         (itx ity : ℕ) →
@@ -2580,8 +2690,9 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       strict-partial-order = record
         { isEquivalence = AlgebraicEquality.equivalence
         ; irrefl = {!!}
-        ; trans = {!!}
-        ; <-resp-≈ = {!!}
+        ; trans = LT.Transitivity
+        ; <-resp-≈ = (λ x → LT.Substitution (AlgebraicEquality.EqualityImpliesAE refl) x)
+                   , (λ x → LT.Substitution x (AlgebraicEquality.EqualityImpliesAE refl))
         }
 \end{code}
 
@@ -2623,11 +2734,12 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
   uglyPrint (NumberRat r) =
     if isYes (ℚ.denominator r Data.Integer.≟ Data.Integer.1ℤ)
        then IntShow.show (ℚ.numerator r)
-       else               "\\frac{"
-           Data.String.++ IntShow.show (ℚ.numerator r)
-           Data.String.++ "}{"
-           Data.String.++ IntShow.show (ℚ.denominator r)
-           Data.String.++ "}"
+       else Data.String.concat (Data.Vec.toList
+              ( "\\frac{"
+              ∷ IntShow.show (ℚ.numerator r)
+              ∷ "}{"
+              ∷ IntShow.show (ℚ.denominator r)
+              ∷ [ "}" ]))
   uglyPrint (Quotient x y z) =
     Data.String.concat (Data.Vec.toList
       ( "\\frac{"
@@ -2645,11 +2757,12 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       ∷ uglyPrint y
       ∷ [ "\\right)" ]))
   uglyPrint (Ap Exponent (x ∷ y ∷ [])) =
-                   "\\left("
-    Data.String.++ uglyPrint x
-    Data.String.++ "\\right) ^ {"
-    Data.String.++ uglyPrint y
-    Data.String.++ "}"
+    Data.String.concat (Data.Vec.toList
+      ( "\\left("
+      ∷ uglyPrint x
+      ∷ "\\right) ^ {"
+      ∷ uglyPrint y
+      ∷ [ "}" ]))
   uglyPrint (Ap (Lambda x) (body ∷ args)) =
     Data.String.concat (Data.Vec.toList
       ( "\\left(\\lambda\\ "
@@ -2960,6 +3073,7 @@ CasanovaFly-Verified = record
   ; limit-negation = {!!}
   ; limit-of-products-is-product = {!!}
   ; limit-of-non-bogus-expression = {!!}
+  ; lHopital = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
@@ -2977,6 +3091,8 @@ CasanovaFly-Verified = record
   ; derivative-of-product = {!!}
   ; tangent-is-bogus-at-quarter-tau = {!!}
   ; natural-less-than = {!!}
+  ; factor-input-is-product-of-output = {!!}
+  ; factor-list-contains-all-factor-lists = {!!}
   }
   where
   open CAS CasanovaFly-Base
