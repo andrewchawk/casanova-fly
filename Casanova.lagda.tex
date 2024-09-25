@@ -2390,8 +2390,8 @@ The bogus results may or may not indicate that the input expression is bogus.
 \AgdaFunction{rules} is the list of evaluation rules which are used by \AgdaFunction{main}, i.e., \AgdaFunction{exceptionallyEvaluate}.
 
 \begin{code}
-    rules =
-        record
+    rules = List.concat (List.map ruleWithRecurse (Data.Vec.toList
+      ( record
           { name = "DOUBLE NEGATION"
           ; function =
             λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
@@ -2662,15 +2662,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           { name = "CHAIN RULE FOR DERIVATIVES"
           ; function = basicDerivativeChainRuleFunction
           }
-      -- The naming of the following function could probably be improved.
-      -- Ideally, the function's name would be the name of the applied
-      -- simplification step, not just a simple "SIMPLIFY".
-      ∷ record
-          { name = "SIMPLIFY"
-          ; function = λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
-                         ; _ → nothing}
-          }
-      ∷ []
+      ∷ [])))
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
@@ -2684,6 +2676,15 @@ The bogus results may or may not indicate that the input expression is bogus.
           (main x)
       ... | yes eq = [_,_]′ inj₁ (λ xs → inj₂ (x ∷ xs)) (updateFirst xs)
       ... | no neq = [_,_]′ inj₁ (λ x → inj₂ (x ∷ xs)) (main x)
+      recurseWithRule : EvaluationRule → EvaluationRule
+      recurseWithRule rule = record
+        { name = EvaluationRule.name rule
+        ; function =
+          λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
+            ; _ → nothing}
+        }
+      ruleWithRecurse : EvaluationRule → List.List EvaluationRule
+      ruleWithRecurse rule = rule List.∷ List.[ recurseWithRule rule ]
       freeDerivativesFromPoints : ε → Maybe (Exceptional ε)
       freeDerivativesFromPoints =
         λ { (Ap (Derivative n) (x ∷ [])) →
@@ -2713,7 +2714,7 @@ The bogus results may or may not indicate that the input expression is bogus.
     {-# TERMINATING #-}
     main e = fromMaybe (inj₂ e)
            $ List.head ∘ List.mapMaybe (λ rule → EvaluationRule.function rule e)
-           $ Data.Vec.toList rules
+           $ rules
 
   {-# TERMINATING #-}
 \end{code}
@@ -3169,7 +3170,7 @@ CasanovaFly-Verified = record
   ; product-is-commutative = {!!}
   ; sum-is-associative = {!!}
   ; product-of-quotient-is-same = {!!}
-  ; 0^0-is-bogus = 1 , _ , refl
+  ; 0^0-is-bogus = 1 , _ , {!!}
   ; 0^-n-is-bogus = {!!}
   ; repeated-negation-cancelation =
     let open AlgebraicEquality in
