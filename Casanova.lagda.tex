@@ -2339,8 +2339,7 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
 A short summary is as follows: \AgdaFunction{ProductCommutes} and \AgdaFunction{SumCommutes} prove that commutative equality applies to multiplication and addition, respectively.  \AgdaFunction{SumIsAssociative} and \AgdaFunction{ProductIsAssociative} prove that associative equality applies to addition and multiplication, respectively.
 
 \begin{code}
-    SumCommutes :
-      {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
+    SumCommutes : {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
     SumCommutes {x} {y} =
       Commutativity {Sum}
                     {x ∷ y ∷ []}
