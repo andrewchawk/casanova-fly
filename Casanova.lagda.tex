@@ -2362,158 +2362,315 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
 \begin{code}
   module exceptionallyEvaluate where
-    main : ε → Exceptional ε
+\end{code}
 
-    functions =
-      ( (λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
-           ; _ → nothing})
-      ∷ (λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
-           ; _ → nothing})
-      ∷ (λ { (Ap Sum (NumberNatP 0 c ∷ x ∷ [])) → valid x
-           ; _ → nothing})
-      ∷ (λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
-             valid (NumberRat (x ℚ.+ y))
-           ; _ → nothing})
-      ∷ (λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
-             valid (NumberRat (x ℚ.* y))
-           ; _ → nothing})
-      ∷ (λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
-             if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
-               then bust "0^0 is undefined!"
-               else valid (NumberNat (x Data.Nat.^ y))
-           ; _ → nothing})
-      ∷ (λ { (Ap Exponent (NumberNatP 0 coprime ∷ NumberRat y ∷ [])) →
-             if y ℚ.≤ᵇ ℚ.0ℚ
-                then bust "\\(0^x\\) is undefined for non-positive \\(x\\)!"
-                else nothing
-           ; _ → nothing})
+\subsection{The Type of the Main Function}
+\AgdaFunction{main} will eventually become \AgdaFunction{exceptionallyEvaluate}.
+
+\begin{code}
+    main : ε → Exceptional ε
+\end{code}
+
+\subsection{The Evaluation Rule Type}
+\AgdaRecord{EvaluationRule} is the type of evaluation rules, i.e., computation strategies, which are used by \AgdaFunction{exceptionallyEvaluate}.  For a given \AgdaRecord{EvaluationRule} value \AgdaBound{r}, \AgdaField{EvaluationRule.name} \AgdaBound{r} and \AgdaField{EvaluationRule.function} \AgdaBound{r} are the name of \AgdaBound{r} and the method of applying \AgdaBound{r}, respectively.
+
+\subsubsection{The Function Field}
+For the function field, \AgdaInductiveConstructor{just} \AgdaOperator{\AgdaFunction{∘}} \AgdaInductiveConstructor{inj₂} values, \AgdaInductiveConstructor{just} \AgdaOperator{\AgdaFunction{∘}} \AgdaInductiveConstructor{inj₁} values, and \AgdaInductiveConstructor{nothing} values are the results of successful application, indicators of bogus results, and indicators of nonapplicability, respectively.
+
+The bogus results may or may not indicate that the input expression is bogus.
+
+\begin{code}
+    record EvaluationRule : Set where
+      field
+        name : String
+        function : ε → Maybe (Exceptional ε)
+\end{code}
+
+\subsection{The Evaluation Rules}
+\AgdaFunction{rules} is the list of evaluation rules which are used by \AgdaFunction{main}, i.e., \AgdaFunction{exceptionallyEvaluate}.
+
+\begin{code}
+    rules =
+        record
+          { name = "DOUBLE NEGATION"
+          ; function =
+            λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "RATIONAL NEGATION"
+          ; function =
+            λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "0 + x = x"
+          ; function =
+            λ { (Ap Sum (NumberNatP 0 c ∷ x ∷ [])) → valid x
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "RATIONAL SUM"
+          ; function =
+            λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
+                valid (NumberRat (x ℚ.+ y))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "RATIONAL PRODUCT"
+          ; function =
+            λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
+                valid (NumberRat (x ℚ.* y))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "NATURAL EXPONENT"
+          ; function =
+            λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
+                if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
+                  then bust "0^0 is undefined!"
+                  else valid (NumberNat (x Data.Nat.^ y))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "RATIONAL EXPONENT OF NATURAL"
+          ; function =
+            λ { (Ap Exponent (NumberNatP 0 coprime ∷ NumberRat y ∷ [])) →
+                if y ℚ.≤ᵇ ℚ.0ℚ
+                   then bust "\\(0^x\\) is undefined for non-positive \\(x\\)!"
+                   else nothing
+              ; _ → nothing}
+          }
       -- The following "x^0" evaluation rule is a bit dubious; this rule
       -- indicates that Variable x ^ fromℕ 0 is algebraically equal to
       -- fromℕ 1.  However, Variable x *could* feasibly be defined as
       -- being equal to fromℕ 0.
       -- The current behavior parallels Maxima, though.
-      ∷ (λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
-           ; _ → nothing})
+      ∷ record
+          { name = "0 ^ x = 1"
+          ; function =
+            λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
+              ; _ → nothing}
+          }
       -- The following "0^x" evaluation rule, like the "x^0" rule, is
       -- kind of dubious.  This rule, too, mirrors the behavior of
       -- Maxima, though.
-      ∷ (λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) →
-             let eq2 = Data.Sum.Properties.≡-dec Data.String._≟_
-                                                 structuralEqualityOnε in
-             -- The following check ensures that expressions like
-             -- Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberNat 0 ])
-             -- are not wrongly evaluated to inj₂ (NumberNat 0).
-             if isYes (eq2 (inj₂ e) (main e))
-                then valid (NumberNat 0)
-                else [_,_] bust
-                           (λ x → valid (Ap Exponent ((NumberNat 0) ∷ [ x ])))
-                           (main e)
-           ; _ → nothing})
-      ∷ (λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
-           ; _ → nothing})
+      ∷ record
+          { name = "0 ^ x"
+          ; function =
+            λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) →
+                 let eq2 = Data.Sum.Properties.≡-dec Data.String._≟_
+                                                     structuralEqualityOnε in
+                 -- The following check ensures that expressions like
+                 -- Ap Exponent (NumberRat ℚ.0ℚ ∷ [ NumberNat 0 ])
+                 -- are not wrongly evaluated to inj₂ (NumberNat 0).
+                 if isYes (eq2 (inj₂ e) (main e))
+                    then valid (NumberNat 0)
+                    else [_,_] bust
+                               (λ x → valid (Ap Exponent ((NumberNat 0) ∷ [ x ])))
+                               (main e)
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "x ^ 1 = x"
+          ; function =
+            λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
+              ; _ → nothing}
+          }
       -- The following evaluation rule prevents becoming stuck in a
       -- derivative evaluation loop.
-      ∷ (λ { (Ap (Lambda (n1 List.∷ List.[])) (Ap (Derivative n2) e1 ∷ e2 ∷ [])) →
-             [_,_]′ bust
-                    (λ derivative → valid (Ap (Lambda List.[ n1 ])
-                                              (derivative ∷ [ e2 ])))
-                    (main (Ap (Derivative n2) e1))
-           ; _ → nothing})
+      ∷ record
+          { name = "DERIVATIVE LOOP PREVENTION"
+          ; function =
+            λ { (Ap (Lambda (n1 List.∷ List.[])) (Ap (Derivative n2) e1 ∷ e2 ∷ [])) →
+                [_,_]′ bust
+                       (λ derivative → valid (Ap (Lambda List.[ n1 ])
+                                                 (derivative ∷ [ e2 ])))
+                       (main (Ap (Derivative n2) e1))
+              ; _ → nothing}
+          }
       -- The following evaluation rule is *also* kind of dubious, but,
       -- again, the behavior is like the behavior of Maxima.
-      ∷ (λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (NumberNat 1)
-               else valid (NumberNat 0)
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
-             valid (NumberNat 0)
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
-             valid (Ap Negate [ Ap (Derivative v1) x ])
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Sum (x ∷ y ∷ []) ∷ [])) →
-             valid (Ap Sum ( Ap (Derivative v1) [ x ]
-                           ∷ [ Ap (Derivative v1) [ y ] ]))
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
-             valid (Ap Sum
-                       ( Ap Product (Ap (Derivative v1) [ x ] ∷ [ y ])
-                       ∷ [ Ap Product (Ap (Derivative v1) [ y ] ∷ [ x ])]))
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (Ap Cos [ Variable v1 ])
-               else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (Ap Negate [ Ap Sin [ Variable v1 ] ])
-               else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (Ap Exponent ( Ap Sec [ Variable v1 ] ∷ [ NumberNat 2 ]))
-               else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Csc (Variable v2 ∷ []) ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (Ap Product
-                              ( Ap Csc [ Variable v1 ]
-                              ∷ [ Ap Negate [ Ap Cot [ Variable v1 ] ] ]))
-               else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Sec (Variable v2 ∷ []) ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (Ap Product
-                              ( Ap Sec [ Variable v1 ]
-                              ∷ [ Ap Tan [ Variable v1 ] ]))
-               else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
-             if v1 Data.String.== v2
-               then valid (Ap Negate
-                              [ Ap Exponent
-                                   ( Ap Csc [ Variable v1 ]
-                                   ∷ [ NumberNat 2 ]) ])
-               else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n1) (b ∷ Variable n2 ∷ [])) →
-             if n1 Data.String.== n2
-                then valid b
-                else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n) (b ∷ e ∷ [])) →
-             if isYes (IsConstant? e) then valid e else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n) (b ∷ (Ap Sum (x ∷ y ∷ [])) ∷ [])) →
-             valid (Ap Sum (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ]) ]))
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
-             valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n) (b ∷ Quotient x y coprime ∷ [])) →
-             valid (Quotient (Ap (Limit n) (b ∷ [ x ]))
-                             (Ap (Limit n) (b ∷ [ y ]))
-                             coprime)
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
-             valid (Ap Product (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ])]))
-           ; _ → nothing})
-      ∷ (λ { (Ap (Limit n1) (c ∷ Ap Exponent (Variable n2 ∷ NumberNatP x copr ∷ []) ∷ [])) →
-             if (n1 Data.String.== n2) ∧ (0 Data.Nat.<ᵇ x)
-                then valid (Ap Exponent (c ∷ [ NumberNat x ]))
-                else nothing
-           ; _ → nothing})
-      ∷ (λ { (Ap (Lambda names) (body ∷ expressions)) →
-             valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
-           ; _ → nothing})
-      ∷ freeDerivativesFromPoints
-      ∷ basicDerivativeChainRuleFunction
-      ∷ (λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
-           ; _ → nothing})
+      ∷ record
+          { name = "DERIVATIVE OF X W.R.T. X IS 1"
+          ; function =
+            λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
+                if v1 Data.String.== v2
+                  then valid (NumberNat 1)
+                  else valid (NumberNat 0)
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF RATIONAL IS 0"
+          ; function =
+            λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
+                valid (NumberNat 0)
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF NEGATIVE IS NEGATIVE DERIVATIVE"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
+                valid (Ap Negate [ Ap (Derivative v1) x ])
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF SUM IS SUM OF DERIVATIVES"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Sum (x ∷ y ∷ []) ∷ [])) →
+                valid (Ap Sum ( Ap (Derivative v1) [ x ]
+                              ∷ [ Ap (Derivative v1) [ y ] ]))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "PRODUCT RULE FOR DERIVATIVES"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
+                valid (Ap Sum
+                          ( Ap Product (Ap (Derivative v1) [ x ] ∷ [ y ])
+                          ∷ [ Ap Product (Ap (Derivative v1) [ y ] ∷ [ x ])]))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF SINE"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
+                if v1 Data.String.== v2
+                  then valid (Ap Cos [ Variable v1 ])
+                  else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF COSINE"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
+                if v1 Data.String.== v2
+                  then valid (Ap Negate [ Ap Sin [ Variable v1 ] ])
+                  else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF TANGENT"
+          ; function =
+             λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
+                 if v1 Data.String.== v2
+                   then valid (Ap Exponent ( Ap Sec [ Variable v1 ] ∷ [ NumberNat 2 ]))
+                   else nothing
+               ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF COSECANT"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Csc (Variable v2 ∷ []) ∷ [])) →
+                if v1 Data.String.== v2
+                  then valid (Ap Product
+                                 ( Ap Csc [ Variable v1 ]
+                                 ∷ [ Ap Negate [ Ap Cot [ Variable v1 ] ] ]))
+                  else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF SECANT"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Sec (Variable v2 ∷ []) ∷ [])) →
+                if v1 Data.String.== v2
+                  then valid (Ap Product
+                                 ( Ap Sec [ Variable v1 ]
+                                 ∷ [ Ap Tan [ Variable v1 ] ]))
+                  else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE OF COTANGENT"
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
+                if v1 Data.String.== v2
+                  then valid (Ap Negate
+                                 [ Ap Exponent
+                                      ( Ap Csc [ Variable v1 ]
+                                      ∷ [ NumberNat 2 ]) ])
+                  else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LIMIT OF SAME VARIABLE"
+          ; function =
+            λ { (Ap (Limit n1) (b ∷ Variable n2 ∷ [])) →
+                if n1 Data.String.== n2
+                   then valid b
+                   else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LIMIT OF CONSTANT IS SAME CONSTANT"
+          ; function =
+            λ { (Ap (Limit n) (b ∷ e ∷ [])) →
+                if isYes (IsConstant? e) then valid e else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LIMIT OF SUM IS SUM OF LIMITS"
+          ; function =
+            λ { (Ap (Limit n) (b ∷ (Ap Sum (x ∷ y ∷ [])) ∷ [])) →
+                valid (Ap Sum (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ]) ]))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LIMIT OF NEGATED VALUE IS NEGATED LIMIT"
+          ; function =
+            λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
+                valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LIMIT OF QUOTIENT IS QUOTIENT OF LIMITS"
+          ; function =
+            λ { (Ap (Limit n) (b ∷ Quotient x y coprime ∷ [])) →
+                valid (Quotient (Ap (Limit n) (b ∷ [ x ]))
+                                (Ap (Limit n) (b ∷ [ y ]))
+                                coprime)
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LIMIT OF PRODUCT IS PRODUCT OF LIMITS"
+          ; function =
+            λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
+                valid (Ap Product (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ])]))
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = {!!}
+          ; function =
+            λ { (Ap (Limit n1) (c ∷ Ap Exponent (Variable n2 ∷ NumberNatP x copr ∷ []) ∷ [])) →
+                if (n1 Data.String.== n2) ∧ (0 Data.Nat.<ᵇ x)
+                   then valid (Ap Exponent (c ∷ [ NumberNat x ]))
+                   else nothing
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "LAMBDA SUBSTITUTION"
+          ; function =
+            λ { (Ap (Lambda names) (body ∷ expressions)) →
+                valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
+              ; _ → nothing}
+          }
+      ∷ record
+          { name = "DERIVATIVE REWRITING"
+          ; function = freeDerivativesFromPoints
+          }
+      ∷ record
+          { name = "CHAIN RULE FOR DERIVATIVES"
+          ; function = basicDerivativeChainRuleFunction
+          }
+      -- The naming of the following function could probably be improved.
+      -- Ideally, the function's name would be the name of the applied
+      -- simplification step, not just a simple "SIMPLIFY".
+      ∷ record
+          { name = "SIMPLIFY"
+          ; function = λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
+                         ; _ → nothing}
+          }
       ∷ []
-      )
       where
       bust = just ∘ inj₁
       valid = just ∘ inj₂
@@ -2547,13 +2704,24 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
             fDiff = Ap (Lambda List.[ n1 ]) ∘ (Ap (Derivative n1) [ Ap f x ] ∷_)
             x2 = Data.Vec.cast (trans fArity1 (sym eq)) x
         b _ = nothing
+\end{code}
 
+\subsection{Completing the Main Function}
+\AgdaFunction{main} is still the function which will eventually become \AgdaFunction{exceptionallyEvaluate}.  Basically, \AgdaFunction{main} tries all \AgdaFunction{rules} rules on the input and returns the first non-bogus or decidedly bogus output or, if no such value exists, will just output the input.
+
+\begin{code}
     {-# TERMINATING #-}
     main e = fromMaybe (inj₂ e)
-           $ List.head ∘ List.mapMaybe (_$ e)
-           $ Data.Vec.toList functions
+           $ List.head ∘ List.mapMaybe (λ rule → EvaluationRule.function rule e)
+           $ Data.Vec.toList rules
 
   {-# TERMINATING #-}
+\end{code}
+
+\subsection{Exporting}
+Once again, the author has chosen to permit using a nice shorthand.
+
+\begin{code}
   exceptionallyEvaluate = exceptionallyEvaluate.main
 \end{code}
 
