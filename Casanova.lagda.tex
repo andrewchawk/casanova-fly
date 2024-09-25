@@ -1204,6 +1204,9 @@ That the quotient of any given number and zero is bogus, i.e., undefined, is wel
 \subsection{The Non-Bogus Limit Field}
 \AgdaField{VCAS.limit-of-non-bogus-expression} \AgdaBound{v} proves that if \(f\ y\) is not \gls{bogusWrt} \AgdaBound{c}, then \(\lim_{x \rightarrow y} \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(f\ y\).
 
+\subsection{The L'H\^opital's Rule Proof Field}
+\AgdaField{VCAS.lHopital} \AgdaBound{v} proves that L'H\^opital's rule applies to the \AgdaBound{v} CAS.
+
 \section{Lambda Correctness Proofs}
 
 \subsection{The Proof which Indicates that Simple Lambda Substitution Works}
@@ -1461,6 +1464,15 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       IsNotBogus (substituteVariables List.[ name , bound ] e) →
       equal-at-some-iteration (limit name bound e)
                               (substituteVariables List.[ name , bound ] e)
+
+    lHopital :
+      (name : String) →
+      (bound e1 e2 : ε) →
+      equal-at-some-iteration (limit name bound (e1 / e2))
+                              (limit name bound (_/_ (substituteVariables List.[ name , bound ]
+                                                                          (derivative name e1))
+                                                     (substituteVariables List.[ name , bound ]
+                                                                          (derivative name e2))))
 
     tangent-is-bogus-at-quarter-tau :
       (n : ℕ) →
@@ -3003,6 +3015,7 @@ CasanovaFly-Verified = record
   ; limit-negation = {!!}
   ; limit-of-products-is-product = {!!}
   ; limit-of-non-bogus-expression = {!!}
+  ; lHopital = {!!}
   ; simple-lambda-substitution-works = {!!}
   ; nonapplicable-lambda-returns-lambda-body = {!!}
   ; unrelated-derivative = {!!}
