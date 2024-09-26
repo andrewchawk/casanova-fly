@@ -2373,7 +2373,7 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 \end{code}
 
 \subsection{The Evaluation Rule Type}
-\AgdaRecord{EvaluationRule} is the type of evaluation rules, i.e., computation strategies, which are used by \AgdaFunction{exceptionallyEvaluate}.  For a given \AgdaRecord{EvaluationRule} value \AgdaBound{r}, \AgdaField{EvaluationRule.name} \AgdaBound{r} and \AgdaField{EvaluationRule.function} \AgdaBound{r} are the name of \AgdaBound{r} and the method of applying \AgdaBound{r}, respectively.
+\AgdaRecord{EvaluationRule} is the type of evaluation rules, i.e., computation strategies, which are used by \AgdaFunction{exceptionallyEvaluate}.  For a given \AgdaRecord{EvaluationRule} value \AgdaBound{r}, \AgdaField{EvaluationRule.name} \AgdaBound{r} and \AgdaField{EvaluationRule.function} \AgdaBound{r} are the name of \AgdaBound{r} and the method of applying \AgdaBound{r}, respectively, whereas \AgdaField{EvaluationRule.description} \AgdaBound{r} is, optionally, a description of the \AgdaBound{r} evaluation strategy and can pertain to caveats, proofs, and other such good things.
 
 \subsubsection{The Function Field}
 For the function field, \AgdaInductiveConstructor{just} \AgdaOperator{\AgdaFunction{∘}} \AgdaInductiveConstructor{inj₂} values, \AgdaInductiveConstructor{just} \AgdaOperator{\AgdaFunction{∘}} \AgdaInductiveConstructor{inj₁} values, and \AgdaInductiveConstructor{nothing} values are the results of successful application, indicators of bogus results, and indicators of nonapplicability, respectively.
@@ -2384,6 +2384,7 @@ The bogus results may or may not indicate that the input expression is bogus.
     record EvaluationRule : Set where
       field
         name : String
+        description : Maybe String
         function : ε → Maybe (Exceptional ε)
 \end{code}
 
@@ -2394,24 +2395,28 @@ The bogus results may or may not indicate that the input expression is bogus.
     rules = List.concat (List.map ruleWithRecurse (Data.Vec.toList
       ( record
           { name = "DOUBLE NEGATION"
+          ; description = nothing
           ; function =
             λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
               ; _ → nothing}
           }
       ∷ record
           { name = "RATIONAL NEGATION"
+          ; description = nothing
           ; function =
             λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
               ; _ → nothing}
           }
       ∷ record
           { name = "0 + x = x"
+          ; description = nothing
           ; function =
             λ { (Ap Sum (NumberNatP 0 c ∷ x ∷ [])) → valid x
               ; _ → nothing}
           }
       ∷ record
           { name = "RATIONAL SUM"
+          ; description = nothing
           ; function =
             λ { (Ap Sum (NumberRat x ∷ NumberRat y ∷ [])) →
                 valid (NumberRat (x ℚ.+ y))
@@ -2419,6 +2424,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "RATIONAL PRODUCT"
+          ; description = nothing
           ; function =
             λ { (Ap Product (NumberRat x ∷ NumberRat y ∷ [])) →
                 valid (NumberRat (x ℚ.* y))
@@ -2426,6 +2432,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "NATURAL EXPONENT"
+          ; description = nothing
           ; function =
             λ { (Ap Exponent (NumberNatP x c1 ∷ NumberNatP y c2 ∷ [])) →
                 if (x Data.Nat.≡ᵇ 0) ∧ (y Data.Nat.≡ᵇ 0)
@@ -2435,6 +2442,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "RATIONAL EXPONENT OF NATURAL"
+          ; description = nothing
           ; function =
             λ { (Ap Exponent (NumberNatP 0 coprime ∷ NumberRat y ∷ [])) →
                 if y ℚ.≤ᵇ ℚ.0ℚ
@@ -2442,22 +2450,24 @@ The bogus results may or may not indicate that the input expression is bogus.
                    else nothing
               ; _ → nothing}
           }
-      -- The following "x^0" evaluation rule is a bit dubious; this rule
-      -- indicates that Variable x ^ fromℕ 0 is algebraically equal to
-      -- fromℕ 1.  However, Variable x *could* feasibly be defined as
-      -- being equal to fromℕ 0.
-      -- The current behavior parallels Maxima, though.
       ∷ record
           { name = "0 ^ x = 1"
+          ; description = just
+            "The following \"x^0\" evaluation rule is a bit dubious; this rule \
+            \indicates that Variable x ^ fromℕ 0 is algebraically equal to \
+            \fromℕ 1.  However, Variable x *could* feasibly be defined as \
+            \being equal to fromℕ 0.\n\
+            \The current behavior parallels Maxima, though."
           ; function =
             λ { (Ap Exponent (x ∷ NumberNatP 0 c ∷ [])) → valid (NumberNat 1)
               ; _ → nothing}
           }
-      -- The following "0^x" evaluation rule, like the "x^0" rule, is
-      -- kind of dubious.  This rule, too, mirrors the behavior of
-      -- Maxima, though.
       ∷ record
           { name = "0 ^ x"
+          ; description = just
+            "This evaluation rule, like the \"x^0\" rule, is \
+            \kind of dubious.  This rule, too, mirrors the behavior of \
+            \Maxima, though."
           ; function =
             λ { (Ap Exponent ((NumberNatP 0 c) ∷ e ∷ [])) →
                  let eq2 = Data.Sum.Properties.≡-dec Data.String._≟_
@@ -2474,14 +2484,15 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "x ^ 1 = x"
+          ; description = nothing
           ; function =
             λ { (Ap Exponent (x ∷ NumberNatP 1 c ∷ [])) → valid x
               ; _ → nothing}
           }
-      -- The following evaluation rule prevents becoming stuck in a
-      -- derivative evaluation loop.
       ∷ record
           { name = "DERIVATIVE LOOP PREVENTION"
+          ; description = just
+            "This rule prevents becoming stuck in a derivative evaluation loop."
           ; function =
             λ { (Ap (Lambda (n1 List.∷ List.[])) (Ap (Derivative n2) e1 ∷ e2 ∷ [])) →
                 [_,_]′ bust
@@ -2490,10 +2501,11 @@ The bogus results may or may not indicate that the input expression is bogus.
                        (main (Ap (Derivative n2) e1))
               ; _ → nothing}
           }
-      -- The following evaluation rule is *also* kind of dubious, but,
-      -- again, the behavior is like the behavior of Maxima.
       ∷ record
           { name = "DERIVATIVE OF X W.R.T. X IS 1"
+          ; description = just
+            "This rule is *also* kind of dubious, but, \
+            \again, the behavior is like the behavior of Maxima."
           ; function =
             λ { (Ap (Derivative v1) (Variable v2 ∷ [])) →
                 if v1 Data.String.== v2
@@ -2503,6 +2515,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF RATIONAL IS 0"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
                 valid (NumberNat 0)
@@ -2510,6 +2523,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF NEGATIVE IS NEGATIVE DERIVATIVE"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
                 valid (Ap Negate [ Ap (Derivative v1) x ])
@@ -2517,6 +2531,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF SUM IS SUM OF DERIVATIVES"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Sum (x ∷ y ∷ []) ∷ [])) →
                 valid (Ap Sum ( Ap (Derivative v1) [ x ]
@@ -2525,6 +2540,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "PRODUCT RULE FOR DERIVATIVES"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
                 valid (Ap Sum
@@ -2534,6 +2550,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF SINE"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Sin (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
@@ -2543,6 +2560,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF COSINE"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
@@ -2552,6 +2570,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF TANGENT"
+          ; description = nothing
           ; function =
              λ { (Ap (Derivative v1) (Ap Tan (Variable v2 ∷ []) ∷ [])) →
                  if v1 Data.String.== v2
@@ -2561,6 +2580,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF COSECANT"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Csc (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
@@ -2572,6 +2592,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF SECANT"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Sec (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
@@ -2583,6 +2604,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE OF COTANGENT"
+          ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
@@ -2595,6 +2617,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LIMIT OF SAME VARIABLE"
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n1) (b ∷ Variable n2 ∷ [])) →
                 if n1 Data.String.== n2
@@ -2604,6 +2627,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LIMIT OF CONSTANT IS SAME CONSTANT"
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ e ∷ [])) →
                 if isYes (IsConstant? e) then valid e else nothing
@@ -2611,6 +2635,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LIMIT OF SUM IS SUM OF LIMITS"
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ (Ap Sum (x ∷ y ∷ [])) ∷ [])) →
                 valid (Ap Sum (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ]) ]))
@@ -2618,6 +2643,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LIMIT OF NEGATED VALUE IS NEGATED LIMIT"
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
                 valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
@@ -2625,6 +2651,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LIMIT OF QUOTIENT IS QUOTIENT OF LIMITS"
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ Quotient x y coprime ∷ [])) →
                 valid (Quotient (Ap (Limit n) (b ∷ [ x ]))
@@ -2634,6 +2661,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LIMIT OF PRODUCT IS PRODUCT OF LIMITS"
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
                 valid (Ap Product (Ap (Limit n) (b ∷ [ x ]) ∷ [ Ap (Limit n) (b ∷ [ y ])]))
@@ -2641,6 +2669,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = {!!}
+          ; description = nothing
           ; function =
             λ { (Ap (Limit n1) (c ∷ Ap Exponent (Variable n2 ∷ NumberNatP x copr ∷ []) ∷ [])) →
                 if (n1 Data.String.== n2) ∧ (0 Data.Nat.<ᵇ x)
@@ -2650,6 +2679,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "LAMBDA SUBSTITUTION"
+          ; description = nothing
           ; function =
             λ { (Ap (Lambda names) (body ∷ expressions)) →
                 valid (varSubstM (List.zip names (Data.Vec.toList expressions)) body)
@@ -2657,10 +2687,12 @@ The bogus results may or may not indicate that the input expression is bogus.
           }
       ∷ record
           { name = "DERIVATIVE REWRITING"
+          ; description = nothing
           ; function = freeDerivativesFromPoints
           }
       ∷ record
           { name = "CHAIN RULE FOR DERIVATIVES"
+          ; description = nothing
           ; function = basicDerivativeChainRuleFunction
           }
       ∷ [])))
