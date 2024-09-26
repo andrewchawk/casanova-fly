@@ -2925,7 +2925,7 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                  (λ (f , x) →
                     e ≡ Ap g (Data.Vec.cast (sym arityIs1) [ Ap f x ]))) →
         Is-nothing (pfRewrite e)
-      main e N = not-just-only-if-nothing $ N ∘ pfRewrite-just-condition e
+      main e N = not-just-only-if-nothing (N ∘ pfRewrite-just-condition e)
 
     pfRewrite-nothing = pfRewrite-nothing.main
 \end{code}
