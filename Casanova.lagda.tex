@@ -201,8 +201,7 @@ module repeatExceptional where
     {B : Set b} →
     ℕ → (f : A → B ⊎ A) → A → B ⊎ A
   repeatExceptional 0 f x = inj₂ x
-  repeatExceptional (ℕ.suc n) f x =
-    [_,_] inj₁ (repeatExceptional n f) (f x)
+  repeatExceptional (ℕ.suc n) f x = [_,_] inj₁ (repeatExceptional n f) (f x)
 \end{code}
 
 \subsection{The Properties of the Function}
@@ -304,13 +303,42 @@ module firstRepeatPosition
 \end{code}
 
 \subsection{The Properties of the Function}
-This module contains a few proofs which indicates that \AgdaFunction{firstRepeatPosition} really does work as described, after all.  For the sake of improving readability and preventing a repetitive strain injury, the author has also provided an abbreviation of the main function's name.
+This module contains a few proofs which indicates that \AgdaFunction{firstRepeatPosition} really does work as described, after all.
 
 \begin{code}
   module Properties where
+\end{code}
 
+\subsubsection{Some Abbreviations}
+For the sake of improving readability and preventing a repetitive strain injury, the author has also provided an abbreviation of the main function's name.
+
+\begin{code}
     pos = firstRepeatPosition
     posh = firstRepeatPositionHelper
+\end{code}
+
+\subsubsection{The Proof of \AgdaFunction{firstRepeatPositionHelper}'s Buffer Reversal}
+Basically, \AgdaFunction{posh-moves-elements} proves that the order of the elements in \AgdaFunction{firstRepeatPositionHelper} is the opposite of the original list's order.
+
+\begin{code}
+    posh-moves-elements :
+      {x y : A} →
+      {xs : List.List A} →
+      _≡_ (posh List.[ x ] (y List.∷ xs))
+          (Data.Maybe.map Fin.suc (posh (y List.∷ List.[ x ]) xs))
+    posh-moves-elements = {!!}
+\end{code}
+
+\subsubsection{The Irrelevant List Element Proof}
+Just a bit informally, one can say that \AgdaFunction{pos-is-posh} proves that if \AgdaBound{x} is not in \AgdaBound{xs}, then \AgdaFunction{pos} \AgdaBound{xs} is equivalent to \AgdaFunction{posh} \AgdaOperator{\AgdaFunction{List.[}} \AgdaBound{x} \AgdaOperator{\AgdaFunction{]}} \AgdaBound{xs}.
+
+\begin{code}
+    pos-is-posh :
+      {x : A} →
+      {xs : List.List A} →
+      AllList.All (_≢_ x) xs →
+      pos xs ≡ posh List.[ x ] xs
+    pos-is-posh = {!!}
 \end{code}
 
 \subsubsection{The Unique Prepending Proof}
@@ -343,18 +371,6 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
       where
       mapSuc : {n : ℕ} → Maybe (Fin n) → Maybe (Fin (ℕ.suc n))
       mapSuc = Data.Maybe.map Fin.suc
-      posh-moves-elements :
-        {x y : A} →
-        {xs : List.List A} →
-        _≡_ (posh List.[ x ] (y List.∷ xs))
-            (Data.Maybe.map Fin.suc (posh (y List.∷ List.[ x ]) xs))
-      posh-moves-elements = {!!}
-      pos-is-posh :
-        {x : A} →
-        {xs : List.List A} →
-        AllList.All (_≢_ x) xs →
-        pos xs ≡ posh List.[ x ] xs
-      pos-is-posh = {!!}
       x1-is-decidably-not-in-[x] :
         _≡_ (any? (DEQ x1) List.[ x ])
             (no (AllListProp.All¬⇒¬Any ((_∘ sym) a AllList.∷ AllList.[])))
@@ -365,10 +381,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 \AgdaFunction{pos-is-nothing-only-if-list-is-unique} indicates that \AgdaFunction{pos} \AgdaBound{xs} is \AgdaInductiveConstructor{nothing} only if \AgdaBound{xs} is a unique list.
 
 \begin{code}
-    pos-is-nothing-only-if-list-is-unique :
-      (x : List.List A) →
-      pos x ≡ nothing →
-      UniqueList x
+    pos-is-nothing-only-if-list-is-unique : (x : List.List A) → pos x ≡ nothing → UniqueList x
     pos-is-nothing-only-if-list-is-unique = {!!}
 \end{code}
 
@@ -1719,15 +1732,51 @@ The following statements hold:
 \section{The Constant Type}
 A value of type \AgdaFunction{IsConstant} \AgdaBound{e} exists if and only if \AgdaBound{e} is a constant, i.e., refers to no variables.
 
+As usual, the part after the module declaration constitutes a module, with the exception of the final definition.
+
 \begin{code}
-  data IsConstant : ε → Set where
-    InfinityIsConstant : IsConstant Infinity
-    RationalIsConstant : {q : ℚ} → IsConstant (NumberRat q)
-    ConstantApplicationIsConstant :
-      (f : F) →
-      (x : Vec ε (arity f)) →
-      AllVec.All IsConstant x →
-      IsConstant (Ap f x)
+  IsConstant : ε → Set
+
+  module IsConstant where
+\end{code}
+
+\subsection{The Main Type}
+A value of type \AgdaDatatype{main} \AgdaBound{e} exists if and only if \AgdaBound{e} is a constant, i.e., refers to no variables.
+
+\begin{code}
+    data main : ε → Set where
+      InfinityIsConstant : main Infinity
+      RationalIsConstant : {q : ℚ} → main (NumberRat q)
+      ConstantApplicationIsConstant :
+        (f : F) →
+        (x : Vec ε (arity f)) →
+        AllVec.All main x →
+        main (Ap f x)
+\end{code}
+
+\subsection{Properties}\label{sec:isConstantProperties}
+This section contains proofs of the various properties of \AgdaDatatype{main}.
+
+All parts of \fref{sec:isConstantProperties} which follow the module declaration are in the module.
+
+\begin{code}
+    module Properties where
+\end{code}
+
+\subsubsection{The Function Application Constant Proof}
+A smidge informally, one can say that \AgdaFunction{constantOnlyIfXConstant} proves that the application of a function is a constant only if all arguments of the function are constants.
+
+\begin{code}
+      constantOnlyIfXConstant :
+        {f : F} → {x : Vec ε (arity f)} → main (Ap f x) → AllVec.All main x
+      constantOnlyIfXConstant (ConstantApplicationIsConstant f x xC) = xC
+\end{code}
+
+\subsection{Completing the Definition}
+As the reader may have guessed, the author has decided to define \AgdaFunction{IsConstant} as being equal to \AgdaDatatype{IsConstant.main}.
+
+\begin{code}
+  IsConstant = IsConstant.main
 \end{code}
 
 \subsection{The Decidable Constantness Function}
@@ -1742,18 +1791,11 @@ A value of type \AgdaFunction{IsConstant} \AgdaBound{e} exists if and only if \A
   {-# TERMINATING #-}
   IsConstant? : (e : ε) → Dec (IsConstant e)
   IsConstant? (Variable x) = no λ ()
-  IsConstant? Infinity = yes InfinityIsConstant
-  IsConstant? (NumberRat x) = yes RationalIsConstant
+  IsConstant? Infinity = yes IsConstant.InfinityIsConstant
+  IsConstant? (NumberRat x) = yes IsConstant.RationalIsConstant
   IsConstant? (Ap f x) with AllVec.all? IsConstant? x
-  ... | yes xConstant = yes (ConstantApplicationIsConstant f x xConstant)
-  ... | no xVariable = no (xVariable ∘ constantOnlyIfXConstant)
-    where
-    constantOnlyIfXConstant :
-      {f : F} →
-      {x : Vec ε (arity f)} →
-      IsConstant (Ap f x) →
-      AllVec.All IsConstant x
-    constantOnlyIfXConstant (ConstantApplicationIsConstant f x xC) = xC
+  ... | yes xConstant = yes (IsConstant.ConstantApplicationIsConstant f x xConstant)
+  ... | no xVariable = no (xVariable ∘ IsConstant.Properties.constantOnlyIfXConstant)
 \end{code}
 
 \chapter{Decidable Structural Equality Functions}
@@ -2891,8 +2933,7 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       ∷ "}{"
       ∷ uglyPrint y
       ∷ [ "}" ]))
-  uglyPrint (Ap Sum (x ∷ y ∷ [])) =
-    uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
+  uglyPrint (Ap Sum (x ∷ y ∷ [])) = uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
   uglyPrint (Ap Product (x ∷ y ∷ [])) =
     Data.String.concat (Data.Vec.toList
       ( "\\left("
@@ -3044,9 +3085,20 @@ This chapter contains various proofs regarding the stuff which was defined in \f
             ≡⟨ cong just (≡-irrelevant (proj₁ (dec-yes question eq)) eq) ⟩
           just eq ∎
 
+      nothing-is-not-just :
+        {a : Level} →
+        {A : Set a} →
+        {x : Maybe A} →
+        x ≡ nothing →
+        ¬ Is-just x
+      nothing-is-not-just refl ()
+
       main : (e : ε) →
              (isJust : Is-just (pfRewrite e)) →
              AlgebraicEquality e (to-witness isJust)
+      main Infinity ()
+      main (NumberRat r) ()
+      main (Variable name) ()
       main (Ap g x) isJust with arity g Data.Nat.≟ 1
       ... | no differentArity = {!!} -- impossible
       ... | yes rightArity with Data.Vec.cast rightArity x
@@ -3073,8 +3125,9 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                 (isJust : Is-just (just x)) →
                 to-witness isJust ≡ x
               to-witness-is-input (AnyMaybe.just x) = refl
-      ... | x | ⟦ unimportantProof ⟧ = {!!} -- impossible
-      main x isJust = {!!} -- also impossible
+      ... | Infinity ∷ [] | ⟦ unimportantProof ⟧ = contradiction isJust (nothing-is-not-just refl)
+      ... | (Variable name) ∷ [] | ⟦ unimportantProof ⟧ = contradiction isJust (nothing-is-not-just refl)
+      ... | (NumberRat rat) ∷ [] | ⟦ unimportantProof ⟧ = contradiction isJust (nothing-is-not-just refl)
 
     pfRewrite-basicEquality = pfRewrite-basicEquality.main
 \end{code}
@@ -3115,8 +3168,7 @@ This chapter contains various proofs regarding the stuff which was defined in \f
         ¬ Is-just x →
         Is-nothing x
       not-just-only-if-nothing {x = nothing} tt = AllMaybe.nothing
-      not-just-only-if-nothing {x = just x} =
-        contradiction (AnyMaybe.just Data.Unit.tt)
+      not-just-only-if-nothing {x = just x} = contradiction (AnyMaybe.just Data.Unit.tt)
 
       main :
         (e : ε) →
@@ -3126,11 +3178,36 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                  (λ (f , x) →
                     e ≡ Ap g (Data.Vec.cast (sym arityIs1) [ Ap f x ]))) →
         Is-nothing (pfRewrite e)
-      main e N = not-just-only-if-nothing $ N ∘ pfRewrite-just-condition e
+      main e N = not-just-only-if-nothing (N ∘ pfRewrite-just-condition e)
 
     pfRewrite-nothing = pfRewrite-nothing.main
 \end{code}
-n
+
+\section{The Relationships between Limits and Derivatives}
+
+\subsection{The Proof of Derivatives' Being Limits}
+\AgdaFunction{derivative-is-limit} proves that Casanova Fly recognizes that derivatives are really just limits.  More formally, one can check out the type.  A bit less formally, one can say that \AgdaFunction{derivative-is-limit} proves that \(\derivative{x} \left(f\ x\right)\) is \(c\)-\gls{algEq} to \(\lim_{\Delta \rightarrow 0} \left(\frac{f\ \left(x + \Delta\right) - f\ x}{\Delta}\right)\), where \(f\) and \(c\) are some function and Casanova Fly, respectively.
+
+\begin{code}
+    derivative-is-limit :
+      (name : String) →
+      (f : F) →
+      (arityEquality : arity f ≡ 1) →
+      name ≢ "delta" →
+      AlgebraicEquality
+        (Ap (Derivative name) [ Ap f (cast (sym arityEquality) [ Variable name ]) ])
+        (Ap (Limit "delta")
+            ( NumberNat 0
+            ∷ Quotient
+                (Ap Sum ( Ap f (cast (sym arityEquality)
+                                     [ Ap Sum (Variable name ∷ [ Variable "delta" ])])
+                        ∷ [ Ap Negate [ Ap f (cast (sym arityEquality) [ Variable name ])] ]))
+                (Variable "delta")
+                (Coprimality.sym (Coprimality.1-coprimeTo 1))
+            ∷ []))
+    derivative-is-limit = {!!}
+\end{code}
+
 \part{The Rest is F-L-Y}
 
 \chapter{Overview and Intent}
@@ -3251,12 +3328,9 @@ CasanovaFly-Verified = record
   invert-inverse e = 1 , inv-inv-propEq e , {!!}
     where
     inv = Ap Negate ∘ [_]
-    inv-inv-propEq :
-      (e : ε) →
-      e ≈ inv (inv e)
+    inv-inv-propEq : (e : ε) → e ≈ inv (inv e)
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
-    inv-inv-propEq e =
-      AlgebraicEquality.Eventuality 0 1 (AlgebraicEquality.EqualityImpliesAE refl)
+    inv-inv-propEq e = AlgebraicEquality.Eventuality 0 1 (AlgebraicEquality.EqualityImpliesAE refl)
 
   division-by-zero-is-bogus :
     (e1 e2 : ε) →
@@ -3317,7 +3391,7 @@ CasanovaFly-Verified = record
 
 \newglossaryentry{algEq}
   { name = algebraically-equal
-  , description = Any appropriate thing \(a\) is \AgdaBound{c}-\gls{algEq} to any appropriate thing \(b\) if and only if \(x\) is \AgdaBound{c}-\gls{algEq1} or \AgdaBound{c}-\gls{algEq2} to \(y\).  This term is vaguer than ``\AgdaBound{c}-\gls{algEq2}'' and ``\AgdaBound{c}-\gls{algEq1}'' and facilitates more concise communication
+  , description = Any appropriate thing \(x\) is \AgdaBound{c}-\gls{algEq} to any appropriate thing \(y\) if and only if \(x\) is \AgdaBound{c}-\gls{algEq1} or \AgdaBound{c}-\gls{algEq2} to \(y\).  This term is vaguer than ``\AgdaBound{c}-\gls{algEq2}'' and ``\AgdaBound{c}-\gls{algEq1}'' and facilitates more concise communication
   }
 
 \newglossaryentry{bogusWrt}
