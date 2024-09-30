@@ -2843,9 +2843,20 @@ This chapter contains various proofs regarding the stuff which was defined in \f
             ≡⟨ cong just (≡-irrelevant (proj₁ (dec-yes question eq)) eq) ⟩
           just eq ∎
 
+      nothing-is-not-just :
+        {a : Level} →
+        {A : Set a} →
+        {x : Maybe A} →
+        x ≡ nothing →
+        ¬ Is-just x
+      nothing-is-not-just refl ()
+
       main : (e : ε) →
              (isJust : Is-just (pfRewrite e)) →
              AlgebraicEquality e (to-witness isJust)
+      main Infinity ()
+      main (NumberRat r) ()
+      main (Variable name) ()
       main (Ap g x) isJust with arity g Data.Nat.≟ 1
       ... | no differentArity = {!!} -- impossible
       ... | yes rightArity with Data.Vec.cast rightArity x
@@ -2872,8 +2883,9 @@ This chapter contains various proofs regarding the stuff which was defined in \f
                 (isJust : Is-just (just x)) →
                 to-witness isJust ≡ x
               to-witness-is-input (AnyMaybe.just x) = refl
-      ... | x | ⟦ unimportantProof ⟧ = {!!} -- impossible
-      main x isJust = {!!} -- also impossible
+      ... | Infinity ∷ [] | ⟦ unimportantProof ⟧ = contradiction isJust (nothing-is-not-just refl)
+      ... | (Variable name) ∷ [] | ⟦ unimportantProof ⟧ = contradiction isJust (nothing-is-not-just refl)
+      ... | (NumberRat rat) ∷ [] | ⟦ unimportantProof ⟧ = contradiction isJust (nothing-is-not-just refl)
 
     pfRewrite-basicEquality = pfRewrite-basicEquality.main
 \end{code}
