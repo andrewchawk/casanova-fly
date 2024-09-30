@@ -317,6 +317,30 @@ For the sake of improving readability and preventing a repetitive strain injury,
     posh = firstRepeatPositionHelper
 \end{code}
 
+\subsubsection{The Proof of \AgdaFunction{firstRepeatPositionHelper}'s Buffer Reversal}
+Basically, \AgdaFunction{posh-moves-elements} proves that the order of the elements in \AgdaFunction{firstRepeatPositionHelper} is the opposite of the original list's order.
+
+\begin{code}
+    posh-moves-elements :
+      {x y : A} →
+      {xs : List.List A} →
+      _≡_ (posh List.[ x ] (y List.∷ xs))
+          (Data.Maybe.map Fin.suc (posh (y List.∷ List.[ x ]) xs))
+    posh-moves-elements = {!!}
+\end{code}
+
+\subsubsection{The Irrelevant List Element Proof}
+Just a bit informally, one can say that \AgdaFunction{pos-is-posh} proves that if \AgdaBound{x} is not in \AgdaBound{xs}, then \AgdaFunction{pos} \AgdaBound{xs} is equivalent to \AgdaFunction{posh} \AgdaOperator{\AgdaFunction{List.[}} \AgdaBound{x} \AgdaOperator{\AgdaFunction{]}} \AgdaBound{xs}.
+
+\begin{code}
+    pos-is-posh :
+      {x : A} →
+      {xs : List.List A} →
+      AllList.All (_≢_ x) xs →
+      pos xs ≡ posh List.[ x ] xs
+    pos-is-posh = {!!}
+\end{code}
+
 \subsubsection{The Unique Prepending Proof}
 \AgdaFunction{unique-element-prepend} indicates that if \AgdaBound{x} is not in \AgdaBound{xs}, then \AgdaFunction{pos} \AgdaSymbol(\AgdaBound{x} \AgdaOperator{\AgdaFunction{List.∷}} \AgdaBound{xs}\AgdaSymbol) contains the successor of \AgdaFunction{pos} \AgdaBound{xs} or is \AgdaInductiveConstructor{nothing}.
 
@@ -347,18 +371,6 @@ For the sake of improving readability and preventing a repetitive strain injury,
       where
       mapSuc : {n : ℕ} → Maybe (Fin n) → Maybe (Fin (ℕ.suc n))
       mapSuc = Data.Maybe.map Fin.suc
-      posh-moves-elements :
-        {x y : A} →
-        {xs : List.List A} →
-        _≡_ (posh List.[ x ] (y List.∷ xs))
-            (Data.Maybe.map Fin.suc (posh (y List.∷ List.[ x ]) xs))
-      posh-moves-elements = {!!}
-      pos-is-posh :
-        {x : A} →
-        {xs : List.List A} →
-        AllList.All (_≢_ x) xs →
-        pos xs ≡ posh List.[ x ] xs
-      pos-is-posh = {!!}
       x1-is-decidably-not-in-[x] :
         _≡_ (any? (DEQ x1) List.[ x ])
             (no (AllListProp.All¬⇒¬Any ((_∘ sym) a AllList.∷ AllList.[])))
