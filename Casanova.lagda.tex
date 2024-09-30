@@ -201,8 +201,7 @@ module repeatExceptional where
     {B : Set b} →
     ℕ → (f : A → B ⊎ A) → A → B ⊎ A
   repeatExceptional 0 f x = inj₂ x
-  repeatExceptional (ℕ.suc n) f x =
-    [_,_] inj₁ (repeatExceptional n f) (f x)
+  repeatExceptional (ℕ.suc n) f x = [_,_] inj₁ (repeatExceptional n f) (f x)
 \end{code}
 
 \subsection{The Properties of the Function}
@@ -304,11 +303,16 @@ module firstRepeatPosition
 \end{code}
 
 \subsection{The Properties of the Function}
-This module contains a few proofs which indicates that \AgdaFunction{firstRepeatPosition} really does work as described, after all.  For the sake of improving readability and preventing a repetitive strain injury, the author has also provided an abbreviation of the main function's name.
+This module contains a few proofs which indicates that \AgdaFunction{firstRepeatPosition} really does work as described, after all.
 
 \begin{code}
   module Properties where
+\end{code}
 
+\subsubsection{Some Abbreviations}
+For the sake of improving readability and preventing a repetitive strain injury, the author has also provided an abbreviation of the main function's name.
+
+\begin{code}
     pos = firstRepeatPosition
     posh = firstRepeatPositionHelper
 \end{code}
@@ -365,10 +369,7 @@ This module contains a few proofs which indicates that \AgdaFunction{firstRepeat
 \AgdaFunction{pos-is-nothing-only-if-list-is-unique} indicates that \AgdaFunction{pos} \AgdaBound{xs} is \AgdaInductiveConstructor{nothing} only if \AgdaBound{xs} is a unique list.
 
 \begin{code}
-    pos-is-nothing-only-if-list-is-unique :
-      (x : List.List A) →
-      pos x ≡ nothing →
-      UniqueList x
+    pos-is-nothing-only-if-list-is-unique : (x : List.List A) → pos x ≡ nothing → UniqueList x
     pos-is-nothing-only-if-list-is-unique = {!!}
 \end{code}
 
@@ -2690,8 +2691,7 @@ This section --- and module --- contains various proofs which pertain to \AgdaDa
       ∷ "}{"
       ∷ uglyPrint y
       ∷ [ "}" ]))
-  uglyPrint (Ap Sum (x ∷ y ∷ [])) =
-    uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
+  uglyPrint (Ap Sum (x ∷ y ∷ [])) = uglyPrint x Data.String.++ " + " Data.String.++ uglyPrint y
   uglyPrint (Ap Product (x ∷ y ∷ [])) =
     Data.String.concat (Data.Vec.toList
       ( "\\left("
@@ -2926,8 +2926,7 @@ This chapter contains various proofs regarding the stuff which was defined in \f
         ¬ Is-just x →
         Is-nothing x
       not-just-only-if-nothing {x = nothing} tt = AllMaybe.nothing
-      not-just-only-if-nothing {x = just x} =
-        contradiction (AnyMaybe.just Data.Unit.tt)
+      not-just-only-if-nothing {x = just x} = contradiction (AnyMaybe.just Data.Unit.tt)
 
       main :
         (e : ε) →
@@ -3062,12 +3061,9 @@ CasanovaFly-Verified = record
   invert-inverse e = 1 , inv-inv-propEq e , {!!}
     where
     inv = Ap Negate ∘ [_]
-    inv-inv-propEq :
-      (e : ε) →
-      e ≈ inv (inv e)
+    inv-inv-propEq : (e : ε) → e ≈ inv (inv e)
     -- Regardless of *eventual* bogosity, the first step *should* be fine.
-    inv-inv-propEq e =
-      AlgebraicEquality.Eventuality 0 1 (AlgebraicEquality.EqualityImpliesAE refl)
+    inv-inv-propEq e = AlgebraicEquality.Eventuality 0 1 (AlgebraicEquality.EqualityImpliesAE refl)
 
   division-by-zero-is-bogus :
     (e1 e2 : ε) →
