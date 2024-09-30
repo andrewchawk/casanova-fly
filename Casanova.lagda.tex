@@ -2940,7 +2940,32 @@ This chapter contains various proofs regarding the stuff which was defined in \f
 
     pfRewrite-nothing = pfRewrite-nothing.main
 \end{code}
-n
+
+\section{The Relationships between Limits and Derivatives}
+
+\subsection{The Proof of Derivatives' Being Limits}
+\AgdaFunction{derivative-is-limit} proves that Casanova Fly recognizes that derivatives are really just limits.  More formally, one can check out the type.  A bit less formally, one can say that \AgdaFunction{derivative-is-limit} proves that \(\derivative{x} \left(f\ x\right)\) is \(c\)-\gls{algEq} to \(\lim_{\Delta \rightarrow 0} \left(\frac{f\ \left(x + \Delta\right) - f\ x}{\Delta}\right)\), where \(f\) and \(c\) are some function and Casanova Fly, respectively.
+
+\begin{code}
+    derivative-is-limit :
+      (name : String) →
+      (f : F) →
+      (arityEquality : arity f ≡ 1) →
+      name ≢ "delta" →
+      AlgebraicEquality
+        (Ap (Derivative name) [ Ap f (cast (sym arityEquality) [ Variable name ]) ])
+        (Ap (Limit "delta")
+            ( NumberNat 0
+            ∷ Quotient
+                (Ap Sum ( Ap f (cast (sym arityEquality)
+                                     [ Ap Sum (Variable name ∷ [ Variable "delta" ])])
+                        ∷ [ Ap Negate [ Ap f (cast (sym arityEquality) [ Variable name ])] ]))
+                (Variable "delta")
+                (Coprimality.sym (Coprimality.1-coprimeTo 1))
+            ∷ []))
+    derivative-is-limit = {!!}
+\end{code}
+
 \part{The Rest is F-L-Y}
 
 \chapter{Overview and Intent}
