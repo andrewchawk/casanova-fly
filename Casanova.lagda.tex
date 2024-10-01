@@ -1140,6 +1140,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof which indicates that \(f x\) is equal to \(\lim_{y \rightarrow x} \left(f y\right)\) if \(f x\) is non-bogus,
  \item a proof of L'H\^opital's rule,
  \item a proof of the equality between \(x\) and \(- \left(- x\right)\),
+ \item a proof which indicates that an evaluated constant is also a constant,
  \item a proof which indicates that if \AgdaBound{m} is less than \AgdaBound{n}, then \AgdaField{fromℕ} \AgdaBound{m} is less than \AgdaField{fromℕ} \AgdaBound{n}, and
  \item a proof of the correctness of the factoring function.
 \end{itemize}
@@ -1151,6 +1152,11 @@ A good CAS represents the complex numbers, whose equality relation is an equival
 
 \subsection{The Structural-Equivalence-to-Algebraic-Equality Function}
 Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the same way only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{structural-equality-implies-definite-equality}.
+
+\section{General Proofs regarding Constants}
+
+\subsection{The Constant Evaluation Proof}
+\AgdaField{VCAS.evaluated-constant-is-a-constant} \AgdaBound{v} proves that the \AgdaBound{v} CAS evaluates any constant to a constant.
 
 \section{Variable Correctness Proofs}
 
@@ -1502,6 +1508,12 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (l : List.List ε) →
       e ≈ List.foldr _*_ (fromℕ 1) l →
       l ∈ factor e
+
+    evaluated-constant-is-a-constant :
+      (e : ε) →
+      (count : ℕ) →
+      IsConstant e →
+      ((Exceptional ε → Set) ∋ λ {(inj₂ x) → IsConstant x ; (inj₁ exc) → ⊤}) (rEvaluate count e)
 
     natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
@@ -3113,6 +3125,7 @@ CasanovaFly-Verified = record
   ; natural-less-than = {!!}
   ; factor-input-is-product-of-output = {!!}
   ; factor-list-contains-all-factor-lists = {!!}
+  ; evaluated-constant-is-a-constant = {!!}
   }
   where
   open CAS CasanovaFly-Base
