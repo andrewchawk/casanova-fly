@@ -1118,7 +1118,7 @@ record CAS {a : Level} (ε : Set a) : Set (Level.suc a) where
 For the purposes of this document, a verified computer algebra system is the combination of a \AgdaRecord{CAS} computer algebra system \(c\) \emph{and} some guarantees about \(c\).  The non-\AgdaRecord{CAS} parts of the combination are as follows:
 
 \begin{itemize}
- \item a proof which indicates that the algebraic equality relation is an equaivalence relation,
+ \item a proof which indicates that the algebraic equality relation is an equivalence relation,
  \item a proof which indicates that two values are structurally equivalent only if these same values are also algebraically equal,
  \item a proof which indicates that variables of different names are not definitely equal,
  \item a proof which indicates that for any two integers \(n_1\) and \(n_2\), the sum of the representations of \(n_1\) and \(n_2\) is the representation of \(n_1 + n_2\),
@@ -1156,10 +1156,10 @@ For the purposes of this document, a verified computer algebra system is the com
 \section{General Proofs regarding Equality}
 
 \subsection{The Proof of the Equivalence Nature of the Algebraic Equality Relation}
-A good CAS represents the complex numbers, whose equality relation is an equivalence relation.  Accordingly, a verified CAS's algebraic equality relation should be an equivalence relation.  \AgdaField{equality-is-equivance} values indicate that the algebraic equality relations actually are equivalence relations.
+A good CAS works with complex numbers, whose equality relation is an equivalence relation.  Accordingly, a verified CAS's algebraic equality relation should be an equivalence relation.  \AgdaField{equality-is-equivance} values indicate that the algebraic equality relations actually are equivalence relations.
 
 \subsection{The Structural-Equivalence-to-Algebraic-Equality Function}
-Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are represented in the same way only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{structural-equality-implies-definite-equality}.
+Also, in a good CAS, two expressions \(e_1\) and \(e_2\) are structurally equal only if \(e_1\) is algebraically equal to \(e_2\).  This fact is represented through the use of \AgdaField{VCAS.structural-equality-implies-definite-equality}.
 
 \section{General Proofs regarding Constants}
 
