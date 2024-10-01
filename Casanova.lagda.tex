@@ -1492,8 +1492,8 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
     tangent-is-bogus-at-quarter-tau :
       (n : ℕ) →
       let product = τ * (fromℕ n + (fromℕ 1 / fromℕ 4)) in
-      _×_ (bogus-at-some-iteration product)
-          (bogus-at-some-iteration (negation product))
+      _×_ (bogus-at-some-iteration (tan product))
+          (bogus-at-some-iteration (tan (negation product)))
 
     factor-input-is-product-of-output :
       (e : ε) →
