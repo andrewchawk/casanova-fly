@@ -119,6 +119,13 @@ open import Relation.Binary.PropositionalEquality.WithK
   using
     ( ≡-irrelevant
     )
+open import Data.List.Relation.Binary.Permutation.Setoid
+  renaming
+    ( _↭_ to IsSetoidPermutation
+    )
+  using
+    (
+    )
 import Data.List as List
 import Data.Nat.Coprimality as Coprimality
 import Data.Integer
@@ -135,6 +142,7 @@ import Data.Vec.Properties as VecProp
 import Data.Vec.Relation.Unary.Any as AnyVec
 import Data.Vec.Relation.Unary.All as AllVec
 import Data.List.Properties as ListProp
+import Data.List.Relation.Binary.Pointwise as PointwiseList
 import Data.Maybe.Relation.Unary.All as AllMaybe
 import Data.Unit
 \end{code}
@@ -1689,6 +1697,15 @@ The following statements hold:
   isCommutative (Compose g f eq) x = false
 \end{code}
 
+\section{The Associativity-Determining Function}
+
+\begin{code}
+  isAssociative : (f : F) → arity f ≡ 2 → Bool
+  isAssociative Sum refl = true
+  isAssociative Product refl = true
+  isAssociative f eq = false
+\end{code}
+
 \section{The Variable Substitution Function}\label{sec:varSubstM-def}
 \AgdaFunction{varSubstM} is the multi-variable substitution function.  In \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e}, any variable in \AgdaBound{e} which also has an entry in \AgdaBound{l} will be replaced by the corresponding \AgdaDatatype{ε} entry in \AgdaBound{l}.  More formally, one can say that \AgdaFunction{varSubstM} \AgdaBound{l} \AgdaBound{e} is a derivative of \AgdaBound{e} such that for any given variable \AgdaBound{x} in \AgdaBound{e}, if a value \AgdaBound{i} exists such that \AgdaField{proj₁} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol) is \AgdaBound{x}, then \AgdaBound{x} is replaced by \AgdaField{proj₂} \AgdaSymbol(\AgdaFunction{List.lookup} \AgdaBound{l} \AgdaBound{i}\AgdaSymbol).
 
@@ -2314,17 +2331,11 @@ A value of type \AgdaFunction{main2} \AgdaBound{x} \AgdaBound{y} exists if and o
 \subsubsection{Structural Equality's Implication of Algebraic Equality}
 According to \AgdaInductiveConstructor{EqualityImpliesAE}, two \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y} are structurally equal only if \AgdaBound{x} is algebraically equal to \AgdaBound{y}.
 
-\subsubsection{Sum Commutativity}
-Basically, according to \AgdaInductiveConstructor{SumCommutes}, \(a + b = b + a\) or, equivalently, if \(a = a\prime\) and \(b = b\prime\), then \(a + b = b\prime + a\prime\).
+\subsubsection{Commutativity}
+Basically, according to \AgdaInductiveConstructor{Commutativity}, if \AgdaBound{a} is a permutation of \AgdaBound{b}, and \AgdaBound{f} is commutative, then \AgdaBound{f} \AgdaBound{a} is algebraically equivalent to \AgdaBound{f} \AgdaBound{b}.
 
-\subsubsection{Product Commutativity}
-Basically, according to \AgdaInductiveConstructor{ProductCommutes}, \(a \cdot b = b \cdot a\) or, equivalently, if \(a = a\prime\) and \(b = b\prime\), then \(a \cdot b = b\prime \cdot a\prime\).
-
-\subsubsection{Sum Associativity}
-Basically, according to \AgdaInductiveConstructor{SumIsAssociative}, \(a + \left(b + c\right) = \left(a + b\right) + c\).
-
-\subsubsection{Product Associativity}
-Basically, according to \AgdaInductiveConstructor{ProductIsAssociative}, \(a \cdot \left(b \cdot c\right) = \left(a \cdot b\right) \cdot c\).
+\subsubsection{Associativity}
+Basically, according to \AgdaInductiveConstructor{Associativity}, if \AgdaBound{f} is associative and is of arity 2, then \(f\prime x \left(f y z\right) = f \left(f\prime x y\right) z\), where ``\(f'\)'' denotes the function which is represented by \AgdaBound{f}.
 
 \subsubsection{Composition}
 Thanks to \AgdaInductiveConstructor{Composition}, proving that \(g \left(f\ x\right)\) is \AgdaBound{c}-\gls{algEq} to \(\left(g \circ f\right)\ x\) is downright simple.
@@ -2343,18 +2354,22 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
 \begin{code}
     data main where
       EqualityImpliesAE : {e1 e2 : ε} → e1 ≡ e2 → main e1 e2
-      SumCommutes :
-        {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
-      ProductCommutes :
-        {x y : ε} → main (Ap Product (x ∷ y ∷ [])) (Ap Product (y ∷ x ∷ []))
-      SumIsAssociative :
-        {x1 x2 x3 : ε} →
-        main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
-             (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
-      ProductIsAssociative :
-        {x1 x2 x3 : ε} →
-        main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
-             (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+      Commutativity :
+        {f : F} →
+        {x y : Vec ε (arity f)} →
+        {eq2 : arity f ≡ 2} →
+        true ≡ isCommutative f eq2 →
+        IsSetoidPermutation (record {isEquivalence = isEquivalence})
+                            (Data.Vec.toList x)
+                            (Data.Vec.toList y) →
+        main (Ap f x) (Ap f y)
+      Associativity :
+        {f : F} →
+        {x y z : ε} →
+        {eq : arity f ≡ 2} →
+        true ≡ isAssociative f eq →
+        main (Ap f (cast (sym eq) (x ∷ [ Ap f (cast (sym eq) (y ∷ [ z ]))])))
+             (Ap f (cast (sym eq) (Ap f (cast (sym eq) (x ∷ [ y ])) ∷ [ z ])))
       Composition : {g f : F} →
                     {x : Vec ε (arity f)} →
                     (eq : arity g ≡ 1) →
@@ -2368,6 +2383,48 @@ For all \AgdaDatatype{ε} values \AgdaBound{x} and \AgdaBound{y}, if some evalua
         main2 (repeatExceptional itx exceptionallyEvaluate x)
               (repeatExceptional ity exceptionallyEvaluate y) →
         main x y
+\end{code}
+
+\subsubsection{Some Useful Shorthands}
+A short summary is as follows: \AgdaFunction{ProductCommutes} and \AgdaFunction{SumCommutes} prove that commutative equality applies to multiplication and addition, respectively.  \AgdaFunction{SumIsAssociative} and \AgdaFunction{ProductIsAssociative} prove that associative equality applies to addition and multiplication, respectively.
+
+\begin{code}
+    SumCommutes : {x y : ε} → main (Ap Sum (x ∷ y ∷ [])) (Ap Sum (y ∷ x ∷ []))
+    SumCommutes {x} {y} =
+      Commutativity {Sum}
+                    {x ∷ y ∷ []}
+                    {y ∷ x ∷ []}
+                    {refl}
+                    refl
+                    (swapP refl refl (reflP PointwiseList.[]))
+        where
+        swapP = Data.List.Relation.Binary.Permutation.Setoid.swap
+        reflP = Data.List.Relation.Binary.Permutation.Setoid.refl
+
+    ProductCommutes :
+      {x y : ε} → main (Ap Product (x ∷ y ∷ [])) (Ap Product (y ∷ x ∷ []))
+    ProductCommutes {x} {y} =
+      Commutativity {Product}
+                    {x ∷ y ∷ []}
+                    {y ∷ x ∷ []}
+                    {refl}
+                    refl
+                    (swapP refl refl (reflP PointwiseList.[]))
+        where
+        swapP = Data.List.Relation.Binary.Permutation.Setoid.swap
+        reflP = Data.List.Relation.Binary.Permutation.Setoid.refl
+
+    SumIsAssociative :
+      {x1 x2 x3 : ε} →
+      main (Ap Sum (x1 ∷ [ Ap Sum (x2 ∷ [ x3 ]) ]))
+           (Ap Sum (Ap Sum (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+    SumIsAssociative = Associativity {eq = refl} refl
+
+    ProductIsAssociative :
+      {x1 x2 x3 : ε} →
+      main (Ap Product (x1 ∷ [ Ap Product (x2 ∷ [ x3 ]) ]))
+           (Ap Product (Ap Product (x1 ∷ [ x2 ]) ∷ [ x3 ]))
+    ProductIsAssociative = Associativity {eq = refl} refl
 \end{code}
 
 \subsection{The Equivalence Proof}
@@ -2811,12 +2868,106 @@ Once again, the author has chosen to permit using a nice shorthand.
 
 \begin{code}
   module checkAlgebraicEquality where
+    module directCheck where
+      Check = {x y : ε} → Maybe (AlgebraicEquality x y)
+
+      bi-eq : {a b c d : ε} → Maybe ((a ≡ d) × (b ≡ c))
+      bi-eq {a} {b} {c} {d} =
+        Data.Maybe.zip (decToMaybe (structuralEqualityOnε a d))
+                       (decToMaybe (structuralEqualityOnε b c))
+
+      tri-eq : {a b c x y z : ε} →
+               Maybe ((a ≡ x) × (b ≡ y) × (c ≡ z))
+      tri-eq {a} {b} {c} {x} {y} {z} =
+        Data.Maybe.zip (decToMaybe (structuralEqualityOnε a x))
+                       (Data.Maybe.zip (decToMaybe (structuralEqualityOnε b y))
+                                       (decToMaybe (structuralEqualityOnε c z)))
+
+      module sumCommCheck where
+        applyEqualities : {x y x' y' : ε} →
+                          x ≡ x' →
+                          y ≡ y' →
+                          AlgebraicEquality (Ap Sum (x ∷ y ∷ []))
+                                            (Ap Sum (y' ∷ x' ∷ []))
+        applyEqualities refl refl = AlgebraicEquality.SumCommutes
+
+        main : Check
+        main {Ap Sum (a ∷ b ∷ [])} {Ap Sum (c ∷ d ∷ [])} =
+          Data.Maybe.map (uncurry applyEqualities) bi-eq
+        main = nothing
+
+      module prodCommCheck where
+        applyEqualities :
+          {x y x' y' : ε} →
+          x ≡ x' →
+          y ≡ y' →
+          AlgebraicEquality (Ap Product (x ∷ y ∷ []))
+                            (Ap Product (y' ∷ x' ∷ []))
+        applyEqualities refl refl = AlgebraicEquality.ProductCommutes
+
+        main : Check
+        main {Ap Product (a ∷ b ∷ [])} {Ap Product (c ∷ d ∷ [])} =
+          Data.Maybe.map (uncurry applyEqualities) bi-eq
+        main = nothing
+
+      module sumAssCheck where
+        applyEqualities :
+          {a b c a' b' c' : ε} →
+          a ≡ a' →
+          b ≡ b' →
+          c ≡ c' →
+          AlgebraicEquality (Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ []))
+                            (Ap Sum (Ap Sum (a' ∷ b' ∷ []) ∷ c' ∷ []))
+        applyEqualities refl refl refl = AlgebraicEquality.SumIsAssociative
+
+        main : Check
+        main {Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ [])}
+             {Ap Sum (Ap Sum (x ∷ y ∷ []) ∷ z ∷ [])} =
+             Data.Maybe.map (λ (a , b , c) → applyEqualities a b c)
+                            (tri-eq {a} {b} {c} {x} {y} {z})
+        main e1@{Ap Sum (Ap Sum (x ∷ y ∷ []) ∷ z ∷ [])}
+             e2@{Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ [])} =
+               Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
+        main = nothing
+
+      module prodAssCheck where
+        applyEqualities :
+          {a b c a' b' c' : ε} →
+          a ≡ a' →
+          b ≡ b' →
+          c ≡ c' →
+          AlgebraicEquality (Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ []))
+                            (Ap Product (Ap Product (a' ∷ b' ∷ []) ∷ c' ∷ []))
+        applyEqualities refl refl refl = AlgebraicEquality.ProductIsAssociative
+
+        main : Check
+        main {Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ [])}
+             {Ap Product (Ap Product (x ∷ y ∷ []) ∷ z ∷ [])} =
+             Data.Maybe.map (λ (a , b , c) → applyEqualities a b c)
+                            (tri-eq {a} {b} {c} {x} {y} {z})
+        main e1@{Ap Product (Ap Product (x ∷ y ∷ []) ∷ z ∷ [])}
+             e2@{Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ [])} =
+               Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
+        main = nothing
+
+      main : Check
+      main =   sumCommCheck.main
+           <∣> prodCommCheck.main
+           <∣> sumAssCheck.main
+           <∣> prodAssCheck.main
+
+    module complexCheck where
+      main : {x y : ε} → ℕ → Exceptional (Maybe (AlgebraicEquality x y))
+      main = {!!}
+
     with-dec : {x y : ε} →
                ℕ →
                Dec (x ≡ y) →
                Exceptional (Maybe (AlgebraicEquality x y))
     with-dec iters = maybe (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE)
-                           {!!}
+                           (maybe′ (inj₂ ∘ just)
+                                   (complexCheck.main iters)
+                                   directCheck.main)
                    ∘ decToMaybe
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
