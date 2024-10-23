@@ -1508,7 +1508,7 @@ record VCAS {a : Level} {ε : Set a} (Cas : CAS ε) : Set a where
       (e : ε) →
       (count : ℕ) →
       IsConstant e →
-      ((Exceptional ε → Set) ∋ λ {(inj₂ x) → IsConstant x ; (inj₁ exc) → ⊤}) (rEvaluate count e)
+      ([_,_] (const ⊤) IsConstant) (rEvaluate count e)
 
     natural-less-than : (m n : ℕ) → m Data.Nat.< n → fromℕ m < fromℕ n
 \end{code}
@@ -2551,7 +2551,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "DERIVATIVE OF X W.R.T. X IS 1"
+          { name = "DERIVATIVE OF X W.R.T. X"
           ; description = just
             "This rule is *also* kind of dubious, but, \
             \again, the behavior is like the behavior of Maxima."
@@ -2563,7 +2563,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "DERIVATIVE OF RATIONAL IS 0"
+          { name = "DERIVATIVE OF RATIONAL"
           ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (NumberRat x ∷ [])) →
@@ -2571,7 +2571,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "DERIVATIVE OF NEGATIVE IS NEGATIVE DERIVATIVE"
+          { name = "DERIVATIVE OF NEGATIVE"
           ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
@@ -2579,7 +2579,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "DERIVATIVE OF SUM IS SUM OF DERIVATIVES"
+          { name = "DERIVATIVE OF SUM"
           ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Sum (x ∷ y ∷ []) ∷ [])) →
@@ -2588,7 +2588,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "PRODUCT RULE FOR DERIVATIVES"
+          { name = "DERIVATIVE OF PRODUCT"
           ; description = nothing
           ; function =
             λ { (Ap (Derivative v1) (Ap Product (x ∷ y ∷ []) ∷ [])) →
@@ -2683,7 +2683,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "LIMIT OF SUM IS SUM OF LIMITS"
+          { name = "LIMIT OF SUM"
           ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ (Ap Sum (x ∷ y ∷ [])) ∷ [])) →
@@ -2691,7 +2691,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "LIMIT OF NEGATED VALUE IS NEGATED LIMIT"
+          { name = "LIMIT OF NEGATED VALUE"
           ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
@@ -2699,7 +2699,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "LIMIT OF QUOTIENT IS QUOTIENT OF LIMITS"
+          { name = "LIMIT OF QUOTIENT"
           ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ Quotient x y coprime ∷ [])) →
@@ -2709,7 +2709,7 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
-          { name = "LIMIT OF PRODUCT IS PRODUCT OF LIMITS"
+          { name = "LIMIT OF PRODUCT"
           ; description = nothing
           ; function =
             λ { (Ap (Limit n) (b ∷ Ap Product (x ∷ y ∷ []) ∷ [])) →
@@ -2759,9 +2759,8 @@ The bogus results may or may not indicate that the input expression is bogus.
       ... | yes eq = [_,_]′ inj₁ (λ xs → inj₂ (x ∷ xs)) (updateFirst xs)
       ... | no neq = [_,_]′ inj₁ (λ x → inj₂ (x ∷ xs)) (main x)
       recurseWithRule : EvaluationRule → EvaluationRule
-      recurseWithRule rule = record
-        { name = EvaluationRule.name rule
-        ; function =
+      recurseWithRule rule = record rule
+        { function =
           λ { (Ap f x) → [_,_] bust (valid ∘ Ap f) (updateFirst x)
             ; _ → nothing}
         }
