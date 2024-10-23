@@ -833,6 +833,44 @@ Just a bit informally, one can say that \AgdaFunction{treeMap-creates-supertree}
         universalProof x AllList.∷ universality-implies-all universalProof {xs}
 \end{code}
 
+\subsubsection{The \AgdaInductiveConstructor{Node} Lookup Proof}
+Basically, \AgdaFunction{node-lookup-is-node} proves that \AgdaFunction{lookupTree} \AgdaSymbol{(}\AgdaInductiveConstructor{Node} \AgdaBound{n}\AgdaSymbol{)} \AgdaBound{l} is \AgdaInductiveConstructor{Node} \AgdaBound{n} for all appropriate \AgdaBound{n} and \AgdaBound{l}.
+
+Determining the origins of ``\AgdaBound{n}'' and ``\AgdaBound{l}'' is left as an exercise for readers who might be entertained by shaken keys.
+
+\begin{code}
+    node-lookup-is-node :
+      {a : Level} →
+      {A : Set a} →
+      ∀ n l → lookupTree {A = A} (Node n) l ≡ Node n
+    node-lookup-is-node node location = refl
+\end{code}
+
+\subsection{The \AgdaInductiveConstructor{nothing} Lookup Proof}
+\AgdaFunction{lookupTree-correctly-handles-nothing} proves that \AgdaFunction{lookupTree} \AgdaBound{t} \AgdaInductiveConstructor{nothing} is \AgdaBound{t} for all relevant \AgdaBound{t}.
+
+\begin{code}
+    lookupTree-correctly-handles-nothing :
+      {a : Level} →
+      {A : Set a} →
+      (node : A) →
+      (trees : List.List (Tree A)) →
+      lookupTree (NodeWithChildren node trees) nothing ≡ NodeWithChildren node trees
+    lookupTree-correctly-handles-nothing node trees = refl
+\end{code}
+
+\AgdaFunction{lookupTree-correctly-recurses}, as mostly indicated by the name, essentially proves that \AgdaFunction{lookupTree} correctly handles recursion when given a \AgdaInductiveConstructor{just} value.
+
+\begin{code}
+    lookupTree-correctly-recurses :
+      {a : Level} →
+      {A : Set a} →
+      ∀ (node : A) treeList location →
+      _≡_ (lookupTree (NodeWithChildren node treeList) (just location))
+          (lookupTree (List.lookup treeList (proj₁ location)) (proj₂ location))
+    lookupTree-correctly-recurses node treeList location = refl
+\end{code}
+
 \section{Exporting Particularly Useful Functions and Such}
 To prevent the excessive use of the relevant name qualifier, the author has chosen to permit the unqualified use of certain \AgdaDatatype{Tree}-related identifiers.
 
