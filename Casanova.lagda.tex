@@ -1144,7 +1144,7 @@ For the purposes of this document, a verified computer algebra system is the com
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a + b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) + \lim_{x \rightarrow y} b\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(- x\right)\) and \(- \lim_{x \rightarrow y} x\),
  \item a proof of the equality between \(\lim_{x \rightarrow y} \left(a \cdot b\right)\) and \(\left(\lim_{x \rightarrow y} a\right) \cdot \lim_{x \rightarrow y} b\),
- \item a proof which indicates that \(f x\) is equal to \(\lim_{y \rightarrow x} \left(f y\right)\) if \(f x\) is non-bogus,
+ \item a proof which indicates that \(f\ x\) is equal to \(\lim_{y \rightarrow x} \left(f\ y\right)\) if \(f\ x\) is non-bogus,
  \item a proof of L'H\^opital's rule,
  \item a proof of the equality between \(x\) and \(- \left(- x\right)\),
  \item a proof which indicates that an evaluated constant is also a constant,
@@ -2668,12 +2668,106 @@ A bit informally, one can say that \AgdaFunction{composition-equality} proves th
 
 \begin{code}
   module checkAlgebraicEquality where
+    module directCheck where
+      Check = {x y : ε} → Maybe (AlgebraicEquality x y)
+
+      bi-eq : {a b c d : ε} → Maybe ((a ≡ d) × (b ≡ c))
+      bi-eq {a} {b} {c} {d} =
+        Data.Maybe.zip (decToMaybe (structuralEqualityOnε a d))
+                       (decToMaybe (structuralEqualityOnε b c))
+
+      tri-eq : {a b c x y z : ε} →
+               Maybe ((a ≡ x) × (b ≡ y) × (c ≡ z))
+      tri-eq {a} {b} {c} {x} {y} {z} =
+        Data.Maybe.zip (decToMaybe (structuralEqualityOnε a x))
+                       (Data.Maybe.zip (decToMaybe (structuralEqualityOnε b y))
+                                       (decToMaybe (structuralEqualityOnε c z)))
+
+      module sumCommCheck where
+        applyEqualities : {x y x' y' : ε} →
+                          x ≡ x' →
+                          y ≡ y' →
+                          AlgebraicEquality (Ap Sum (x ∷ y ∷ []))
+                                            (Ap Sum (y' ∷ x' ∷ []))
+        applyEqualities refl refl = AlgebraicEquality.SumCommutes
+
+        main : Check
+        main {Ap Sum (a ∷ b ∷ [])} {Ap Sum (c ∷ d ∷ [])} =
+          Data.Maybe.map (uncurry applyEqualities) bi-eq
+        main = nothing
+
+      module prodCommCheck where
+        applyEqualities :
+          {x y x' y' : ε} →
+          x ≡ x' →
+          y ≡ y' →
+          AlgebraicEquality (Ap Product (x ∷ y ∷ []))
+                            (Ap Product (y' ∷ x' ∷ []))
+        applyEqualities refl refl = AlgebraicEquality.ProductCommutes
+
+        main : Check
+        main {Ap Product (a ∷ b ∷ [])} {Ap Product (c ∷ d ∷ [])} =
+          Data.Maybe.map (uncurry applyEqualities) bi-eq
+        main = nothing
+
+      module sumAssCheck where
+        applyEqualities :
+          {a b c a' b' c' : ε} →
+          a ≡ a' →
+          b ≡ b' →
+          c ≡ c' →
+          AlgebraicEquality (Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ []))
+                            (Ap Sum (Ap Sum (a' ∷ b' ∷ []) ∷ c' ∷ []))
+        applyEqualities refl refl refl = AlgebraicEquality.SumIsAssociative
+
+        main : Check
+        main {Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ [])}
+             {Ap Sum (Ap Sum (x ∷ y ∷ []) ∷ z ∷ [])} =
+             Data.Maybe.map (λ (a , b , c) → applyEqualities a b c)
+                            (tri-eq {a} {b} {c} {x} {y} {z})
+        main e1@{Ap Sum (Ap Sum (x ∷ y ∷ []) ∷ z ∷ [])}
+             e2@{Ap Sum (a ∷ Ap Sum (b ∷ c ∷ []) ∷ [])} =
+               Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
+        main = nothing
+
+      module prodAssCheck where
+        applyEqualities :
+          {a b c a' b' c' : ε} →
+          a ≡ a' →
+          b ≡ b' →
+          c ≡ c' →
+          AlgebraicEquality (Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ []))
+                            (Ap Product (Ap Product (a' ∷ b' ∷ []) ∷ c' ∷ []))
+        applyEqualities refl refl refl = AlgebraicEquality.ProductIsAssociative
+
+        main : Check
+        main {Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ [])}
+             {Ap Product (Ap Product (x ∷ y ∷ []) ∷ z ∷ [])} =
+             Data.Maybe.map (λ (a , b , c) → applyEqualities a b c)
+                            (tri-eq {a} {b} {c} {x} {y} {z})
+        main e1@{Ap Product (Ap Product (x ∷ y ∷ []) ∷ z ∷ [])}
+             e2@{Ap Product (a ∷ Ap Product (b ∷ c ∷ []) ∷ [])} =
+               Data.Maybe.map AlgebraicEquality.Symmetry (main {e2} {e1})
+        main = nothing
+
+      main : Check
+      main =   sumCommCheck.main
+           <∣> prodCommCheck.main
+           <∣> sumAssCheck.main
+           <∣> prodAssCheck.main
+
+    module complexCheck where
+      main : {x y : ε} → ℕ → Exceptional (Maybe (AlgebraicEquality x y))
+      main = {!!}
+
     with-dec : {x y : ε} →
                ℕ →
                Dec (x ≡ y) →
                Exceptional (Maybe (AlgebraicEquality x y))
     with-dec iters = maybe (inj₂ ∘ just ∘ AlgebraicEquality.EqualityImpliesAE)
-                           {!!}
+                           (maybe′ (inj₂ ∘ just)
+                                   (complexCheck.main iters)
+                                   directCheck.main)
                    ∘ decToMaybe
 
     main : ℕ → (x y : ε) → Exceptional (Maybe (AlgebraicEquality x y))
