@@ -384,8 +384,10 @@ Just a bit informally, one can say that \AgdaFunction{pos-is-posh} proves that i
           (λ noProof → _≡_ (any? (DEQ x1) List.[ x ])
                            (no noProof))
       x1-is-decidably-not-in-[x] =
-        _,_ (AllListProp.All¬⇒¬Any (n AllList.∷ AllList.[]))
-            {!!}
+        _,_ noProof
+            (Relation.Nullary.Decidable.dec-no (any? (DEQ x1) List.[ x ])
+                                               noProof)
+        where noProof = AllListProp.All¬⇒¬Any (((_∘ sym) a) AllList.∷ AllList.[])
 \end{code}
 
 \subsubsection{The Proof of Nothingness's Implication of Uniqueness}
