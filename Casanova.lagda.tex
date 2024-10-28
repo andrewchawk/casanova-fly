@@ -370,7 +370,7 @@ Just a bit informally, one can say that \AgdaFunction{pos-is-posh} proves that i
         ≡⟨ cong (λ e → mapSuc (if isYes e
                                    then just Fin.zero
                                    else mapSuc (posh (x1 List.∷ List.[ x ]) xs1)))
-                x1-is-decidably-not-in-[x] ⟩
+                (proj₂ x1-is-decidably-not-in-[x]) ⟩
       mapSuc (mapSuc (posh (x1 List.∷ List.[ x ]) xs1))
         ≡⟨ cong mapSuc (sym (posh-moves-elements {x} {x1} {xs1} )) ⟩
       mapSuc (posh List.[ x ] xs)
@@ -380,9 +380,12 @@ Just a bit informally, one can say that \AgdaFunction{pos-is-posh} proves that i
       mapSuc : {n : ℕ} → Maybe (Fin n) → Maybe (Fin (ℕ.suc n))
       mapSuc = Data.Maybe.map Fin.suc
       x1-is-decidably-not-in-[x] :
-        _≡_ (any? (DEQ x1) List.[ x ])
-            (no (AllListProp.All¬⇒¬Any ((_∘ sym) a AllList.∷ AllList.[])))
-      x1-is-decidably-not-in-[x] = {!!}
+        Σ (¬ x1 ∈ List.[ x ])
+          (λ noProof → _≡_ (any? (DEQ x1) List.[ x ])
+                           (no noProof))
+      x1-is-decidably-not-in-[x] =
+        _,_ (AllListProp.All¬⇒¬Any (n AllList.∷ AllList.[]))
+            {!!}
 \end{code}
 
 \subsubsection{The Proof of Nothingness's Implication of Uniqueness}
