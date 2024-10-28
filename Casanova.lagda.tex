@@ -1684,6 +1684,13 @@ As indicated by the definition, ``\AgdaBound{x} \AgdaOperator{\AgdaInductiveCons
   pattern _C+_ x y = Ap Sum (x ∷ y ∷ [])
 \end{code}
 
+\subsection{The Negation Pattern}
+\AgdaInductiveConstructor{C-\AgdaUnderscore{}} is a useful pattern for finding the additive inverse of a given expression; for all expressions \AgdaBound{e}, the additive inverse of \AgdaBound{e} exists if and only if \AgdaInductiveConstructor{C-\AgdaUnderscore{}} \AgdaBound{e} represents the additive inverse of the value which is represented by \AgdaBound{e}.
+
+\begin{code}
+  pattern C-_ x = (Ap Negate (x ∷ []))
+\end{code}
+
 \subsection{The Product Pattern}
 As indicated by the following definition, \AgdaBound{x} \AgdaOperator{\AgdaInductiveConstructor{C*}} \AgdaBound{y} is in every way equivalent to the longer ``\AgdaInductiveConstructor{Ap} \AgdaInductiveConstructor{Product} \AgdaSymbol{(} \AgdaBound{x} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaBound{y} \AgdaOperator{\AgdaInductiveConstructor{∷}} \AgdaInductiveConstructor{[]} \AgdaSymbol{)}'', i.e., is Casanova Fly's representation of the product of the values which are represented by \AgdaBound{x} and \AgdaBound{y}.
 
@@ -2529,14 +2536,14 @@ The bogus results may or may not indicate that the input expression is bogus.
           { name = "DOUBLE NEGATION"
           ; description = nothing
           ; function =
-            λ { (Ap Negate (Ap Negate (x ∷ []) ∷ [])) → valid x
+            λ { (C- (C- x)) → valid x
               ; _ → nothing}
           }
       ∷ record
           { name = "RATIONAL NEGATION"
           ; description = nothing
           ; function =
-            λ { (Ap Negate (NumberRat x ∷ [])) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
+            λ { (C- (NumberRat x)) → valid (NumberRat (ℚ.0ℚ ℚ.- x))
               ; _ → nothing}
           }
       ∷ record
@@ -2657,8 +2664,8 @@ The bogus results may or may not indicate that the input expression is bogus.
           { name = "DERIVATIVE OF NEGATIVE"
           ; description = nothing
           ; function =
-            λ { (Ap (Derivative v1) (Ap Negate x ∷ [])) →
-                valid (Ap Negate [ Ap (Derivative v1) x ])
+            λ { (Ap (Derivative v1) (C- x ∷ [])) →
+                valid (C- (Ap (Derivative v1) (x ∷ []) ))
               ; _ → nothing}
           }
       ∷ record
@@ -2696,7 +2703,7 @@ The bogus results may or may not indicate that the input expression is bogus.
           ; function =
             λ { (Ap (Derivative v1) (Ap Cos (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
-                  then valid (Ap Negate [ Ap Sin [ Variable v1 ] ])
+                  then valid (C- (Ap Sin [ Variable v1 ]))
                   else nothing
               ; _ → nothing}
           }
@@ -2718,7 +2725,7 @@ The bogus results may or may not indicate that the input expression is bogus.
                 if v1 Data.String.== v2
                   then valid (_C*_
                                 (Ap Csc [ Variable v1 ])
-                                (Ap Negate [ Ap Cot [ Variable v1 ] ]))
+                                (C- (Ap Cot [ Variable v1 ])))
                   else nothing
               ; _ → nothing}
           }
@@ -2740,10 +2747,10 @@ The bogus results may or may not indicate that the input expression is bogus.
           ; function =
             λ { (Ap (Derivative v1) (Ap Cot (Variable v2 ∷ []) ∷ [])) →
                 if v1 Data.String.== v2
-                  then valid (Ap Negate
-                                 [ Ap Exponent
-                                      ( Ap Csc [ Variable v1 ]
-                                      ∷ [ NumberNat 2 ]) ])
+                  then valid (C-_
+                                (Ap Exponent
+                                    ( Ap Csc [ Variable v1 ]
+                                    ∷ [ NumberNat 2 ])))
                   else nothing
               ; _ → nothing}
           }
@@ -2777,8 +2784,8 @@ The bogus results may or may not indicate that the input expression is bogus.
           { name = "LIMIT OF NEGATED VALUE"
           ; description = nothing
           ; function =
-            λ { (Ap (Limit n) (b ∷ (Ap Negate (x ∷ [])) ∷ [])) →
-                valid (Ap Negate [ Ap (Limit n) (b ∷ [ x ])])
+            λ { (Ap (Limit n) (b ∷ (C- x) ∷ [])) →
+                valid (C- Ap (Limit n) (b ∷ [ x ]))
               ; _ → nothing}
           }
       ∷ record
@@ -3415,7 +3422,7 @@ CasanovaFly-Base = record
   ; fromℕ = NumberNat
   ; variableNamed = Variable
   ; _+_ = _C+_
-  ; _-_ = λ x y → x C+ Ap Negate [ y ]
+  ; _-_ = λ x y → x C+ (C- y)
   ; _*_ = _C*_
   ; _/_ = λ x y → Quotient x y (Coprimality.sym (Coprimality.1-coprimeTo 1))
   ; _^_ = _C^_
