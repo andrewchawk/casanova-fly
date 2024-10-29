@@ -2613,6 +2613,13 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
+          -- The structure of quotients is pretty intricate, so this rule
+          -- takes precedence over the other derivative rules.
+          { name = "QUOTIENT RULE FOR DERIVATIVES"
+          ; description = nothing
+          ; function = basicDerivativeQuotientRuleFunction
+          }
+      ∷ record
           { name = "DERIVATIVE OF X W.R.T. X"
           ; description = just
             "This rule is *also* kind of dubious, but, \
@@ -2862,6 +2869,16 @@ The bogus results may or may not indicate that the input expression is bogus.
             fDiff = Ap (Lambda List.[ n1 ]) ∘ (Ap (Derivative n1) [ Ap f x ] ∷_)
             x2 = Data.Vec.cast (trans fArity1 (sym eq)) x
         b _ = nothing
+      basicDerivativeQuotientRuleFunction : ε → Maybe (Exceptional ε)
+      basicDerivativeQuotientRuleFunction (Ap (Derivative v) (Quotient x y z ∷ [])) =
+        valid (Quotient (Difference (Ap Product (D x ∷ [ y ]))
+                                    (Ap Product (x ∷ [ D y ])))
+                        (Ap Exponent (y ∷ [ NumberNat 2 ]))
+                        (Coprimality.1-coprimeTo _))
+        where
+        Difference = λ x y → Ap Sum (x ∷ [ Ap Negate [ y ] ])
+        D = Ap (Derivative v) ∘ [_]
+      basicDerivativeQuotientRuleFunction x = nothing
 \end{code}
 
 \subsection{Completing the Main Function}
