@@ -2625,6 +2625,20 @@ The bogus results may or may not indicate that the input expression is bogus.
               ; _ → nothing}
           }
       ∷ record
+          { name = "DERIVATIVE OF CONSTANT EXPONENT"
+          ; description = nothing
+          ; function =
+            λ { (Ap (Derivative v1) (Ap Exponent (Variable v2 ∷ c ∷ []) ∷ [])) →
+                if isYes (IsConstant? c) ∧ (v1 Data.String.== v2)
+                   then valid (Ap Product
+                                  ( c
+                                  ∷ [ Ap Exponent
+                                         ( Variable v2
+                                         ∷ [ Ap Sum (c ∷ [ Ap Negate [ NumberNat 1 ] ])])]))
+                   else nothing
+              ; _ → nothing}
+          }
+      ∷ record
           { name = "DERIVATIVE OF RATIONAL"
           ; description = nothing
           ; function =
